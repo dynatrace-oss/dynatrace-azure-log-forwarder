@@ -1,0 +1,363 @@
+[
+  {
+    "resourceType": "Microsoft.Compute/virtualMachineScaleSets",
+    "meType": "AZURE_VM_SCALE_SET"
+  },
+  {
+    "resourceType": "Microsoft.Compute/virtualMachines",
+    "meType": "AZURE_VM"
+  },
+  {
+    "resourceType": "Microsoft.Storage/storageAccounts",
+    "meType": "AZURE_STORAGE_ACCOUNT"
+  },
+  {
+    "resourceType": "Microsoft.Sql/servers",
+    "meType": "AZURE_SQL_SERVER"
+  },
+  {
+    "resourceType": "Microsoft.Sql/servers/databases",
+    "meType": "AZURE_SQL_DATABASE"
+  },
+  {
+    "resourceType": "Microsoft.Sql/servers/elasticpools",
+    "meType": "AZURE_SQL_ELASTIC_POOL"
+  },
+  {
+    "resourceType": "Microsoft.DocumentDb/databaseAccounts",
+    "meType": "AZURE_COSMOS_DB"
+  },
+  {
+    "resourceType": "Microsoft.Network/applicationGateways",
+    "meType": "AZURE_APPLICATION_GATEWAY"
+  },
+  {
+    "resourceType": "Microsoft.Network/LoadBalancers",
+    "meType": "AZURE_LOAD_BALANCER"
+  },
+  {
+    "resourceType": "Microsoft.ApiManagement/service",
+    "meType": "AZURE_API_MANAGEMENT_SERVICE"
+  },
+  {
+    "resourceType": "Microsoft.Cache/Redis",
+    "meType": "AZURE_REDIS_CACHE"
+  },
+  {
+    "resourceType": "Microsoft.ServiceBus/namespaces",
+    "meType": "AZURE_SERVICE_BUS_NAMESPACE"
+  },
+  {
+    "resourceType": "Microsoft.ServiceBus/namespaces/topics",
+    "meType": "AZURE_SERVICE_BUS_TOPIC"
+  },
+  {
+    "resourceType": "Microsoft.ServiceBus/namespaces/queues",
+    "meType": "AZURE_SERVICE_BUS_QUEUE"
+  },
+  {
+    "resourceType": "Microsoft.EventHub/namespaces",
+    "meType": "AZURE_EVENT_HUB_NAMESPACE"
+  },
+  {
+    "resourceType": "Microsoft.EventHub/namespaces/eventhubs",
+    "meType": "AZURE_EVENT_HUB"
+  },
+  {
+    "resourceType": "Microsoft.Devices/IotHubs",
+    "meType": "AZURE_IOT_HUB"
+  },
+  {
+    "resourceType": "Microsoft.Web/sites",
+    "meType": "AZURE_WEB_APP"
+  },
+  {
+    "resourceType": "Microsoft.Web/sites",
+    "category": "FunctionAppLogs",
+    "meType": "AZURE_FUNCTION_APP"
+  },
+  {
+    "resourceType": "Microsoft.AppConfiguration/configurationStores",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.AppPlatform/Spring",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Automation/automationAccounts",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Batch/batchAccounts",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Blockchain/blockchainMembers",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Cdn/cdnwebapplicationfirewallpolicies",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.ClassicCompute/virtualMachines",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.ClassicStorage/storageAccounts",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.CognitiveServices/accounts",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.ContainerInstance/containerGroups",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.ContainerRegistry/registries",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.ContainerService/managedClusters",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DataBoxEdge/dataBoxEdgeDevices",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DataFactory/dataFactories",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DataFactory/factories",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DataLakeAnalytics/accounts",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DataLakeStore/accounts",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DataShare/accounts",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DBforMariaDB/servers",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DBforMySQL/servers",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DBforPostgreSQL/servers",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.DBforPostgreSQL/serversv2",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Devices/provisioningServices",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.EventGrid/domains",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.EventGrid/systemTopics",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.EventGrid/topics",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.EventHub/clusters",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.HDInsight/clusters",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "microsoft.insights/components",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.IoTCentral/IoTApps",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.KeyVault/vaults",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Kusto/Clusters",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Logic/integrationServiceEnvironments",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Logic/workflows",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.MachineLearningServices/workspaces",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Maps/accounts",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Media/mediaservices",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Media/mediaservices/streamingEndpoints",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.MixedReality/remoteRenderingAccounts",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.NetApp/netAppAccounts/capacityPools",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.NetApp/netAppAccounts/capacityPools/volumes",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/azurefirewalls",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/dnszones",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/expressRouteCircuits",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/frontdoors",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/networkInterfaces",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/networkWatchers/connectionMonitors",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/privateDnsZones",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/publicIPAddresses",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/trafficManagerProfiles",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Network/virtualNetworkGateways",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.NotificationHubs/namespaces/notificationHubs",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.OperationalInsights/workspaces",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Peering/peerings",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.PowerBIDedicated/capacities",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Relay/namespaces",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Search/searchServices",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.ServiceFabricMesh/applications",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.SignalRService/SignalR",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Sql/managedInstances",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.storagesync/storageSyncServices",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.StreamAnalytics/streamingjobs",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Synapse/workspaces",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Synapse/workspaces/bigDataPools",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Synapse/workspaces/sqlPools",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.TimeSeriesInsights/environments",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.TimeSeriesInsights/environments/eventsources",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.VMwareCloudSimple/virtualMachines",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Web/hostingEnvironments",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Web/serverfarms",
+    "meType": "CUSTOM_DEVICE"
+  },
+  {
+    "resourceType": "Microsoft.Web/sites/slots",
+    "meType": "CUSTOM_DEVICE"
+  }
+]

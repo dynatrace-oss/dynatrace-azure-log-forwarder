@@ -1,0 +1,66 @@
+[
+  {
+    "resourceId": "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION",
+    "category": "FunctionAppLogs",
+    "operationName": "Microsoft.Web/sites/functions/log",
+    "level": "Informational",
+    "time": "2021-02-04T07: 45: 44.5864815Z",
+    "properties": {
+      "message": "Executed\"Functions.logs_ingest\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms)",
+      "hostVersion": "3.0.15277.0",
+      "functionInvocationId": "26849b40-bba5-41ee-9521-fc3205a39b5e",
+      "functionName": "logs_ingest",
+      "level": "Information",
+      "hostInstanceId": "d7e093b6-a758-43c8-b127-1349c016539e",
+      "category": "Function.logs_ingest"
+    },
+    "EventStampType": "Stamp",
+    "EventPrimaryStampName": "waws-prod-am2-369",
+    "EventStampName": "waws-prod-am2-369",
+    "Host": "lw1sdlwk00000V"
+  },
+  {
+    "resourceId": "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION",
+    "category": "FunctionAppLogs",
+    "operationName": "Microsoft.Web/sites/functions/log",
+    "level": "Warning",
+    "time": "2021-02-04T07:45:44.5864815Z",
+    "properties": "{\"message\":\"Executed\\\"Functions.logs_ingest\\\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms)\",\"hostVersion\":\"3.0.15277.0\",\"functionInvocationId\":\"26849b40-bba5-41ee-9521-fc3205a39b5e\",\"functionName\":\"logs_ingest\",\"level\":\"Information\",\"hostInstanceId\":\"d7e093b6-a758-43c8-b127-1349c016539e\",\"category\":\"Function.logs_ingest\"}",
+    "EventStampType": "Stamp",
+    "EventPrimaryStampName": "waws-prod-am2-369",
+    "EventStampName": "waws-prod-am2-369",
+    "Host": "lw1sdlwk00000V"
+  },
+  {
+    "resourceId": "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION",
+    "category": "FunctionAppLogs",
+    "operationName": "Microsoft.Web/sites/functions/log",
+    "level": "Error",
+    "time": "2021-02-04T07:45:44.5864815Z",
+    "properties": "{\"message\":\"Executed\\\"Functions.logs_ingest\\\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms)\",\"hostVersion\":\"3.0.15277.0\",\"functionInvocationId\":\"26849b40-bba5-41ee-9521-fc3205a39b5e\",\"functionName\":\"logs_ingest\",\"level\":\"Information\",\"hostInstanceId\":\"d7e093b6-a758-43c8-b127-1349c016539e\",\"category\":\"Function.logs_ingest\"}",
+    "EventStampType": "Stamp",
+    "EventPrimaryStampName": "waws-prod-am2-369",
+    "EventStampName": "waws-prod-am2-369",
+    "Host": "lw1sdlwk00000V"
+  },
+  {
+    "resourceId": "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION",
+    "category": "FunctionAppLogs",
+    "operationName": "Microsoft.Web/sites/functions/log",
+    "level": "Critical",
+    "time": "2021-02-04T07:45:44.5864815Z",
+    "properties": {
+      "message": "Executed\"Functions.logs_ingest\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms).Executed\"Functions.logs_ingest\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms).Executed\"Functions.logs_ingest\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms).Executed\"Functions.logs_ingest\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms).Executed\"Functions.logs_ingest\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms).Executed\"Functions.logs_ingest\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms)",
+      "hostVersion": "3.0.15277.0",
+      "functionInvocationId": "26849b40-bba5-41ee-9521-fc3205a39b5e",
+      "functionName": "logs_ingest",
+      "level": "Information",
+      "hostInstanceId": "d7e093b6-a758-43c8-b127-1349c016539e",
+      "category": "Function.logs_ingest"
+    },
+    "EventStampType": "Stamp",
+    "EventPrimaryStampName": "waws-prod-am2-369",
+    "EventStampName": "waws-prod-am2-369",
+    "Host": "lw1sdlwk00000V"
+  }
+]

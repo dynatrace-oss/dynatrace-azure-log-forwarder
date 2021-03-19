@@ -1,0 +1,38 @@
+{
+  "name": "AZURE_EVENT_HUB_NAMESPACE",
+  "displayName": "Azure Event Hub Namespace",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('OperationalLogs')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.EVENTHUB/NAMESPACES')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "cloud.region",
+          "pattern": "Region"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "EventTimeString"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "if(EventName != null, &join(', ', [join(': ', ['EventName', EventName]), EventProperties]), &EventProperties, @)"
+        }
+      ]
+    }
+  ]
+}

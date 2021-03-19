@@ -1,0 +1,70 @@
+{
+  "name": "cloud:azure:containerservice:managedcluster",
+  "displayName": "Azure Kubernetes Service (AKS)",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('kube-controller-manager')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "k8s.pod.name",
+          "pattern": "properties.pod"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties.log"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('kube-audit')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "k8s.pod.name",
+          "pattern": "properties.pod"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties.log"
+        }
+      ]
+    }
+  ]
+}
