@@ -1,0 +1,47 @@
+notifications:
+  email:
+    on_success: never
+stages:
+- tests
+- deployment
+jobs:
+  include:
+    - stage: tests
+      name: Tests & Linting
+      language: python
+      python:
+        - "3.8"
+      install:
+        - pip install -r requirements.txt
+        - pip install -r tests/requirements.txt
+        - pip install pylint==2.7.2
+      addons:
+        apt:
+          packages:
+            - default-jre
+      script:
+        - pylint --rcfile=pylint.cfg ./logs_ingest
+        - pylint --rcfile=pylint.cfg ./tests
+        - pytest tests/unit -v
+        - pytest tests/integration -v
+    - stage: deployment
+      name: Github Release Deployment
+      language: minimal
+      if: $TRAVIS_TAG =~ /^release-.*
+      python:
+        - "3.8"
+      script:
+        - mkdir artifacts
+        - build/buildZip.sh
+        - mv publish.zip "dynatrace-azure-log-forwarder-$TRAVIS_TAG.zip"
+      deploy:
+        provider: releases
+        api_key: $GITHUB_RELEASE_API_KEY
+        file:
+          - "dynatrace-azure-log-forwarder-$TRAVIS_TAG.zip"
+          - ./deployment/dynatrace-azure-forwarder.json
+          - ./deployment/dynatrace-azure-logs.sh
+        skip_cleanup: true
+        on:
+          tags: true
+          condition: $TRAVIS_TAG =~ /^release-.*

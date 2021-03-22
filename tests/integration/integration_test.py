@@ -39,8 +39,8 @@ EVENTS_NUMBER = 5
 
 MonkeyPatchFixture = NewType("MonkeyPatchFixture", Any)
 system_variables = {
-    'DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH': 500,
-    'DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE': FILE_SIZE,
+    'DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH': str(500),
+    'DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE': str(FILE_SIZE),
     'DYNATRACE_URL': 'http://localhost:' + str(MOCKED_API_PORT),
     'DYNATRACE_ACCESS_KEY': ACCESS_KEY,
     'REQUIRE_VALID_CERTIFICATE': 'False'
@@ -180,7 +180,6 @@ def response(status: int, status_message: str):
             headers={'Authorization': {'equalTo': "Api-Token {}".format(ACCESS_KEY)}},
             body_patterns=[
                 {'matchesJsonPath': "$[*]['cloud.provider']"},
-                {'matchesJsonPath': "$[*]['category']"},
                 {'matchesJsonPath': "$[*]['severity']"},
                 {'matchesJsonPath': "$[*]['azure.resource_id']"},
                 {'matchesJsonPath': "$[*]['content']"}

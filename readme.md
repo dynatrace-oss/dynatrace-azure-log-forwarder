@@ -1,4 +1,4 @@
-# azure-log-forwarder
+# Dynatrace Azure Log Forwarder
 ## Overview
 This project provides mechanism that allows to stream Azure logs from Azure Event Hub into Dynatrace Logs via Azure Function App. 
 It supports both: Azure Resource Logs and Azure Activity Logs.
