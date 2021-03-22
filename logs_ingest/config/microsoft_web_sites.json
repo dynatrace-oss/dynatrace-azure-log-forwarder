@@ -1,0 +1,50 @@
+{
+  "name": "AZURE_FUNCTION_APP",
+  "displayName": "Azure Function App",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('FunctionAppLogs')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.WEB/SITES')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "cloud.region",
+          "pattern": "location"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties.message"
+        },
+        {
+          "key": "faas.name",
+          "pattern": "properties.functionName"
+        },
+        {
+          "key": "faas.instance",
+          "pattern": "properties.hostInstanceId"
+        },
+        {
+          "key": "faas.version",
+          "pattern": "properties.hostVersion"
+        }
+      ]
+    }
+  ]
+}

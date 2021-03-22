@@ -1,0 +1,506 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "forwarderName": {
+            "type": "string",
+            "defaultValue": "dyntracelogs",
+            "metadata": {
+                "description": "Dynatrace logs forwarder name"
+            }
+        },
+        "targetUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "Dynatrace destination (ActiveGate) URL"
+            }
+        },
+        "targetPaasToken": {
+            "type": "secureString",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Dynatrace Paas Token"
+            }
+        },
+        "targetAPIToken": {
+            "type": "secureString",
+            "metadata": {
+                "description": "Dynatrace API Token"
+            }
+        },
+        "eventHubConnectionString": {
+            "type": "string",
+            "metadata": {
+                "description": "Event hub connection string"
+            }
+        },
+        "eventHubName": {
+            "type": "string",
+            "metadata": {
+                "description": "Event hub name"
+            }
+        },
+        "deployActiveGateContainer": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Deploy Active Gate"
+            }
+        },
+        "selfMonitoringEnabled": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Should send self monitoring metrics to Azure? true/false"
+            }
+        },
+        "requireValidCertificate": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Should verify Dynatrace Logs Ingest endpoint SSL certificate? true/false"
+            }
+        }
+    },
+    "variables": {
+        "dtHost": "[replace(parameters('targetUrl'),'https://','')]",
+        "registryUser": "[if(contains(variables('dtHost'), '/e/'), last(split(variables('dtHost'), '/e/')), first(split(variables('dtHost'),'.')))]",
+        "image": "[concat(variables('dtHost'),'/linux/activegate:latest')]",
+        "networkProfileName": "[concat(parameters('forwarderName'),'networkProfile')]",
+        "interfaceConfigName": "eth0",
+        "interfaceIpConfig": "ipconfigprofile1",
+        "virtualNetworkName": "[concat(parameters('forwarderName'),'-vnet')]",
+        "functionSubnetName": "functionapp",
+        "containerSubnetName": "aci",
+        "appServicePlan": "[concat(parameters('forwarderName'),'-plan')]",
+        "functionName": "[concat(parameters('forwarderName'),'-function')]",
+        "storageAccountName": "[replace(concat(parameters('forwarderName'),'sa'), '-', '')]",
+        "virtualNetworkId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        "functionSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('functionSubnetName'))]",
+        "containerSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('containerSubnetName'))]",
+        "networkProfileId": "[resourceId('Microsoft.Network/networkProfiles', variables('networkProfileName'))]",
+        "appServicePlanId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlan'))]",
+        "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/VirtualNetworks",
+            "apiVersion": "2019-09-01",
+            "condition": "[parameters('deployActiveGateContainer')]",
+            "name": "[variables('virtualNetworkName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "172.0.0.0/22"
+                    ]
+                }
+            }
+        },
+        {
+            "apiVersion": "2019-06-01",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "condition": "[parameters('deployActiveGateContainer')]",
+            "dependsOn": [
+                "[variables('virtualNetworkId')]"
+            ],
+            "name": "[concat(variables('virtualNetworkName'), '/', variables('functionSubnetName'))]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressPrefix": "172.0.1.0/24",
+                "serviceEndpoints": [
+                    {
+                        "service": "Microsoft.Storage"
+                    }
+                ],
+                "delegations": [
+                    {
+                        "name": "app-service-delegation",
+                        "properties": {
+                            "serviceName": "Microsoft.Web/serverFarms"
+                        }
+                    }
+                ],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "apiVersion": "2019-06-01",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "condition": "[parameters('deployActiveGateContainer')]",
+            "dependsOn": [
+                "[variables('virtualNetworkId')]",
+                "[variables('functionSubnetId')]"
+            ],
+            "name": "[concat(variables('virtualNetworkName'), '/', variables('containerSubnetName'))]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressPrefix": "172.0.0.0/24",
+                "delegations": [
+                    {
+                        "name": "private-subnet-delegation",
+                        "properties": {
+                            "serviceName": "Microsoft.ContainerInstance/containerGroups"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('networkProfileName')]",
+            "type": "Microsoft.Network/networkProfiles",
+            "condition": "[parameters('deployActiveGateContainer')]",
+            "dependsOn": [ "[variables('containerSubnetId')]" ],
+            "apiVersion": "2020-05-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "containerNetworkInterfaceConfigurations": [
+                    {
+                        "name": "[variables('interfaceConfigName')]",
+                        "properties": {
+                            "ipConfigurations": [
+                                {
+                                    "name": "[variables('interfaceIpConfig')]",
+                                    "properties": {
+                                        "subnet": {
+                                            "id": "[variables('containerSubnetId')]"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2019-12-01",
+            "dependsOn": [ "[variables('networkProfileId')]" ],
+            "condition": "[parameters('deployActiveGateContainer')]",
+            "name": "[parameters('forwarderName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "sku": "Standard",
+                "networkProfile": {
+                    "id": "[variables('networkProfileId')]"
+
+                },
+                "containers": [
+                    {
+                        "name": "[parameters('forwarderName')]",
+
+                        "properties": {
+                            "image": "[variables('image')]",
+                            "ports": [
+                                {
+                                    "port": 9999,
+                                    "protocol": "TCP"
+                                }
+                            ],
+                            "environmentVariables": [
+                                {
+                                    "name": "DT_CAPABILITIES",
+                                    "value": "log_analytics_collector,restInterface"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1,
+                                    "cpu": 1
+                                }
+
+                            }
+                        }
+                    }
+                ],
+                "imageRegistryCredentials": [
+                    {
+                        "server": "[variables('dtHost')]",
+                        "username": "[variables('registryUser')]",
+                        "password": "[parameters('targetPaasToken')]"
+                    }
+                ],
+                "restartPolicy": "Always",
+                "osType": "Linux"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[variables('storageAccountName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('functionSubnetId')]"
+            ],
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "properties": {
+                "minimumTlsVersion": "TLS1_2",
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": "[if(parameters('deployActiveGateContainer'), json(concat('[{ \"id\": \"', variables('functionSubnetId'), '\" }]')), json('null'))]",
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(variables('storageAccountName'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                },
+                "deleteRetentionPolicy": {
+                    "enabled": false
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[variables('appServicePlan')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "S1",
+                "tier": "Standard",
+                "size": "S1",
+                "family": "S",
+                "capacity": 1
+            },
+            "kind": "Linux",
+            "properties": {
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": true,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[variables('functionName')]",
+            "dependsOn": [
+                "[variables('appServicePlanId')]",
+                "[variables('functionSubnetId')]"
+            ],
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp,linux",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('functionName'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('functionName'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('appServicePlanId')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "python"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "DYNATRACE_URL",
+                            "value": "[if(parameters('deployActiveGateContainer'), concat('https://172.0.0.4:9999/e/', variables('registryUser')), parameters('targetUrl'))]"
+                        },
+                        {
+                            "name": "DYNATRACE_ACCESS_KEY",
+                            "value": "[parameters('targetAPIToken')]"
+                        },
+                        {
+                            "name": "EVENTHUB_CONNECTION_STRING",
+                            "value": "[parameters('eventHubConnectionString')]"
+                        },
+                        {
+                            "name": "EVENTHUB_NAME",
+                            "value": "[parameters('eventHubName')]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
+                        },
+                        {
+                            "name": "REQUIRE_VALID_CERTIFICATE",
+                            "value": "[parameters('requireValidCertificate')]"
+                        },
+                        {
+                            "name": "SELF_MONITORING_ENABLED",
+                            "value": "[parameters('selfMonitoringEnabled')]"
+                        },
+                        {
+                            "name": "RESOURCE_ID",
+                            "value": "[resourceId('Microsoft.Web/sites', variables('functionName'))]"
+                        },
+                        {
+                            "name": "REGION",
+                            "value": "[resourceGroup().location]"
+                        },                        
+                        {
+                            "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+                            "value": "true"
+                        }
+                    ]
+
+
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None"
+            },
+            "resources": [
+                {
+                    // vnet integration for linux function: https://github.com/MicrosoftDocs/azure-docs/issues/43302#issuecomment-578157842
+                    "name": "virtualNetwork",
+                    "type": "config",
+                    "apiVersion": "2018-02-01",
+                    "condition": "[parameters('deployActiveGateContainer')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[variables('functionAppId')]",
+                        "[variables('functionSubnetId')]"
+                    ],
+                    "properties": {
+                        "subnetResourceId": "[variables('functionSubnetId')]",
+                        "swiftSupported": true
+                    }
+                },
+                {
+                    "type": "Microsoft.Web/sites/config",
+                    "apiVersion": "2018-11-01",
+                    "name": "[concat(variables('functionName'), '/web')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('functionName'))]"
+                    ],
+                    "properties": {
+                        "numberOfWorkers": 1,
+                        "netFrameworkVersion": "v4.0",
+                        "requestTracingEnabled": false,
+                        "remoteDebuggingEnabled": false,
+                        "httpLoggingEnabled": false,
+                        "logsDirectorySizeLimit": 35,
+                        "detailedErrorLoggingEnabled": false,
+                        "azureStorageAccounts": {},
+                        "scmType": "None",
+                        "use32BitWorkerProcess": true,
+                        "webSocketsEnabled": false,
+                        "alwaysOn": true,
+                        "managedPipelineMode": "Integrated",
+                        "swiftSupported": true,
+                        "linuxFxVersion": "Python|3.8"
+                    }
+                },
+                {
+                    "type": "Microsoft.Web/sites/hostNameBindings",
+                    "apiVersion": "2018-11-01",
+                    "name": "[concat(variables('functionName'), '/', variables('functionName'), '.azurewebsites.net')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[variables('functionAppId')]"
+                    ],
+                    "properties": {
+                        "siteName": "[variables('functionName')]",
+                        "hostNameType": "Verified"
+                    }
+                },
+                {
+                    "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                    "apiVersion": "2020-08-01-preview",
+                    "name": "[concat(variables('storageAccountName'), '/default/azure-webjobs-eventhub')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                        "[variables('functionAppId')]"
+                    ],
+                    "properties": {
+                        "defaultEncryptionScope": "$account-encryption-key",
+                        "denyEncryptionScopeOverride": false,
+                        "publicAccess": "None"
+                    }
+                },
+                {
+                    "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                    "apiVersion": "2020-08-01-preview",
+                    "name": "[concat(variables('storageAccountName'), '/default/azure-webjobs-hosts')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                        "[variables('functionAppId')]"
+                    ],
+                    "properties": {
+                        "defaultEncryptionScope": "$account-encryption-key",
+                        "denyEncryptionScopeOverride": false,
+                        "publicAccess": "None"
+                    }
+                },
+                {
+                    "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                    "apiVersion": "2020-08-01-preview",
+                    "name": "[concat(variables('storageAccountName'), '/default/azure-webjobs-secrets')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                        "[variables('functionAppId')]"
+                    ],
+                    "properties": {
+                        "defaultEncryptionScope": "$account-encryption-key",
+                        "denyEncryptionScopeOverride": false,
+                        "publicAccess": "None"
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+    }
+}

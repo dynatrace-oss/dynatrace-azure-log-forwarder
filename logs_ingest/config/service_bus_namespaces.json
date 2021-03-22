@@ -1,0 +1,34 @@
+{
+  "name": "AZURE_SERVICE_BUS_NAMESPACE",
+  "displayName": "Azure Service Bus Namespace",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('OperationalLogs')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.SERVICEBUS/NAMESPACES')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "EventTimeString"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "if(EventName != null, &join(', ', [join(': ', ['EventName', EventName]), EventProperties]), &EventProperties, @)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "default",
+  "displayName": "Default",
+  "rules": [
+    {
+      "sources": [],
+      "attributes": [
+        {
+          "key": "cloud.region",
+          "pattern": "location"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "if(properties.eventCategory == null, &category, &(join('', ['Activity Log - ', category])), @)"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        }
+      ]
+    }
+  ]
+}

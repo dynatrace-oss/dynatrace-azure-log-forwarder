@@ -1,0 +1,75 @@
+{
+  "name": "cloud:azure:activity_log",
+  "displayName": "Azure Activity Log",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('Alert')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "join('', ['Activity Log - ', category])"
+        },
+        {
+          "key": "content",
+          "pattern": "resultDescription"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('Administrative')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "join('', ['Activity Log - ', category])"
+        },
+        {
+          "key": "content",
+          "pattern": "if(properties.statusMessage == null, &properties.message, &properties.statusMessage, @)"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('ResourceHealth')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "join('', ['Activity Log - ', category])"
+        },
+        {
+          "key": "content",
+          "pattern": "properties.eventProperties"
+        }
+      ]
+    }
+  ]
+}

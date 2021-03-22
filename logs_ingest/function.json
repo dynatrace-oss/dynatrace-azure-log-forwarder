@@ -1,0 +1,21 @@
+{
+  "scriptFile": "main.py",
+  "bindings": [
+    {
+      "type": "eventHubTrigger",
+      "name": "events",
+      "direction": "in",
+      "eventHubName": "%EVENTHUB_NAME%",
+      "connection": "EVENTHUB_CONNECTION_STRING",
+      "cardinality": "many",
+      "consumerGroup": "$Default",
+      "dataType": "binary"
+    }
+  ],
+  "retry": {
+    "strategy": "exponentialBackoff",
+    "maxRetryCount": 5,
+    "minimumInterval": "00:00:10",
+    "maximumInterval": "00:05:00"
+  }
+}

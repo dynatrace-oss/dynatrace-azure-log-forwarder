@@ -1,0 +1,74 @@
+{
+  "name": "AZURE_API_MANAGEMENT_SERVICE",
+  "displayName": "Azure API Management Service",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('GatewayLogs')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.APIMANAGEMENT/SERVICE')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "cloud.region",
+          "pattern": "location"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "dt.logpath",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "http.client_ip",
+          "pattern": "callerIpAddress"
+        },
+        {
+          "key": "http.flavor",
+          "pattern": "properties.clientProtocol"
+        },
+        {
+          "key": "http.method",
+          "pattern": "properties.method"
+        },
+        {
+          "key": "http.scheme",
+          "pattern": "replace_regex(properties.url,'([^\\/]+)://([^\\/]+)(.+)','$1')"
+        },
+        {
+          "key": "http.host",
+          "pattern": "replace_regex(properties.url,'([^\\/]+)://([^\\/]+)(.+)','$2')"
+        },
+        {
+          "key": "http.route",
+          "pattern": "replace_regex(properties.url,'([^\\/]+)://([^\\/]+)(.+)','$3')"
+        },
+        {
+          "key": "http.status_code",
+          "pattern": "to_string(properties.responseCode)"
+        },
+        {
+          "key": "http.target",
+          "pattern": "properties.url"
+        },
+        {
+          "key": "http.url",
+          "pattern": "properties.url"
+        }
+      ]
+    }
+  ]
+}

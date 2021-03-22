@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/azure-functions/python:3.0-python3.8
+
+ARG pypi_org_cache_repo=https://artifactory.lab.dynatrace.org/artifactory/api/pypi/pypi-org/simple
+
+SHELL ["/bin/bash", "-c"]
+
+USER root
+
+COPY dynatrace-azure-logs-ingest/tests/requirements.txt /home/labuser/pip/requirements-tests.txt
+COPY dynatrace-azure-logs-ingest/requirements.txt /home/labuser/pip/requirements.txt
+
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && pip3 install pylint -r /home/labuser/pip/requirements-tests.txt -r /home/labuser/pip/requirements.txt -i $pypi_org_cache_repo
+
+
+    
