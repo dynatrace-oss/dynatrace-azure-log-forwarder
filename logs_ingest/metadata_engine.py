@@ -56,7 +56,7 @@ class SourceMatcher:
     def __init__(self, source: str, condition: str):
         self.source = source
         self.condition = condition
-        for key in _CONDITION_COMPARATOR_MAP.keys():
+        for key in _CONDITION_COMPARATOR_MAP:
             if condition.startswith(key):
                 self._evaluator = _CONDITION_COMPARATOR_MAP[key]
                 break
@@ -124,11 +124,11 @@ class MetadataEngine:
             if self.default_rule:
                 _apply_rule(self.default_rule, record, parsed_record)
         except Exception:
-            logging.exception(f"Encountered exception when running Rule Engine")
+            logging.exception("Encountered exception when running Rule Engine")
 
 
 def _check_if_rule_applies(rule: ConfigRule, record: Dict, parsed_record: Dict):
-    return all([matcher.match(record, parsed_record) for matcher in rule.source_matchers])
+    return all(matcher.match(record, parsed_record) for matcher in rule.source_matchers)
 
 
 def _apply_rule(rule, record, parsed_record):

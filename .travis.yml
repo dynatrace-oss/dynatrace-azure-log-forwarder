@@ -21,7 +21,7 @@ jobs:
             - default-jre
       script:
         - pylint --rcfile=pylint.cfg ./logs_ingest
-        - pylint --rcfile=pylint.cfg ./tests
+        - pylint --rcfile=pylint-tests.cfg ./tests
         - pytest tests/unit -v
         - pytest tests/integration -v
     - stage: deployment

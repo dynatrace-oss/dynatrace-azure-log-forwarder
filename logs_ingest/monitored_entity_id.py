@@ -19,7 +19,7 @@ from typing import Dict
 
 from logs_ingest.mapping import dt_me_type_mapper, RESOURCE_TYPE_ATTRIBUTE, RESOURCE_ID_ATTRIBUTE
 
-int64 = ctypes.c_int64
+int64 = ctypes.c_int64 # pylint: disable=C0103
 
 CUSTOM_DEVICE_ENTITY_TYPE = "CUSTOM_DEVICE"
 MIN_RESOURCE_TYPE_LENGTH = 2
@@ -71,6 +71,7 @@ def _zfrs(num, shift):
 
 
 def _murmurhash2_64A(data: bytes, seed=0xe17a1465):
+    # pylint: disable=C0103
     buf = bytearray(data)
     m = int64(0xc6a4a7935bd1e995).value
     r = 47

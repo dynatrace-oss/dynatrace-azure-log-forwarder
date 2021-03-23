@@ -54,29 +54,28 @@ system_variables = {
 @pytest.fixture(scope="session", autouse=True)
 def setup_wiremock():
     # setup WireMock server
-    wm = WireMockServer(port=MOCKED_API_PORT)
-    wm.start()
+    wiremock = WireMockServer(port=MOCKED_API_PORT)
+    wiremock.start()
     Config.base_url = 'http://localhost:{}/__admin'.format(MOCKED_API_PORT)
 
     # run test
     yield
 
     # stop WireMock server
-    wm.stop()
+    wiremock.stop()
 
 
 @pytest.fixture(scope="module")
 def init_events():
-    with open(EVENTS_PATH) as f:
-        records = json.load(f)
+    with open(EVENTS_PATH) as file:
+        records = json.load(file)
         current_datetime = datetime.utcnow()
         old_datetime = datetime.fromtimestamp(1615806000) #15.03.2021 11:00
         timestamp = current_datetime.replace(microsecond=0).isoformat() + "Z"
         for record in records[2:]:
             record["time"] = timestamp
-        events = []
-        events.append(EventHubEvent(body=json.dumps({"records": records}).encode('utf-8'), enqueued_time=old_datetime))
-        for i in range(1, EVENTS_NUMBER):
+        events = [EventHubEvent(body=json.dumps({"records": records}).encode('utf-8'), enqueued_time=old_datetime)]
+        for _ in range(1, EVENTS_NUMBER):
             events.append(EventHubEvent(body=json.dumps({"records": records}).encode('utf-8'), enqueued_time=current_datetime))
         return events
 

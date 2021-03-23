@@ -89,4 +89,7 @@ def extract_severity(record: Dict, parsed_record: Dict):
 
 
 def map_to_severity(record: Dict, parsed_record: Dict, level_property: str):
-    parsed_record["severity"] = log_level_to_severity_dict.get(record[level_property], "") if type(record[level_property]) == int else record[level_property]
+    if isinstance(record[level_property], int):
+        parsed_record["severity"] = log_level_to_severity_dict.get(record[level_property], "")
+    else:
+        parsed_record["severity"] = record[level_property]
