@@ -107,6 +107,7 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
 
     assert int(sent_requests.get('meta').get('total')) == EVENTS_NUMBER - 2 # rejected 8 too old logs (4 records = 1 event)
     for request in sent_requests.get('requests'):
+        assert_correct_body_structure(request)
         assert request.get('responseDefinition').get('status') == 200
 
     assert self_monitoring.too_old_records == 5
@@ -133,6 +134,7 @@ def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_m
 
     assert int(sent_requests.get('meta').get('total')) == EVENTS_NUMBER - 2
     for request in sent_requests.get('requests'):
+        assert_correct_body_structure(request)
         assert request.get('responseDefinition').get('status') == 401
 
     assert self_monitoring.too_old_records == 5
@@ -160,6 +162,7 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
 
     assert int(sent_requests.get('meta').get('total')) == 1
     for request in sent_requests.get('requests'):
+        assert_correct_body_structure(request)
         assert request.get('responseDefinition').get('status') == 500
 
     assert self_monitoring.too_old_records == 5
@@ -177,12 +180,6 @@ def response(status: int, status_message: str):
             method=HttpMethods.POST,
             url='/api/v2/logs/ingest',
             headers={'Authorization': {'equalTo': "Api-Token {}".format(ACCESS_KEY)}},
-            body_patterns=[
-                {'matchesJsonPath': "$[*]['cloud.provider']"},
-                {'matchesJsonPath': "$[*]['severity']"},
-                {'matchesJsonPath': "$[*]['azure.resource_id']"},
-                {'matchesJsonPath': "$[*]['content']"}
-            ]
         ),
         response=MappingResponse(
             status=status,
@@ -190,3 +187,15 @@ def response(status: int, status_message: str):
         ),
         persistent=False
     ))
+
+
+def assert_correct_body_structure(request):
+    request_body = request.get("request", {}).get("body", None)
+    assert request_body
+    request_data = json.loads(request_body)
+
+    for record in request_data:
+        assert 'cloud.provider' in record
+        assert 'severity' in record
+        assert 'azure.resource_id' in record
+        assert 'content' in record
