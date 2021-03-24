@@ -80,7 +80,8 @@
         "containerSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('containerSubnetName'))]",
         "networkProfileId": "[resourceId('Microsoft.Network/networkProfiles', variables('networkProfileName'))]",
         "appServicePlanId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlan'))]",
-        "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionName'))]"
+        "functionAppId": "[resourceId('Microsoft.Web/sites', variables('functionName'))]",
+        "activeGateId": "[concat(parameters('forwarderName'),'-',resourceGroup().name,'-',subscription().subscriptionId)]"
     },
     "resources": [
         {
@@ -202,7 +203,11 @@
                             "environmentVariables": [
                                 {
                                     "name": "DT_CAPABILITIES",
-                                    "value": "log_analytics_collector,restInterface"
+                                    "value": "log_analytics_collector"
+                                },
+                                {
+                                    "name": "DT_ID_SEED_RESOURCE_NAME",
+                                    "value": "[variables('activeGateId')]"
                                 }
                             ],
                             "resources": {
