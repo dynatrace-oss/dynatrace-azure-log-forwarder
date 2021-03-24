@@ -200,7 +200,7 @@ else
     fi
 
 
-    echo "Function will be deployed into active subscripton:"
+    echo "Function will be deployed into active subscription:"
     az account list -o table | grep 'Enabled  True'
     if [[ $? != 0 ]]
     then
@@ -244,7 +244,7 @@ else
         DEPLOY_ACTIVEGATE=false
         ;;
     *)
-        echo "DEPLOY_ACTIVEGATE - unexepected option value"
+        echo "DEPLOY_ACTIVEGATE - unexpected option value"
         exit 1
         ;;
     esac
@@ -289,7 +289,7 @@ else
         REQUIRE_VALID_CERTIFICATE=false
         ;;
     *)
-        echo "REQUIRE_VALID_CERTIFICATE - unexepected option value"
+        echo "REQUIRE_VALID_CERTIFICATE - unexpected option value"
         exit 1
         ;;
     esac
@@ -316,7 +316,7 @@ else
         SFM_ENABLED=false
         ;;
     *)
-        echo "SFM_ENABLED - unexepected option value"
+        echo "SFM_ENABLED - unexpected option value"
         exit 1
         ;;
     esac
