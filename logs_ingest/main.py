@@ -61,7 +61,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
                         process_record(dt_payload, record, self_monitoring)
                     except Exception:
                         self_monitoring.parsing_errors += 1
-                        logging.exception(f"Failed to parse log record")
+                        logging.exception("Failed to parse log record")
 
         self_monitoring.processing_time = time.time() - start_time
         logging.info(f"Successfully parsed {len(dt_payload)} log records")
@@ -98,14 +98,13 @@ def is_too_old(timestamp: str, self_monitoring: SelfMonitoring, log_part: str):
             # Not much we can do when we can't parse the timestamp
             logging.debug(f"Failed to parse timestamp {timestamp}")
             self_monitoring.parsing_errors += 1
-            pass
     return False
 
 
 def deserialize_properties(record: Dict):
     properties_name = next((properties for properties in azure_properties_names if properties in record.keys()), "")
     properties = record.get(properties_name, {})
-    if properties and type(properties) is str:
+    if properties and isinstance(properties, str):
         record["properties"] = json.loads(properties)
 
 

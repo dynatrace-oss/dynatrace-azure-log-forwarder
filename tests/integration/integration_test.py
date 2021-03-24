@@ -39,8 +39,8 @@ EVENTS_NUMBER = 5
 
 MonkeyPatchFixture = NewType("MonkeyPatchFixture", Any)
 system_variables = {
-    'DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH': 500,
-    'DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE': FILE_SIZE,
+    'DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH': str(500),
+    'DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE': str(FILE_SIZE),
     'DYNATRACE_URL': 'http://localhost:' + str(MOCKED_API_PORT),
     'DYNATRACE_ACCESS_KEY': ACCESS_KEY,
     'REQUIRE_VALID_CERTIFICATE': 'False'
@@ -54,29 +54,28 @@ system_variables = {
 @pytest.fixture(scope="session", autouse=True)
 def setup_wiremock():
     # setup WireMock server
-    wm = WireMockServer(port=MOCKED_API_PORT)
-    wm.start()
+    wiremock = WireMockServer(port=MOCKED_API_PORT)
+    wiremock.start()
     Config.base_url = 'http://localhost:{}/__admin'.format(MOCKED_API_PORT)
 
     # run test
     yield
 
     # stop WireMock server
-    wm.stop()
+    wiremock.stop()
 
 
 @pytest.fixture(scope="module")
 def init_events():
-    with open(EVENTS_PATH) as f:
-        records = json.load(f)
+    with open(EVENTS_PATH) as file:
+        records = json.load(file)
         current_datetime = datetime.utcnow()
         old_datetime = datetime.fromtimestamp(1615806000) #15.03.2021 11:00
         timestamp = current_datetime.replace(microsecond=0).isoformat() + "Z"
         for record in records[2:]:
             record["time"] = timestamp
-        events = []
-        events.append(EventHubEvent(body=json.dumps({"records": records}).encode('utf-8'), enqueued_time=old_datetime))
-        for i in range(1, EVENTS_NUMBER):
+        events = [EventHubEvent(body=json.dumps({"records": records}).encode('utf-8'), enqueued_time=old_datetime)]
+        for _ in range(1, EVENTS_NUMBER):
             events.append(EventHubEvent(body=json.dumps({"records": records}).encode('utf-8'), enqueued_time=current_datetime))
         return events
 
@@ -108,6 +107,7 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
 
     assert int(sent_requests.get('meta').get('total')) == EVENTS_NUMBER - 2 # rejected 8 too old logs (4 records = 1 event)
     for request in sent_requests.get('requests'):
+        assert_correct_body_structure(request)
         assert request.get('responseDefinition').get('status') == 200
 
     assert self_monitoring.too_old_records == 5
@@ -134,6 +134,7 @@ def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_m
 
     assert int(sent_requests.get('meta').get('total')) == EVENTS_NUMBER - 2
     for request in sent_requests.get('requests'):
+        assert_correct_body_structure(request)
         assert request.get('responseDefinition').get('status') == 401
 
     assert self_monitoring.too_old_records == 5
@@ -161,6 +162,7 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
 
     assert int(sent_requests.get('meta').get('total')) == 1
     for request in sent_requests.get('requests'):
+        assert_correct_body_structure(request)
         assert request.get('responseDefinition').get('status') == 500
 
     assert self_monitoring.too_old_records == 5
@@ -178,13 +180,6 @@ def response(status: int, status_message: str):
             method=HttpMethods.POST,
             url='/api/v2/logs/ingest',
             headers={'Authorization': {'equalTo': "Api-Token {}".format(ACCESS_KEY)}},
-            body_patterns=[
-                {'matchesJsonPath': "$[*]['cloud.provider']"},
-                {'matchesJsonPath': "$[*]['category']"},
-                {'matchesJsonPath': "$[*]['severity']"},
-                {'matchesJsonPath': "$[*]['azure.resource_id']"},
-                {'matchesJsonPath': "$[*]['content']"}
-            ]
         ),
         response=MappingResponse(
             status=status,
@@ -192,3 +187,15 @@ def response(status: int, status_message: str):
         ),
         persistent=False
     ))
+
+
+def assert_correct_body_structure(request):
+    request_body = request.get("request", {}).get("body", None)
+    assert request_body
+    request_data = json.loads(request_body)
+
+    for record in request_data:
+        assert 'cloud.provider' in record
+        assert 'severity' in record
+        assert 'azure.resource_id' in record
+        assert 'content' in record

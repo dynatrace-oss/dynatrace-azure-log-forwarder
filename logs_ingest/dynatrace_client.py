@@ -34,6 +34,7 @@ if not should_verify_ssl_certificate:
 
 
 def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
+    # pylint: disable=R0912
     start_time = time.time()
     log_ingest_url = urlparse(dynatrace_url + "/api/v2/logs/ingest").geturl()
     batches = prepare_serialized_batches(logs)
@@ -62,9 +63,9 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
                     self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.ExpiredToken)
                 elif status == 403:
                     self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongToken)
-                elif status == 404 or status == 405:
+                elif status in (404, 405):
                     self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongURL)
-                elif status == 413 or status == 429:
+                elif status in (413, 429):
                     self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.TooManyRequests)
                     raise HTTPError(log_ingest_url, 429, "Dynatrace throttling response", "", "")
                 elif status == 500:
@@ -72,11 +73,11 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
                     raise HTTPError(log_ingest_url, 500, "Dynatrace server error", "", "")
             else:
                 self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
-                logging.info(f"Log ingest payload pushed successfully")
+                logging.info("Log ingest payload pushed successfully")
         except HTTPError as e:
             raise e
         except Exception as e:
-            logging.exception(f"Failed to ingest logs")
+            logging.exception("Failed to ingest logs")
             self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
             number_of_http_errors += 1
             # all http requests failed and this is the last batch, raise this exception to trigger retry

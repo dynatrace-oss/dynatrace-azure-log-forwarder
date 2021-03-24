@@ -1,0 +1,50 @@
+language: shell
+notifications:
+  email:
+    on_success: never
+stages:
+- tests
+- deployment
+env:
+  global:
+    - RELEASE_REPO_TO_FIND="https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/"
+    - RELEASE_REPO_TO_REPLACE="https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/$TRAVIS_TAG/"
+jobs:
+  include:
+    - stage: tests
+      name: Tests & Linting
+      language: python
+      python:
+        - "3.8"
+      install:
+        - pip install -r requirements.txt
+        - pip install -r tests/requirements.txt
+        - pip install pylint==2.7.2
+      addons:
+        apt:
+          packages:
+            - default-jre
+      script:
+        - pylint --rcfile=pylint.cfg ./logs_ingest
+        - pylint --rcfile=pylint-tests.cfg ./tests
+        - pytest tests/unit -v
+        - pytest tests/integration -v
+    - stage: deployment
+      name: Github Release Deployment
+      if: tag =~ /^release.*$/
+      language: shell
+      before_deploy:
+        - chmod +x buildZip.sh
+        - ./buildZip.sh
+        - mv publish.zip dynatrace-azure-log-forwarder.zip
+        - sed -i -e "s@$RELEASE_REPO_TO_FIND@$RELEASE_REPO_TO_REPLACE@g" ./deployment/dynatrace-azure-logs.sh
+      deploy:
+        provider: releases
+        api_key: $GITHUB_RELEASE_API_KEY
+        file:
+          - ./dynatrace-azure-log-forwarder.zip
+          - ./deployment/dynatrace-azure-forwarder.json
+          - ./deployment/dynatrace-azure-logs.sh
+        skip_cleanup: true
+        on:
+          tags: true

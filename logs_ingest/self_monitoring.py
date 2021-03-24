@@ -155,10 +155,10 @@ class SelfMonitoring:
 
 
 class DynatraceConnectivity(enum.Enum):
-    Ok = 0,
-    ExpiredToken = 1,
-    WrongToken = 2,
-    WrongURL = 3,
-    InvalidInput = 4,
-    TooManyRequests = 5,
+    Ok = 0
+    ExpiredToken = 1
+    WrongToken = 2
+    WrongURL = 3
+    InvalidInput = 4
+    TooManyRequests = 5
     Other = 6
