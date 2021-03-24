@@ -8,5 +8,5 @@ then
 fi
 
 rm -f "$publish_archive"
-
+sh version.sh
 zip -rq "$publish_archive" logs_ingest requirements.txt host.json
