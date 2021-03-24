@@ -35,6 +35,7 @@ jobs:
       language: shell
       before_deploy:
         - chmod +x buildZip.sh
+        - chmod +x version.sh
         - ./buildZip.sh
         - mv publish.zip dynatrace-azure-log-forwarder.zip
         - sed -i -e "s@$RELEASE_REPO_TO_FIND@$RELEASE_REPO_TO_REPLACE@g" ./deployment/dynatrace-azure-logs.sh
