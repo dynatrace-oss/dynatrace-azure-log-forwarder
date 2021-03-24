@@ -30,7 +30,7 @@ fi
 if [ -n "$version" ]
 then
     echo "Writing version $version..."
-    echo "$version" > ./logs_ingest/version.txt
+    printf "%s" "$version" > ./logs_ingest/version.txt
 else 
     echo "WARN Unknown version, version not updated"
 fi
