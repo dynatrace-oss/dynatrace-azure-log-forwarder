@@ -18,11 +18,11 @@ from typing import Dict
 
 from . import logging
 
-RESOURCE_ID_ATTRIBUTE = "azure.resource_id"
+RESOURCE_ID_ATTRIBUTE = "azure.resource.id"
 SUBSCRIPTION_ATTRIBUTE = "azure.subscription"
-RESOURCE_GROUP_ATTRIBUTE = "azure.resource_group"
-RESOURCE_TYPE_ATTRIBUTE = "azure.resource_type"
-RESOURCE_NAME_ATTRIBUTE = "azure.resource_name"
+RESOURCE_GROUP_ATTRIBUTE = "azure.resource.group"
+RESOURCE_TYPE_ATTRIBUTE = "azure.resource.type"
+RESOURCE_NAME_ATTRIBUTE = "azure.resource.name"
 
 log_level_to_severity_dict = {
     1: 'Critical',
