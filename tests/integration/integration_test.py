@@ -197,5 +197,5 @@ def assert_correct_body_structure(request):
     for record in request_data:
         assert 'cloud.provider' in record
         assert 'severity' in record
-        assert 'azure.resource_id' in record
+        assert 'azure.resource.id' in record
         assert 'content' in record
