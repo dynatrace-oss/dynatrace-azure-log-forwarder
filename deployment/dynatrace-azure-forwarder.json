@@ -206,8 +206,20 @@
                                     "value": "log_analytics_collector"
                                 },
                                 {
+                                    "name": "DT_ID_SKIP_HOSTNAME",
+                                    "value": "true"
+                                },
+                                {
+                                    "name": "DT_ID_SEED_SUBSCRIPTIONID",
+                                    "value": "[subscription().subscriptionId]"
+                                },
+                                {
+                                    "name": "DT_ID_SEED_RESOURCEGROUP",
+                                    "value": "[resourceGroup().name]"
+                                },
+                                {
                                     "name": "DT_ID_SEED_RESOURCE_NAME",
-                                    "value": "[variables('activeGateId')]"
+                                    "value": "[parameters('forwarderName')]"
                                 }
                             ],
                             "resources": {
