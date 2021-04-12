@@ -217,7 +217,7 @@
                                     "value": "[resourceGroup().name]"
                                 },
                                 {
-                                    "name": "DT_ID_SEED_RESOURCE_NAME",
+                                    "name": "DT_ID_SEED_RESOURCENAME",
                                     "value": "[parameters('forwarderName')]"
                                 }
                             ],
