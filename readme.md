@@ -41,7 +41,7 @@ Deployment can be run from Azure Portal Cloud Shell (Bash) or from any machine w
 
 Download deployment script:
 ```shell script
-wget -q https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/dynatrace-azure-logs.sh -O dynatrace-azure-logs.sh && chmod +x ./dynatrace-azure-logs.sh
+wget -q https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/latest/download/dynatrace-azure-logs.sh -O dynatrace-azure-logs.sh && chmod +x ./dynatrace-azure-logs.sh
 ```
 
 You have two options to run deployment script:
@@ -91,7 +91,7 @@ export TARGET_URL="https://your.dynatrace.environment.com"
 ### Update Dynatrace Log Forwarder code
 You can download latest azure-log-forwarder zip from:
 ``` 
-wget https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/dynatrace-azure-log-forwarder.sh
+wget https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/latest/download/dynatrace-azure-log-forwarder.zip
 ``` 
 To deploy new version of azure-log-forwarder run:
 ```  
