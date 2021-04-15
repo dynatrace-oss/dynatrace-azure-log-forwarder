@@ -1,4 +1,7 @@
 # Dynatrace Azure Log Forwarder
+
+> ### Dynatrace Log Monitoring and generic log ingest is coming soon. If you are part of the Preview program you can already use dynatrace-azure-log-forwarder to ingest Azure logs. If you are waiting for General Availability please star this repository to get notified when Log Monitoring is ready.
+
 ## Overview
 This project provides mechanism that allows to stream Azure logs from Azure Event Hub into Dynatrace Logs via Azure Function App. 
 It supports both: Azure Resource Logs and Azure Activity Logs.
