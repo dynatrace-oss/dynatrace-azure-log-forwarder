@@ -14,7 +14,7 @@
 #     limitations under the License.
 
 readonly FUNCTION_ARM=dynatrace-azure-forwarder.json
-readonly FUNCTION_ZIP_PACKAGE=publish.zip
+readonly FUNCTION_ZIP_PACKAGE=dynatrace-azure-log-forwarder.zip
 # Please be cautious with editing the following line, as CI is changing latest to specific version on release, see: .travis.yml
 readonly FUNCTION_REPOSITORY_RELEASE_URL=https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/
 readonly DYNATRACE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}$"

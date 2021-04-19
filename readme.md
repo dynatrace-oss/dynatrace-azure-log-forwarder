@@ -1,4 +1,7 @@
 # Dynatrace Azure Log Forwarder
+
+> ### Dynatrace Log Monitoring and generic log ingest is coming soon. If you are part of the Preview program you can already use dynatrace-azure-log-forwarder to ingest Azure logs. If you are waiting for General Availability please star this repository to get notified when Log Monitoring is ready.
+
 ## Overview
 This project provides mechanism that allows to stream Azure logs from Azure Event Hub into Dynatrace Logs via Azure Function App. 
 It supports both: Azure Resource Logs and Azure Activity Logs.
@@ -41,7 +44,7 @@ Deployment can be run from Azure Portal Cloud Shell (Bash) or from any machine w
 
 Download deployment script:
 ```shell script
-wget -q https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/dynatrace-azure-logs.sh -O dynatrace-azure-logs.sh && chmod +x ./dynatrace-azure-logs.sh
+wget -q https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/latest/download/dynatrace-azure-logs.sh -O dynatrace-azure-logs.sh && chmod +x ./dynatrace-azure-logs.sh
 ```
 
 You have two options to run deployment script:
@@ -94,7 +97,7 @@ export FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=<log-level>;FILTER.GLOBAL.CONT
 ### Update Dynatrace Log Forwarder code
 You can download latest azure-log-forwarder zip from:
 ``` 
-wget https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/dynatrace-azure-log-forwarder.sh
+wget https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/latest/download/dynatrace-azure-log-forwarder.zip
 ``` 
 To deploy new version of azure-log-forwarder run:
 ```  
