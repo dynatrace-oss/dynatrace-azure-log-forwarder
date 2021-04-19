@@ -120,7 +120,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     if "resourceId" in record:
         extract_resource_id_attributes(parsed_record, record["resourceId"])
 
-    if log_filter.should_filter_out_record(record, parsed_record):
+    if log_filter.should_filter_out_record(parsed_record):
         return None
 
     metadata_engine.apply(record, parsed_record)

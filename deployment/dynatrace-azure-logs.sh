@@ -349,11 +349,35 @@ else
     done
     echo ""
 
-    echo "Please provide filter config in key-value pair format for example: FILTER.GLOBAL.MIN_LOG_LEVEL=Warning"
-    while ! [[ "${FILTER_CONFIG}" =~ $FILTER_CONFIG_REGEX ]]; do
-        read -p "Enter filter config: " FILTER_CONFIG
+    echo "Do you want to apply Filter Config?"
+    echo "Y - Yes"
+    echo "N - No"
+    while ! [[ "${APPLY_FILTER_CONFIG}" =~ ^(Y|N)$ ]]; do
+        read -p "Apply Filter Config?: " -i N -e APPLY_FILTER_CONFIG
     done
     echo ""
+
+    case ${APPLY_FILTER_CONFIG} in
+    Y)
+        APPLY_FILTER_CONFIG=true
+        ;;
+    N)
+        APPLY_FILTER_CONFIG=false
+        ;;
+    *)
+        echo "APPLY_FILTER_CONFIG - unexpected option value"
+        exit 1
+        ;;
+    esac
+
+    if [[ "${APPLY_FILTER_CONFIG}" == "true" ]]
+    then
+      echo "Please provide filter config in key-value pair format for example: FILTER.GLOBAL.MIN_LOG_LEVEL=Warning"
+      while ! [[ "${FILTER_CONFIG}" =~ $FILTER_CONFIG_REGEX ]]; do
+          read -p "Enter filter config: " FILTER_CONFIG
+      done
+      echo ""
+    fi
 fi
 
 

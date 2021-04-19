@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 import fnmatch
-import json
 import os
 import re
 from typing import Dict, Set
@@ -21,29 +20,42 @@ from logs_ingest import logging
 from logs_ingest.mapping import severity_to_log_level_dict, log_level_to_severity_dict, RESOURCE_TYPE_ATTRIBUTE, \
     RESOURCE_ID_ATTRIBUTE
 
-GLOBAL = "GLOBAL"
-AMOUNT_OF_DOT_SEPARATORS_IN_GLOBAL_FILTERS = 2
+GLOBAL = "global"
+FILTER_NAMES_PREFIXES = ["FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.", "FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.", "FILTER.RESOURCE_ID.MIN_LOG_LEVEL.","FILTER.RESOURCE_ID.CONTAINS_PATTERN."]
 
 
 class LogFilter:
     def __init__(self):
         self._filter_config: str = os.environ.get("FILTER_CONFIG", "")
+        logging.info(f"Filter_config: {self._filter_config}")
         filter_config_pattern = re.compile(r'([^;\s].+?)=([^;]*)')
         self._filters_tuples = filter_config_pattern.findall(self._filter_config)
-        self._filters_tuples = [self._prepare_filters_tuples(filter_tuple) for filter_tuple in self._filters_tuples]
+        self._filters_tuples = [modified_filter_tuple for filter_tuple in self._filters_tuples
+                                if (modified_filter_tuple := self._prepare_filters_tuples(filter_tuple)) is not None]
         self.filters_dict = self._prepare_filters_dict()
-        if self.filters_dict:
-            logging.info(f"Applied filter_config: {self._filter_config}")
+        if self._filter_config and not self.filters_dict:
+            logging.info(f"Parsing filter config failed.")
 
     @staticmethod
     def _prepare_filters_tuples(filter_tuple):
-        filter_name = filter_tuple[0].strip()
+        filter_name = filter_tuple[0].strip().casefold()
         value = filter_tuple[1].strip()
-        if filter_name.count(".") > AMOUNT_OF_DOT_SEPARATORS_IN_GLOBAL_FILTERS:
-            key = ".".join(filter_name.split(".")[AMOUNT_OF_DOT_SEPARATORS_IN_GLOBAL_FILTERS + 1:])
-        else:
+        if filter_name.startswith("FILTER.GLOBAL.MIN_LOG_LEVEL".casefold()):
             key = GLOBAL
-        return key, (filter_name, value)
+            return key, (filter_name, value)
+
+        if filter_name.startswith("FILTER.GLOBAL.CONTAINS_PATTERN".casefold()):
+            key = GLOBAL
+            return key, (filter_name, value)
+
+        for prefix in FILTER_NAMES_PREFIXES:
+            prefix = prefix.casefold()
+            if filter_name.startswith(prefix):
+                key = filter_name.split(prefix)[1].casefold()
+                if key:
+                    return key, (filter_name, value)
+
+        return None
 
     def _prepare_filters_dict(self) -> Dict:
         grouped_filters = self._group_filters()
@@ -51,12 +63,12 @@ class LogFilter:
         for k, filter_name_value_dict in grouped_filters.items():
             filters_to_apply = []
             for filter_name, filter_value in filter_name_value_dict.items():
-                if "MIN_LOG_LEVEL" in filter_name:
+                if "MIN_LOG_LEVEL".casefold() in filter_name:
                     log_levels = self._get_log_levels(filter_value)
                     if log_levels:
                         log_level_filter = self._create_log_level_filter(log_levels)
                         filters_to_apply.append(log_level_filter)
-                if "CONTAINS_PATTERN" in filter_name:
+                if "CONTAINS_PATTERN".casefold() in filter_name:
                     contains_pattern_filter = self._create_contains_pattern_filter(filter_value)
                     filters_to_apply.append(contains_pattern_filter)
             filters_to_apply_dict[k] = filters_to_apply
@@ -76,17 +88,17 @@ class LogFilter:
     def _create_contains_pattern_filter(pattern: str):
         return lambda severity, record: fnmatch.fnmatch(record, pattern)
 
-    def should_filter_out_record(self, record: Dict, parsed_record: Dict) -> bool:
+    def should_filter_out_record(self, parsed_record: Dict) -> bool:
         if not self.filters_dict:
             return False
 
         severity = parsed_record.get("severity", "")
-        resource_id = parsed_record.get(RESOURCE_ID_ATTRIBUTE, "")
-        resource_type = parsed_record.get(RESOURCE_TYPE_ATTRIBUTE, "")
-        record_as_string = json.dumps(record)
+        resource_id = parsed_record.get(RESOURCE_ID_ATTRIBUTE, "").casefold()
+        resource_type = parsed_record.get(RESOURCE_TYPE_ATTRIBUTE, "").casefold()
+        content = parsed_record.get("content", "")
 
         log_filters = self._get_filters(resource_id, resource_type)
-        return not all(log_filter(severity, record_as_string) for log_filter in log_filters)
+        return not all(log_filter(severity, content) for log_filter in log_filters)
 
     def _get_filters(self, resource_id, resource_type):
         filters = self.filters_dict.get(resource_id, [])
