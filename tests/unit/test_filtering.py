@@ -52,14 +52,14 @@ parsed_record = {
 def test_wrong_filter_config(monkeypatch: MonkeyPatchFixture):
     monkeypatch.setenv("FILTER_CONFIG", ";")
     log_filter = LogFilter()
-    assert log_filter._filters_dict == {}
+    assert log_filter.filters_dict == {}
     assert not log_filter.should_filter_out_record(record, parsed_record)
 
 
 def test_wrong_filter_config2(monkeypatch: MonkeyPatchFixture):
     monkeypatch.setenv("FILTER_CONFIG", ";=")
     log_filter = LogFilter()
-    assert log_filter._filters_dict == {}
+    assert log_filter.filters_dict == {}
     assert not log_filter.should_filter_out_record(record, parsed_record)
 
 

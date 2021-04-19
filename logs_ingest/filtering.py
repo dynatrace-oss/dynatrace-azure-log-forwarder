@@ -28,11 +28,11 @@ AMOUNT_OF_DOT_SEPARATORS_IN_GLOBAL_FILTERS = 2
 class LogFilter:
     def __init__(self):
         self._filter_config: str = os.environ.get("FILTER_CONFIG", "")
-        r = re.compile(r'([^;\s].+?)=([^;]*)')
-        self._filters_tuples = r.findall(self._filter_config)
+        filter_config_pattern = re.compile(r'([^;\s].+?)=([^;]*)')
+        self._filters_tuples = filter_config_pattern.findall(self._filter_config)
         self._filters_tuples = [self._prepare_filters_tuples(filter_tuple) for filter_tuple in self._filters_tuples]
-        self._filters_dict = self._prepare_filters_dict()
-        if self._filters_dict:
+        self.filters_dict = self._prepare_filters_dict()
+        if self.filters_dict:
             logging.info(f"Applied filter_config: {self._filter_config}")
 
     @staticmethod
@@ -77,7 +77,7 @@ class LogFilter:
         return lambda severity, record: fnmatch.fnmatch(record, pattern)
 
     def should_filter_out_record(self, record: Dict, parsed_record: Dict) -> bool:
-        if not self._filters_dict:
+        if not self.filters_dict:
             return False
 
         severity = parsed_record.get("severity", "")
@@ -86,14 +86,14 @@ class LogFilter:
         record_as_string = json.dumps(record)
 
         log_filters = self._get_filters(resource_id, resource_type)
-        return not all([log_filter(severity, record_as_string) for log_filter in log_filters])
+        return not all(log_filter(severity, record_as_string) for log_filter in log_filters)
 
     def _get_filters(self, resource_id, resource_type):
-        filters = self._filters_dict.get(resource_id, [])
+        filters = self.filters_dict.get(resource_id, [])
         if not filters:
-            filters = self._filters_dict.get(resource_type, [])
+            filters = self.filters_dict.get(resource_type, [])
         if not filters:
-            filters = self._filters_dict.get(GLOBAL, [])
+            filters = self.filters_dict.get(GLOBAL, [])
         return filters
 
     @staticmethod
