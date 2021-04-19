@@ -65,7 +65,7 @@ export EVENT_HUB_CONNECTION_STRING="Endpoint=sb://*******.servicebus.windows.net
 export EVENT_HUB_NAME="event-hub-name"
 export SFM_ENABLED="false"
 export TARGET_URL="https://your.dynatrace.environment.com"
-export FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=<log-level>;FILTER.GLOBAL.CONTAINS_PATTERN=<pattern>;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.<resource_type>=<log_level>;FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.<resource_type>=<pattern>;FILTER.RESOURCE_ID.MIN_LOG_LEVEL.<resource_id>=<log_level>;FILTER.RESOURCE_ID.CONTAINS_PATTERN.<resource_id>=<pattern>"
+export FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=<log_level>;FILTER.GLOBAL.CONTAINS_PATTERN=<pattern>;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.<resource_type>=<log_level>;FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.<resource_type>=<pattern>;FILTER.RESOURCE_ID.MIN_LOG_LEVEL.<resource_id>=<log_level>;FILTER.RESOURCE_ID.CONTAINS_PATTERN.<resource_id>=<pattern>"
 
 ./dynatrace-azure-logs.sh
 ```
@@ -165,9 +165,9 @@ In above example, all logs from instances with resource type MICROSOFT.WEB/SITES
 
 
 **CONTAINS_PATTERN:**
-* FILTER.GLOBAL.CONTAINS_PATTERN=<pattern>
-* FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.<resource_type>=<pattern>
-* FILTER.RESOURCE_ID.CONTAINS_PATTERN.<resource_id>=<pattern>
+* FILTER.GLOBAL.CONTAINS_PATTERN=<log_pattern>
+* FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.<resource_type>=<log_pattern>
+* FILTER.RESOURCE_ID.CONTAINS_PATTERN.<resource_id>=<log_pattern>
 
 If you want to collect logs containing some particular text you can declare CONTAINS_PATTERN filter.\
 We use python module fnmatch which provides support for Unix shell-style wildcards (more info here: https://docs.python.org/3/library/fnmatch.html). You can use following special characters:
@@ -181,7 +181,7 @@ We use python module fnmatch which provides support for Unix shell-style wildcar
 * If you declare MIN_LOG_LEVEL and CONTAINS_PATTERN filters for the same resource (type/id) or global filters, both conditions must be fulfilled. 
 * You can declare only one pair of filters (MIN_LOG_LEVEL and CONTAINS_PATTERN) for the same resource (type/id) or globals filters (if you declare more than one pair, the last one will be taken).
 * When GLOBAL_FILTER e.g. FILTER.GLOBAL.MIN_LOG_LEVEL is defined and you declare more specific filter for resource (type/id) - only more specific filter will be taken to filtering logs coming from this resource type/id\
-e.g. FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=Warning;FILTER.RESOURCE_ID.CONTAINS_PATTERN./SUBSCRIPTIONS/<subscription_id>/RESOURCEGROUPS/<resource_group>/PROVIDERS/<resource_type>/<resource_name>=<pattern>"\
+e.g. FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=Warning;FILTER.RESOURCE_ID.CONTAINS_PATTERN./SUBSCRIPTIONS/<subscription_id>/RESOURCEGROUPS/<resource_group>/PROVIDERS/<resource_type>/<resource_name>=<log_pattern>"\
 In above example only CONTAINS_PATTERN filter will be applied for given resource id.
 
 ## License
