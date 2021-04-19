@@ -105,8 +105,17 @@ az webapp deployment source config-zip -g <resource_group> -n <app_name> --src <
 ```
 
 ### Uninstall Dynatrace Log Forwarder
-To uninstall Dynatrace Log Forwarder simply delete all Azure resources with DEPLOYMENT_NAME prefix from Azure Resource Group that was used for deployment.
-Uninstallation script will be added soon.
+Deployment script tags all created resources with `LogsForwarderDeployment = {DEPLOYMENT_NAME}` tag. If you want to uninstall Dynatrace Log Forwarder, in Azure Portal navigate to Resource Group used for installation, filter resources by tag, and delete resources.
+
+#### Virtual Network cleanup
+
+You may encounter issue with removing Virtual Network created for containerised Active Gate. Due to unresolved Azure bug, related sub-resource (Network Profile) is not deleted correctly. To remove the Virtual Network, first run cli command:
+
+```shell script
+az network profile delete --name {DEPLOYMENT_NAME}networkProfile --resource-group <resource-group-name>
+```
+
+Then retry removing the VNet from Azure Portal
 
 ## Viewing Azure logs in Dynatrace UI
 You can view and analyze Azure logs in Dynatrace UI: Analyze -> Logs. To narrow view to Azure logs only use query: `cloud.provider: azure`

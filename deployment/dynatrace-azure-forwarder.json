@@ -61,6 +61,12 @@
                 "description": "Should verify Dynatrace Logs Ingest endpoint SSL certificate? true/false"
             }
         },
+        "resourceTags": {
+            "type": "object",
+            "defaultValue": {
+                "LogsForwarderDeployment": "[parameters('forwarderName')]"
+            }
+        },
         "filterConfig": {
             "type": "string",
             "metadata": {
