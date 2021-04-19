@@ -60,6 +60,12 @@
             "metadata": {
                 "description": "Should verify Dynatrace Logs Ingest endpoint SSL certificate? true/false"
             }
+        },
+        "filterConfig": {
+            "type": "string",
+            "metadata": {
+                "description": "Filter config"
+            }
         }
     },
     "variables": {
@@ -388,6 +394,10 @@
                         {
                             "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
                             "value": "true"
+                        },
+                        {
+                            "name": "FILTER_CONFIG",
+                            "value": "[parameters('filterConfig')]"
                         }
                     ]
 

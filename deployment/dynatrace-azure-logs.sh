@@ -23,11 +23,12 @@ readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
 readonly RESOURCE_GROUP_REGEX="^[a-zA-Z0-9.()-]{1,90}$"
 readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*$"
 readonly EVENT_HUB_NAME_REGEX="^[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}$"
+readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --event-hub-name EVENT_HUB_NAME [--use-existing-active-gate] [--target-paas-token TARGET_PAAS_TOKEN] [--require-valid-certificate] [--enable-self-monitoring]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --event-hub-name EVENT_HUB_NAME --filter-config FILTER_CONFIG [--use-existing-active-gate] [--target-paas-token TARGET_PAAS_TOKEN] [--require-valid-certificate] [--enable-self-monitoring]
 
 arguments:
     -h, --help              Show this help message and exit
@@ -52,13 +53,16 @@ arguments:
                             Enables checking SSL certificate of the target Active Gate. By default (if this option is not provided) certificates aren't validated.
     --enable-self-monitoring
                             Self monitoring allows to diagnose quickly your function by Azure custom metrics. By default (if this option is not provided) custom metrics won't be sent to Azure.
-    "                  
+    --filter-config
+                            Apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
+    "
 }
 
 print_all_parameters()
 {
     PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, EVENT_HUB_NAME=$EVENT_HUB_NAME, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED"
     if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]];then PARAMETERS+=", TARGET_PAAS_TOKEN=*****";fi
+    if [ ! -z "$FILTER_CONFIG" ];then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG";fi
     echo
     echo "Deployment script will use following parameters:"
     echo $PARAMETERS
@@ -135,6 +139,11 @@ while (( "$#" )); do
                 shift; shift
             ;;
 
+            "--filter-config")
+                FILTER_CONFIG=$2
+                shift; shift
+            ;;
+
             "--require-valid-certificate")
                 REQUIRE_VALID_CERTIFICATE=true
                 shift
@@ -158,6 +167,7 @@ then
     check_arg --resource-group "$RESOURCE_GROUP" "$RESOURCE_GROUP_REGEX"
     check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
     check_arg --event-hub-name "$EVENT_HUB_NAME" "$EVENT_HUB_NAME_REGEX"
+    if [ ! -z "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
 
     if [ -z "$USE_EXISTING_ACTIVE_GATE" ]; then USE_EXISTING_ACTIVE_GATE=false; fi
     if [ -z "$TARGET_URL" ]
@@ -338,6 +348,12 @@ else
         read -p "Enter EventHub name: " EVENT_HUB_NAME
     done
     echo ""
+
+    echo "Please provide filter config in key-value pair format for example: FILTER.GLOBAL.MIN_LOG_LEVEL=Warning"
+    while ! [[ "${FILTER_CONFIG}" =~ $FILTER_CONFIG_REGEX ]]; do
+        read -p "Enter filter config: " FILTER_CONFIG
+    done
+    echo ""
 fi
 
 
@@ -356,6 +372,7 @@ requireValidCertificate=${REQUIRE_VALID_CERTIFICATE} \
 selfMonitoringEnabled="${SFM_ENABLED}" \
 deployActiveGateContainer="${DEPLOY_ACTIVEGATE}" \
 targetPaasToken="${TARGET_PAAS_TOKEN}" \
+filterConfig="${FILTER_CONFIG}"
 
 if [[ $? != 0 ]]
 then
@@ -365,7 +382,7 @@ fi
 
 echo
 echo "- downloading function code zip [${FUNCTION_REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE}]"
-wget -q ${FUNCTION_REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE} -O ${FUNCTION_ZIP_PACKAGE} 
+wget -q ${FUNCTION_REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE} -O ${FUNCTION_ZIP_PACKAGE}
 
 FUNCTIONAPP_NAME="${DEPLOYMENT_NAME}-function"
 echo
@@ -376,7 +393,7 @@ sleep 60 # wait some time to allow functionapp to warmup
 az webapp deployment source config-zip  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src ${FUNCTION_ZIP_PACKAGE}
 
 if [[ $? != 0 ]]
-then   
+then
     echo "Function code deployment failed"
     exit 3
 fi
