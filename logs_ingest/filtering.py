@@ -21,7 +21,8 @@ from logs_ingest.mapping import severity_to_log_level_dict, log_level_to_severit
     RESOURCE_ID_ATTRIBUTE
 
 GLOBAL = "global"
-FILTER_NAMES_PREFIXES = ["FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.", "FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.", "FILTER.RESOURCE_ID.MIN_LOG_LEVEL.","FILTER.RESOURCE_ID.CONTAINS_PATTERN."]
+FILTER_NAMES_PREFIXES = ["FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.", "FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.",
+                         "FILTER.RESOURCE_ID.MIN_LOG_LEVEL.","FILTER.RESOURCE_ID.CONTAINS_PATTERN."]
 
 
 class LogFilter:
@@ -34,7 +35,7 @@ class LogFilter:
                                 if (modified_filter_tuple := self._prepare_filters_tuples(filter_tuple)) is not None]
         self.filters_dict = self._prepare_filters_dict()
         if self._filter_config and not self.filters_dict:
-            logging.info(f"Parsing filter config failed.")
+            logging.info("Parsing filter config failed.")
 
     @staticmethod
     def _prepare_filters_tuples(filter_tuple):
