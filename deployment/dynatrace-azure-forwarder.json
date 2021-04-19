@@ -60,6 +60,12 @@
             "metadata": {
                 "description": "Should verify Dynatrace Logs Ingest endpoint SSL certificate? true/false"
             }
+        },
+        "resourceTags": {
+            "type": "object",
+            "defaultValue": {
+                "LogsForwarderDeployment": "[parameters('forwarderName')]"
+            }
         }
     },
     "variables": {
@@ -89,6 +95,7 @@
             "condition": "[parameters('deployActiveGateContainer')]",
             "name": "[variables('virtualNetworkName')]",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('resourceTags')]",
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
@@ -154,6 +161,7 @@
             "dependsOn": [ "[variables('containerSubnetId')]" ],
             "apiVersion": "2020-05-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('resourceTags')]",
             "properties": {
                 "containerNetworkInterfaceConfigurations": [
                     {
@@ -181,6 +189,7 @@
             "condition": "[parameters('deployActiveGateContainer')]",
             "name": "[parameters('forwarderName')]",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('resourceTags')]",
             "properties": {
                 "sku": "Standard",
                 "networkProfile": {
@@ -247,6 +256,7 @@
             "apiVersion": "2020-08-01-preview",
             "name": "[variables('storageAccountName')]",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('resourceTags')]",
             "dependsOn": [
                 "[variables('functionSubnetId')]"
             ],
@@ -289,6 +299,7 @@
                 "name": "Standard_LRS",
                 "tier": "Standard"
             },
+            "tags": "[parameters('resourceTags')]",
             "properties": {
                 "cors": {
                     "corsRules": []
@@ -303,6 +314,7 @@
             "apiVersion": "2018-02-01",
             "name": "[variables('appServicePlan')]",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('resourceTags')]",
             "sku": {
                 "name": "S1",
                 "tier": "Standard",
@@ -331,6 +343,7 @@
                 "[variables('functionSubnetId')]"
             ],
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('resourceTags')]",
             "kind": "functionapp,linux",
             "properties": {
                 "enabled": true,
