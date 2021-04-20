@@ -21,8 +21,8 @@ from logs_ingest.mapping import severity_to_log_level_dict, log_level_to_severit
     RESOURCE_ID_ATTRIBUTE
 
 GLOBAL = "global"
-FILTER_NAMES_PREFIXES = ["FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.", "FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.",
-                         "FILTER.RESOURCE_ID.MIN_LOG_LEVEL.","FILTER.RESOURCE_ID.CONTAINS_PATTERN."]
+FILTER_NAMES_PREFIXES = ["filter.resource_type.min_log_level.", "filter.resource_type.contains_pattern.",
+                         "filter.resource_id.min_log_level.","filter.resource_id.contains_pattern."]
 
 
 class LogFilter:
@@ -34,23 +34,16 @@ class LogFilter:
         self._filters_tuples = [modified_filter_tuple for filter_tuple in self._filters_tuples
                                 if (modified_filter_tuple := self._prepare_filters_tuples(filter_tuple)) is not None]
         self.filters_dict = self._prepare_filters_dict()
-        if self._filter_config and not self.filters_dict:
-            logging.info("Parsing filter config failed.")
 
     @staticmethod
     def _prepare_filters_tuples(filter_tuple):
         filter_name = filter_tuple[0].strip().casefold()
         value = filter_tuple[1].strip()
-        if filter_name.startswith("FILTER.GLOBAL.MIN_LOG_LEVEL".casefold()):
-            key = GLOBAL
-            return key, (filter_name, value)
-
-        if filter_name.startswith("FILTER.GLOBAL.CONTAINS_PATTERN".casefold()):
+        if filter_name.startswith("filter.global."):
             key = GLOBAL
             return key, (filter_name, value)
 
         for prefix in FILTER_NAMES_PREFIXES:
-            prefix = prefix.casefold()
             if filter_name.startswith(prefix):
                 key = filter_name.split(prefix)[1].casefold()
                 if key:
@@ -61,18 +54,23 @@ class LogFilter:
     def _prepare_filters_dict(self) -> Dict:
         grouped_filters = self._group_filters()
         filters_to_apply_dict = {}
+        parsed_filters_to_log = []
         for k, filter_name_value_dict in grouped_filters.items():
             filters_to_apply = []
             for filter_name, filter_value in filter_name_value_dict.items():
-                if "MIN_LOG_LEVEL".casefold() in filter_name:
+                if "min_log_level" in filter_name:
                     log_levels = self._get_log_levels(filter_value)
                     if log_levels:
                         log_level_filter = self._create_log_level_filter(log_levels)
                         filters_to_apply.append(log_level_filter)
-                if "CONTAINS_PATTERN".casefold() in filter_name:
+                        parsed_filters_to_log.append(filter_name)
+                if "contains_pattern" in filter_name:
                     contains_pattern_filter = self._create_contains_pattern_filter(filter_value)
                     filters_to_apply.append(contains_pattern_filter)
-            filters_to_apply_dict[k] = filters_to_apply
+                    parsed_filters_to_log.append(filter_name)
+            if filters_to_apply:
+                filters_to_apply_dict[k] = filters_to_apply
+        logging.info(f"Successfully parsed filters: {parsed_filters_to_log}")
         return filters_to_apply_dict
 
     def _group_filters(self) -> Dict:
