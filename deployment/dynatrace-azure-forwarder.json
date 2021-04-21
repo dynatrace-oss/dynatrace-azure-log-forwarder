@@ -66,6 +66,12 @@
             "defaultValue": {
                 "LogsForwarderDeployment": "[parameters('forwarderName')]"
             }
+        },
+        "filterConfig": {
+            "type": "string",
+            "metadata": {
+                "description": "Filter config"
+            }
         }
     },
     "variables": {
@@ -412,6 +418,10 @@
                         {
                             "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
                             "value": "true"
+                        },
+                        {
+                            "name": "FILTER_CONFIG",
+                            "value": "[parameters('filterConfig')]"
                         }
                     ]
 

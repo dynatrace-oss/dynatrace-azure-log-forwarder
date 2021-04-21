@@ -23,6 +23,7 @@ from dateutil import parser
 
 from . import logging
 from .dynatrace_client import send_logs
+from .filtering import LogFilter
 from .mapping import extract_resource_id_attributes, extract_severity, \
     azure_properties_names
 from .metadata_engine import MetadataEngine
@@ -36,6 +37,7 @@ DYNATRACE_URL = "DYNATRACE_URL"
 DYNATRACE_ACCESS_KEY = "DYNATRACE_ACCESS_KEY"
 
 metadata_engine = MetadataEngine()
+log_filter = LogFilter()
 
 
 def main(events: List[func.EventHubEvent]):
@@ -79,10 +81,11 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
 def process_record(dt_payload: List[Dict], record: Dict, self_monitoring: SelfMonitoring):
     deserialize_properties(record)
     parsed_record = parse_record(record, self_monitoring)
-    timestamp = parsed_record.get("timestamp", None)
-    if is_too_old(timestamp, self_monitoring, "record"):
-        return
-    dt_payload.append(parsed_record)
+    if parsed_record:
+        timestamp = parsed_record.get("timestamp", None)
+        if is_too_old(timestamp, self_monitoring, "record"):
+            return
+        dt_payload.append(parsed_record)
 
 
 def is_too_old(timestamp: str, self_monitoring: SelfMonitoring, log_part: str):
@@ -116,6 +119,9 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
 
     if "resourceId" in record:
         extract_resource_id_attributes(parsed_record, record["resourceId"])
+
+    if log_filter.should_filter_out_record(parsed_record):
+        return None
 
     metadata_engine.apply(record, parsed_record)
     category = record.get("category", "").lower()

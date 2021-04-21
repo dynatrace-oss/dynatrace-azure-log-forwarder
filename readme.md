@@ -65,6 +65,7 @@ export EVENT_HUB_CONNECTION_STRING="Endpoint=sb://*******.servicebus.windows.net
 export EVENT_HUB_NAME="event-hub-name"
 export SFM_ENABLED="false"
 export TARGET_URL="https://your.dynatrace.environment.com"
+export FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=<log_level>;FILTER.GLOBAL.CONTAINS_PATTERN=<pattern>;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.<resource_type>=<log_level>;FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.<resource_type>=<pattern>;FILTER.RESOURCE_ID.MIN_LOG_LEVEL.<resource_id>=<log_level>;FILTER.RESOURCE_ID.CONTAINS_PATTERN.<resource_id>=<pattern>"
 
 ./dynatrace-azure-logs.sh
 ```
@@ -88,6 +89,8 @@ export TARGET_URL="https://your.dynatrace.environment.com"
 | --resource-group | RESOURCE_GROUP | Name of the Azure Resource Group in which Function will be deployed. To create new one run: `az group create --name <resource_group> --location <region>` | Yes | - |
 | --event-hub-connection-string | EVENT_HUB_CONNECTION_STRING | Connection string for Azure EventHub that is configured for receiving logs. You can create policy in Event Hub Namespace -> Event Hub -> Shared Access policies (listen permission is required). More info here: [https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string) | Yes | - |
 | --event-hub-name | EVENT_HUB_NAME | Name of Azure Event Hub configured for receiving logs  | Yes | - |
+| --filter-config | FILTER_CONFIG | Filter config applied as key-value pairs - more info in log filtering section | No | - |
+
 
 </center>
 
@@ -141,6 +144,54 @@ Namespace: dynatrace_logs_self_monitoring
 | sending_time | Time needed to send all requests | - |
 | all_requests | All requests sent to Dynatrace | - |
 | dynatrace_connectivity_failures | Reported when any Dynatrace connectivity issues occurred | connectivity_status |
+
+## Log filtering
+You can apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
+
+### How to apply filters
+You need to specify FILTER_CONFIG environment variable. You can apply filters during dynatrace-azure-log-forwarder installation or declare FILTER_CONFIG variable later in Azure Portal in Function App Configuration (function restart is needed). \
+FILTER_CONFIG is a key-value pair variable. \
+You can declare two types of filters: MIN_LOG_LEVEL and CONTAINS_PATTERN for three groups: GLOBAL, RESOURCE_TYPE and RESOURCE_ID.
+
+**MIN_LOG_LEVEL:**
+* FILTER.GLOBAL.MIN_LOG_LEVEL=<log_level>
+* FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.<resource_type>=<log_level>
+* FILTER.RESOURCE_ID.MIN_LOG_LEVEL.<resource_id>=<log_level>
+
+e.g. FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=Warning"
+
+MIN_LOG_LEVEL allows you to filter out logs with unwanted levels e.g. Informational. \
+In Azure there are four log levels:
+    1: 'Critical',
+    2: 'Error',
+    3: 'Warning',
+    4: 'Informational'.
+     
+When you set Warning (or 3) to FILTER.GLOBAL.MIN_LOG_LEVEL - only logs with levels: Warning, Error, Critical will be sent to Dynatrace. \
+You can have one global level and at the same time additional filters for particular resource_type and/or resource_id. \
+e.g. FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=Error;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.MICROSOFT.WEB/SITES=Informational" \
+In above example, all logs from instances with resource type MICROSOFT.WEB/SITES will be sent to Dynatrace, for all other resources - Informational and Warning logs will be filtered out.
+
+
+**CONTAINS_PATTERN:**
+* FILTER.GLOBAL.CONTAINS_PATTERN=<log_pattern>
+* FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.<resource_type>=<log_pattern>
+* FILTER.RESOURCE_ID.CONTAINS_PATTERN.<resource_id>=<log_pattern>
+
+If you want to collect logs containing some particular text you can declare CONTAINS_PATTERN filter.\
+We use python module fnmatch which provides support for Unix shell-style wildcards (more info here: https://docs.python.org/3/library/fnmatch.html). You can use following special characters:
+* \* - matches everything
+* ? - matches any single character
+* [seq] - matches any character in seq
+* [!seq] - matches any character not in seq
+
+
+### Additional log filtering important notes
+* If you declare MIN_LOG_LEVEL and CONTAINS_PATTERN filters for the same resource (type/id) or global filters, both conditions must be fulfilled. 
+* You can declare only one pair of filters (MIN_LOG_LEVEL and CONTAINS_PATTERN) for the same resource (type/id) or globals filters (if you declare more than one pair, the last one will be taken).
+* When GLOBAL_FILTER e.g. FILTER.GLOBAL.MIN_LOG_LEVEL is defined and you declare more specific filter for resource (type/id) - only more specific filter will be taken to filtering logs coming from this resource type/id\
+e.g. FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=Warning;FILTER.RESOURCE_ID.CONTAINS_PATTERN./SUBSCRIPTIONS/<subscription_id>/RESOURCEGROUPS/<resource_group>/PROVIDERS/<resource_type>/<resource_name>=<log_pattern>"\
+In above example only CONTAINS_PATTERN filter will be applied for given resource id.
 
 ## License
 

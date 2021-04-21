@@ -31,6 +31,8 @@ log_level_to_severity_dict = {
     4: 'Informational'
 }
 
+severity_to_log_level_dict = {v: k for k, v in log_level_to_severity_dict.items()}
+
 azure_level_properties = ['Level', 'level']
 azure_properties_names = ['properties', 'EventProperties']
 activity_log_categories = ['alert', 'administrative', 'resourcehealth', 'servicehealth', 'security', 'policy', 'recommendation', 'autoscale']
