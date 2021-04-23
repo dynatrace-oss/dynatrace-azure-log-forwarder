@@ -120,10 +120,7 @@ def prepare_serialized_batches(logs: List[Dict]) -> List[str]:
     logs_for_next_batch_events_count = 0
 
     for log_entry in logs:
-        brackets_len = 2
-        commas_len = len(logs_for_next_batch) - 1
-
-        new_batch_len = logs_for_next_batch_total_len + brackets_len + commas_len
+        new_batch_len = logs_for_next_batch_total_len + 2 + len(logs_for_next_batch) - 1 # add bracket length (2) and commas for each entry but last one.
 
         next_entry_serialized = json.dumps(log_entry)
 
