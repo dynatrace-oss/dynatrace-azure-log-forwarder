@@ -5,12 +5,13 @@ Prerequisites:
 * Visual Studio Code
 * Azure Functions extension for VS Code
 * [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) - version 2.x or later
+* Python 3.8
 * Python extension for VS Code
 
 Open dynatrace-azure-logs-ingest folder in VS Code. You will be prompted to initialize it for use with VS Code. This will create several files in the ".vscode" folder at the root of your project. 
 
-### local.setting.json
-local.setting.json file corresponds with application settings of Azure Function App. These settings are used only when you are running function locally. The function can access them as environment variables. You need to put proper values for them.
+### local.settings.json
+local.settings.json file corresponds with application settings of Azure Function App. These settings are used only when you are running function locally. The function can access them as environment variables. You need to put proper values for them.
 
 ```json
 {
@@ -34,8 +35,9 @@ local.setting.json file corresponds with application settings of Azure Function 
 | DYNATRACE_URL | ActiveGate log_analytics_collector url e.g. https://52.157.98.106:9999/e/jxw01498 | |
 | DYNATRACE_ACCESS_KEY | API token with `Log import` scope | |
 | REQUIRE_VALID_CERTIFICATE | Set to False to accept self-signed certificates| false |
-| SELF_MONITORING_ENABLED | If you want to send self monitoring metrics to Azure set to True. Add two more values in local.setting.json: REGION (where function app is deployed) and RESOURCE_ID of Function App. Remember to login to Azure CLI and 'Monitoring Metrics Publisher' role assignment - see 'Self monitoring' section. | False |
+| SELF_MONITORING_ENABLED | If you want to send self monitoring metrics to Azure set to True. Add two more values in local.settings.json: REGION (where function app is deployed) and RESOURCE_ID of Function App. Remember to login to Azure CLI and 'Monitoring Metrics Publisher' role assignment - see 'Self monitoring' section. | False |
 | DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH | Max length of Content of single log line. If it surpasses server limit, Content will be truncated | 8192 |
+| DYNATRACE_LOG_INGEST_REQUEST_MAX_EVENTS | Max number of log events in single payload to logs ingest endpoint. If it surpasses server limit, payload will be rejected with 413 code  | 5000 |
 | DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE | Max size in bytes of single payload to logs ingest endpoint. If it surpasses server limit, payload will be rejected with 413 code  | 1048576 (1 mb) |
 | DYNATRACE_LOG_INGEST_MAX_RECORD_AGE | Max allowed age of record. Older records will be discarded. If it surpasses server limit, payload will be rejected with 400 code  | 86340 (1 day) |
 
@@ -59,7 +61,7 @@ More info: [Use the Azurite emulator for local Azure Storage development](https:
 
 ### function.json
 The function.json file defines the function's trigger, bindings, and other configuration settings. Every function has one and only one trigger. The runtime uses this config file to determine the events to monitor and how to pass data into and return data from a function execution.
-**Value for connection property must correspond with name of environemnt variable declared in local.setting.json and application settings.**
+**Value for connection property must correspond with name of environemnt variable declared in local.settings.json and application settings.**
 
 ### host.json
 The host.json metadata file contains global configuration options that affect all functions for a function app. It is located in a root project folder. More info: [host.json](https://docs.microsoft.com/en-us/azure/azure-functions/functions-host-json)
