@@ -57,12 +57,13 @@ You have two options to run deployment script:
 or
 ```shell script
 export DEPLOYMENT_NAME="deployment-name"
-export USE_EXISTING_ACTIVE_GATE="false"
 export TARGET_PAAS_TOKEN="dt0c01.**************************"
 export TARGET_API_TOKEN="dt0c01.**************************"
 export RESOURCE_GROUP="resource-group"
 export EVENT_HUB_CONNECTION_STRING="Endpoint=sb://*******.servicebus.windows.net/;SharedAccessKeyName=*******;SharedAccessKey=*******"
 export EVENT_HUB_NAME="event-hub-name"
+export USE_EXISTING_ACTIVE_GATE="false"
+export REQUIRE_VALID_CERTIFICATE="false"
 export SFM_ENABLED="false"
 export TARGET_URL="https://your.dynatrace.environment.com"
 export FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=<log_level>;FILTER.GLOBAL.CONTAINS_PATTERN=<pattern>;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.<resource_type>=<log_level>;FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.<resource_type>=<pattern>;FILTER.RESOURCE_ID.MIN_LOG_LEVEL.<resource_id>=<log_level>;FILTER.RESOURCE_ID.CONTAINS_PATTERN.<resource_id>=<pattern>"
