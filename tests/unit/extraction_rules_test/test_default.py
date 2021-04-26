@@ -90,4 +90,4 @@ def test_default():
 def test_trimming_attribute_values(monkeypatch: MonkeyPatchFixture):
     monkeypatch.setenv("DYNATRACE_LOG_INGEST_ATTRIBUTE_VALUE_MAX_LENGTH", "4")
     actual_output = parse_record(record, SelfMonitoring(execution_time=datetime.utcnow()))
-    assert actual_output == expected_output_attribute_values_trimmed  
+    assert actual_output == expected_output_attribute_values_trimmed
