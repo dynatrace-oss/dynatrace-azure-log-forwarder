@@ -127,6 +127,11 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     category = record.get("category", "").lower()
     infer_monitored_entity_id(category, parsed_record)
 
+    attribute_value_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_ATTRIBUTE_VALUE_MAX_LENGTH", 250)
+    for attribute_key in parsed_record:
+        if attribute_key not in ["content", "severity", "timestamp"] and parsed_record[attribute_key]:
+            parsed_record[attribute_key] = parsed_record[attribute_key][0: attribute_value_length_limit]
+
     content = parsed_record.get("content", None)
     content_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH", 8192)
     if content:

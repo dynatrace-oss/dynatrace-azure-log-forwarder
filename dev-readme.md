@@ -37,6 +37,7 @@ local.settings.json file corresponds with application settings of Azure Function
 | REQUIRE_VALID_CERTIFICATE | Set to False to accept self-signed certificates| false |
 | SELF_MONITORING_ENABLED | If you want to send self monitoring metrics to Azure set to True. Add two more values in local.settings.json: REGION (where function app is deployed) and RESOURCE_ID of Function App. Remember to login to Azure CLI and 'Monitoring Metrics Publisher' role assignment - see 'Self monitoring' section. | False |
 | DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH | Max length of Content of single log line. If it surpasses server limit, Content will be truncated | 8192 |
+| DYNATRACE_LOG_INGEST_ATTRIBUTE_VALUE_MAX_LENGTH | Max length of log event attribute value. If it surpasses server limit, Content will be truncated | 250 |
 | DYNATRACE_LOG_INGEST_REQUEST_MAX_EVENTS | Max number of log events in single payload to logs ingest endpoint. If it surpasses server limit, payload will be rejected with 413 code  | 5000 |
 | DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE | Max size in bytes of single payload to logs ingest endpoint. If it surpasses server limit, payload will be rejected with 413 code  | 1048576 (1 mb) |
 | DYNATRACE_LOG_INGEST_MAX_RECORD_AGE | Max allowed age of record. Older records will be discarded. If it surpasses server limit, payload will be rejected with 400 code  | 86340 (1 day) |
