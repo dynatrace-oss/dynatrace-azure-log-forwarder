@@ -130,7 +130,12 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     attribute_value_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_ATTRIBUTE_VALUE_MAX_LENGTH", 250)
     for attribute_key in parsed_record:
         if attribute_key not in ["content", "severity", "timestamp"] and parsed_record[attribute_key]:
-            parsed_record[attribute_key] = parsed_record[attribute_key][0: attribute_value_length_limit]
+    for attribute_key, attribute_value in parsed_record.items():
+        if attribute_key not in ["content", "severity", "timestamp"] and attribute_value:
+            string_attribute_value = attribute_value
+            if not isinstance(attribute_value, str):
+                string_attribute_value = str(attribute_value)
+            parsed_record[attribute_key] = string_attribute_value[: attribute_value_length_limit]
 
     content = parsed_record.get("content", None)
     content_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH", 8192)
