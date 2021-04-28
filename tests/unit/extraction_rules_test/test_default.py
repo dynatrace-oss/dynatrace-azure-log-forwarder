@@ -14,11 +14,14 @@
 
 import json
 from datetime import datetime
+from typing import NewType, Any
 
-from logs_ingest.main import parse_record
+from logs_ingest import main
 from logs_ingest.mapping import RESOURCE_NAME_ATTRIBUTE, RESOURCE_TYPE_ATTRIBUTE, RESOURCE_GROUP_ATTRIBUTE, \
     SUBSCRIPTION_ATTRIBUTE, RESOURCE_ID_ATTRIBUTE
 from logs_ingest.self_monitoring import SelfMonitoring
+
+MonkeyPatchFixture = NewType("MonkeyPatchFixture", Any)
 
 record = {
     "Level": 4,
@@ -65,7 +68,26 @@ expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "WEATHERAPP-API-MGMT"
 }
 
+expected_output_attribute_values_trimmed = {
+    "cloud.provider": "Azur",
+    "cloud.region": "West",
+    "timestamp": "2021-01-29T09:25:05.3511301Z",
+    "dt.logpath": "Gate",
+    "severity": "Informational",
+    "content": json.dumps(record["properties"]),
+    RESOURCE_ID_ATTRIBUTE: "/SUB",
+    SUBSCRIPTION_ATTRIBUTE: "69B5",
+    RESOURCE_GROUP_ATTRIBUTE: "TEST",
+    RESOURCE_TYPE_ATTRIBUTE: "MICR",
+    RESOURCE_NAME_ATTRIBUTE: "WEAT"
+}
+
 
 def test_default():
-    actual_output = parse_record(record, SelfMonitoring(execution_time=datetime.utcnow()))
+    actual_output = main.parse_record(record, SelfMonitoring(execution_time=datetime.utcnow()))
     assert actual_output == expected_output
+
+def test_trimming_attribute_values(monkeypatch: MonkeyPatchFixture):
+    monkeypatch.setattr(main, 'attribute_value_length_limit', 4)
+    actual_output = main.parse_record(record, SelfMonitoring(execution_time=datetime.utcnow()))
+    assert actual_output == expected_output_attribute_values_trimmed

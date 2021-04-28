@@ -27,7 +27,7 @@ from wiremock.resources.mappings.resource import Mappings
 from wiremock.resources.requests.resource import Requests
 from wiremock.server import WireMockServer
 
-from logs_ingest.main import process_logs
+from logs_ingest import main
 from logs_ingest.self_monitoring import DynatraceConnectivity, SelfMonitoring
 
 MOCKED_API_PORT = 9011
@@ -39,7 +39,6 @@ EVENTS_NUMBER = 5
 
 MonkeyPatchFixture = NewType("MonkeyPatchFixture", Any)
 system_variables = {
-    'DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH': str(500),
     'DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE': str(FILE_SIZE),
     'DYNATRACE_URL': 'http://localhost:' + str(MOCKED_API_PORT),
     'DYNATRACE_ACCESS_KEY': ACCESS_KEY,
@@ -97,9 +96,10 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
     # given
     for variable_name in system_variables:
         monkeypatch.setenv(variable_name, system_variables[variable_name])
+    monkeypatch.setattr(main, 'content_length_limit', 500)
 
     # when
-    process_logs(init_events, self_monitoring)
+    main.process_logs(init_events, self_monitoring)
 
     # then
     sent_requests = Requests.get_all_received_requests().get_json_data()
@@ -124,9 +124,10 @@ def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_m
     # given
     for variable_name in system_variables:
         monkeypatch.setenv(variable_name, system_variables[variable_name])
+    monkeypatch.setattr(main, 'content_length_limit', 500)
 
     # when
-    process_logs(init_events, self_monitoring)
+    main.process_logs(init_events, self_monitoring)
 
     # then
     sent_requests = Requests.get_all_received_requests().get_json_data()
@@ -151,10 +152,11 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
     # given
     for variable_name in system_variables:
         monkeypatch.setenv(variable_name, system_variables[variable_name])
+    monkeypatch.setattr(main, 'content_length_limit', 500)
 
     # when
     with pytest.raises(HTTPError):
-        process_logs(init_events, self_monitoring)
+        main.process_logs(init_events, self_monitoring)
 
     # then
     sent_requests = Requests.get_all_received_requests().get_json_data()

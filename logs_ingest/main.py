@@ -32,6 +32,8 @@ from .self_monitoring import SelfMonitoring
 from .utils import get_int_environment_value
 
 record_age_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_MAX_RECORD_AGE", 3600 * 24)
+attribute_value_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_ATTRIBUTE_VALUE_MAX_LENGTH", 250)
+content_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH", 8192)
 
 DYNATRACE_URL = "DYNATRACE_URL"
 DYNATRACE_ACCESS_KEY = "DYNATRACE_ACCESS_KEY"
@@ -127,8 +129,14 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     category = record.get("category", "").lower()
     infer_monitored_entity_id(category, parsed_record)
 
+    for attribute_key, attribute_value in parsed_record.items():
+        if attribute_key not in ["content", "severity", "timestamp"] and attribute_value:
+            string_attribute_value = attribute_value
+            if not isinstance(attribute_value, str):
+                string_attribute_value = str(attribute_value)
+            parsed_record[attribute_key] = string_attribute_value[: attribute_value_length_limit]
+
     content = parsed_record.get("content", None)
-    content_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH", 8192)
     if content:
         if not isinstance(content, str):
             parsed_record["content"] = json.dumps(parsed_record["content"])

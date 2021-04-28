@@ -14,6 +14,7 @@
 
 import json
 import random
+from math import ceil
 from typing import NewType, Any
 
 from logs_ingest import dynatrace_client
@@ -61,3 +62,23 @@ def test_prepare_serialized_batches(monkeypatch: MonkeyPatchFixture):
     batches_total_length = sum(batches_lengths)
 
     assert batches_total_length > logs_total_length
+
+def test_prepare_serialized_batches_split_by_events_limit(monkeypatch: MonkeyPatchFixture):
+    max_events = 5
+    how_many_logs = 51
+    expected_batches = ceil(how_many_logs / max_events)
+
+    monkeypatch.setenv("DYNATRACE_LOG_INGEST_REQUEST_MAX_EVENTS", str(max_events))
+
+    logs = [create_log_entry_with_random_len_msg() for x in range(how_many_logs)]
+
+    batches = dynatrace_client.prepare_serialized_batches(logs)
+
+    assert len(batches) == expected_batches
+
+    entries_in_batches = 0
+
+    for batch in batches:
+        entries_in_batches += len(json.loads(batch))
+
+    assert entries_in_batches == how_many_logs
