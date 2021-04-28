@@ -16,7 +16,7 @@ import json
 from datetime import datetime
 from typing import NewType, Any
 
-from logs_ingest.main import parse_record
+from logs_ingest import main
 from logs_ingest.mapping import RESOURCE_NAME_ATTRIBUTE, RESOURCE_TYPE_ATTRIBUTE, RESOURCE_GROUP_ATTRIBUTE, \
     SUBSCRIPTION_ATTRIBUTE, RESOURCE_ID_ATTRIBUTE
 from logs_ingest.self_monitoring import SelfMonitoring
@@ -84,10 +84,10 @@ expected_output_attribute_values_trimmed = {
 
 
 def test_default():
-    actual_output = parse_record(record, SelfMonitoring(execution_time=datetime.utcnow()))
+    actual_output = main.parse_record(record, SelfMonitoring(execution_time=datetime.utcnow()))
     assert actual_output == expected_output
 
 def test_trimming_attribute_values(monkeypatch: MonkeyPatchFixture):
-    monkeypatch.setenv("DYNATRACE_LOG_INGEST_ATTRIBUTE_VALUE_MAX_LENGTH", "4")
-    actual_output = parse_record(record, SelfMonitoring(execution_time=datetime.utcnow()))
+    monkeypatch.setattr(main, 'attribute_value_length_limit', 4)
+    actual_output = main.parse_record(record, SelfMonitoring(execution_time=datetime.utcnow()))
     assert actual_output == expected_output_attribute_values_trimmed
