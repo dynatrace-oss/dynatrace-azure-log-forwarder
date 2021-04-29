@@ -48,7 +48,7 @@ activity_record = {
 activity_expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "2021-02-09T11:15:57.0501894Z",
-    "dt.logpath": "Activity Log - Alert",
+    "log.source": "Activity Log - Alert",
     "severity": "Information",
     "content": "Alert: AA - Alert Administracyjny called on action groups : sendwebhook",
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/DTMAWO/PROVIDERS/MICROSOFT.INSIGHTS/ACTIVITYLOGALERTS/AA - ALERT ADMINISTRACYJNY",
@@ -115,7 +115,7 @@ administrative_record = {
 administrative_expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "2021-02-09T11:38:31.6315770Z",
-    "dt.logpath": "Activity Log - Administrative",
+    "log.source": "Activity Log - Administrative",
     "severity": "Error",
     "content": "{\"error\":{\"code\":\"ResourceGroupNotFound\",\"message\":\"Resource group 'mw-gr1' could not be found.\"}}",
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/MW-GR1/PROVIDERS/MICROSOFT.STORAGE/STORAGEACCOUNTS/DTMWSTORAGE1",
@@ -184,7 +184,7 @@ policy_record = {
 policy_expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "2021-02-09T08:45:27.3186996Z",
-    "dt.logpath": "Activity Log - Policy",
+    "log.source": "Activity Log - Policy",
     "severity": "Warning",
     "content": json.dumps(policy_record["properties"]),
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/97E9B03F-04D6-4B69-B307-35F483F7ED81/RESOURCEGROUPS/AZUREBATCH-CB989D3E-4BCC-4ABC-BC32-D1B6DFA2E6B0-C/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINESCALESETS/CB989D3E-4BCC-4ABC-BC32-D1B6DFA2E6B0-AZUREBATCH-VMSS-D",
@@ -219,7 +219,7 @@ resource_health_record = {
 resource_health_expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "2021-02-09T09:57:26.498Z",
-    "dt.logpath": "Activity Log - ResourceHealth",
+    "log.source": "Activity Log - ResourceHealth",
     "severity": "Information",
     "content": json.dumps(resource_health_record["properties"]["eventProperties"]),
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/97E9B03F-04D6-4B69-B307-35F483F7ED81/RESOURCEGROUPS/MC_DEMO-BACKEND-RG_DEMO-AKS_EASTUS/PROVIDERS/MICROSOFT.NETWORK/LOADBALANCERS/KUBERNETES",
