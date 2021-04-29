@@ -25,7 +25,7 @@
           "pattern": "time"
         },
         {
-          "key": "dt.logpath",
+          "key": "log.source",
           "pattern": "category"
         },
         {
@@ -57,7 +57,7 @@
           "pattern": "time"
         },
         {
-          "key": "dt.logpath",
+          "key": "log.source",
           "pattern": "category"
         },
         {

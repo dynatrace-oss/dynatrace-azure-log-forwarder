@@ -14,7 +14,7 @@
           "pattern": "time"
         },
         {
-          "key": "dt.logpath",
+          "key": "log.source",
           "pattern": "if(properties.eventCategory == null, &category, &(join('', ['Activity Log - ', category])), @)"
         },
         {
