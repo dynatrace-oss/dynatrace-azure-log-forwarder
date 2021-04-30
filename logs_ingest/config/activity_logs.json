@@ -16,7 +16,7 @@
           "pattern": "time"
         },
         {
-          "key": "dt.logpath",
+          "key": "log.source",
           "pattern": "join('', ['Activity Log - ', category])"
         },
         {
@@ -39,7 +39,7 @@
           "pattern": "time"
         },
         {
-          "key": "dt.logpath",
+          "key": "log.source",
           "pattern": "join('', ['Activity Log - ', category])"
         },
         {
@@ -62,7 +62,7 @@
           "pattern": "time"
         },
         {
-          "key": "dt.logpath",
+          "key": "log.source",
           "pattern": "join('', ['Activity Log - ', category])"
         },
         {

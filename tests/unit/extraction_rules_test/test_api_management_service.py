@@ -56,7 +56,7 @@ expected_output = {
     "cloud.provider": "Azure",
     "cloud.region": "West Europe",
     "timestamp": "2021-01-29T09:25:05.3511301Z",
-    "dt.logpath": "GatewayLogs",
+    "log.source": "GatewayLogs",
     "severity": "Informational",
     "content": json.dumps(record["properties"]),
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/TESTMS/PROVIDERS/MICROSOFT.APIMANAGEMENT/SERVICE/WEATHERAPP-API-MGMT",

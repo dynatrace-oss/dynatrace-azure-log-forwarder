@@ -43,7 +43,7 @@ function_app_logs_record = {
 function_app_logs_expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "2021-02-04T07: 45: 44.5864815Z",
-    "dt.logpath": "FunctionAppLogs",
+    "log.source": "FunctionAppLogs",
     "severity": "Informational",
     "content": "Executed \"Functions.logs_ingest\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms)",
     "faas.name": "logs_ingest",
@@ -72,7 +72,7 @@ not_known_category_record = {
 not_known_category_expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "2021-02-04T07: 45: 44.5864815Z",
-    "dt.logpath": "NotKnownCategory",
+    "log.source": "NotKnownCategory",
     "severity": "Informational",
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION",
     SUBSCRIPTION_ATTRIBUTE: "69B51384-146C-4685-9DAB-5AE01877D7B8",

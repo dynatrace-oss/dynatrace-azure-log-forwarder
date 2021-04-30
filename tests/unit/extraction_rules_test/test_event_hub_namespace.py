@@ -38,7 +38,7 @@ expected_output = {
     "cloud.provider": "Azure",
     "cloud.region": "East US",
     "timestamp": "2/2/2021 3:00:21 PM +00:00",
-    "dt.logpath": "OperationalLogs",
+    "log.source": "OperationalLogs",
     "content": 'EventName: Retreive Namespace, {"SubscriptionId":"97e9b03f-04d6-4b69-b307-35f483f7ed81","Namespace":"azurelabs","Via":"https://azurelabs.servicebus.windows.net/$Resources/eventhubs?api-version=2017-04","TrackingId":"bf9763a1-7e65-4a43-8595-53e417c28bfb_M8CH3_M8CH3_G20"}',
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/97E9B03F-04D6-4B69-B307-35F483F7ED81/RESOURCEGROUPS/DEMO-BACKEND-RG/PROVIDERS/MICROSOFT.EVENTHUB/NAMESPACES/AZURELABS",
     SUBSCRIPTION_ATTRIBUTE: "97E9B03F-04D6-4B69-B307-35F483F7ED81",

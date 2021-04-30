@@ -25,7 +25,7 @@
           "pattern": "EventTimeString"
         },
         {
-          "key": "dt.logpath",
+          "key": "log.source",
           "pattern": "category"
         },
         {

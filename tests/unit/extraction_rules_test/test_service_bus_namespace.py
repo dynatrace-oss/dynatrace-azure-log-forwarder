@@ -34,7 +34,7 @@ record = {
 expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "9/28/2016 8:40:06 PM +00:00",
-    "dt.logpath": "OperationalLogs",
+    "log.source": "OperationalLogs",
     "content": "EventName: Create Queue, {\"SubscriptionId\":\"1a2109e3-9da0-455b-b937-e35e36c1163c\",\"Namespace\":\"shoeboxehns-cy4001\",\"Via\":\"https://shoeboxehns-cy4001.servicebus.windows.net/f8096791adb448579ee83d30e006a13e/?api-version=2016-07\",\"TrackingId\":\"5ee74c9e-72b5-4e98-97c4-08a62e56e221_G1\"}",
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/1A2109E3-9DA0-455B-B937-E35E36C1163C/RESOURCEGROUPS/DEFAULT-SERVICEBUS-CENTRALUS/PROVIDERS/MICROSOFT.SERVICEBUS/NAMESPACES/SHOEBOXEHNS-CY4001",
     SUBSCRIPTION_ATTRIBUTE: "1A2109E3-9DA0-455B-B937-E35E36C1163C",
