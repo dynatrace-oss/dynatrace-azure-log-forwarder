@@ -21,8 +21,8 @@ from datetime import datetime
 from urllib.error import HTTPError
 from urllib.request import Request
 
-from . import logging
 from logs_ingest.azure_credentials import get_azure_token
+from . import logging
 
 
 class SelfMonitoring:
@@ -34,8 +34,21 @@ class SelfMonitoring:
         self.all_requests: int = 0
         self.too_long_content_size = []
         self.dynatrace_connectivities = []
-        self.processing_time: int = 0
-        self.sending_time: int = 0
+        self.processing_time: float = 0
+        self.sending_time: float = 0
+
+    def log_self_monitoring_data(self):
+        dynatrace_connectivity = Counter(self.dynatrace_connectivities)
+        dynatrace_connectivity = [f"{connectivity.name}:{count}" for connectivity, count in
+                                  dynatrace_connectivity.items()]
+        dynatrace_connectivity = ", ".join(dynatrace_connectivity)
+        logging.info(f"SFM Number of all log ingest requests sent to Dynatrace: {self.all_requests}")
+        logging.info(f"SFM Dynatrace connectivity: {dynatrace_connectivity}")
+        logging.info(f"SFM Number of invalid log records due to too old timestamp: {self.too_old_records}")
+        logging.info(f"SFM Number of errors occurred during parsing logs: {self.parsing_errors}")
+        logging.info(f"SFM Number of records with too long content: {len(self.too_long_content_size)}")
+        logging.info(f"SFM Total logs processing time [s]: {self.processing_time}")
+        logging.info(f"SFM Total logs sending time [s]: {self.sending_time}")
 
     def push_time_series_to_azure(self):
         azure_token = get_azure_token()

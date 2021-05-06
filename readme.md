@@ -66,7 +66,6 @@ export USE_EXISTING_ACTIVE_GATE="false"
 export REQUIRE_VALID_CERTIFICATE="false"
 export SFM_ENABLED="false"
 export TARGET_URL="https://your.dynatrace.environment.com"
-export FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=<log_level>;FILTER.GLOBAL.CONTAINS_PATTERN=<pattern>;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.<resource_type>=<log_level>;FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.<resource_type>=<pattern>;FILTER.RESOURCE_ID.MIN_LOG_LEVEL.<resource_id>=<log_level>;FILTER.RESOURCE_ID.CONTAINS_PATTERN.<resource_id>=<pattern>"
 
 ./dynatrace-azure-logs.sh
 ```
@@ -85,7 +84,7 @@ export FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=<log_level>;FILTER.GLOBAL.CONT
 | --target-url | TARGET_URL | If you have chosen deploy ActiveGate option set the URL to your Dynatrace SaaS environment logs ingest target (e.g. https://mytenant.live.dynatrace.com). Otherwise set ActiveGate endpoint: https://<active_gate_address>:9999/e/<environment_id> (e.g. https://22.111.98.222:9999/e/abc12345). Make sure that Target URL is not ended with '/' | Yes | - |
 | --require-valid-certificate | REQUIRE_VALID_CERTIFICATE | Enables checking SSL certificate of the target Active Gate. By default (if this option is not provided) certificates aren't validated. | No | false |
 | --target-paas-token | TARGET_PAAS_TOKEN | Dynatrace PaaS token generated in Settings->Integration->Platform as a Service. Parameter required for deployment with containerized ActiveGate | Yes/No | - |
-| --target-api-token | TARGET_API_TOKEN | Dynatrace API token. You can learn how to generate token [Dynatrace API - Tokens and authentication](https://www.dynatrace.com/support/help/dynatrace-api/basics/dynatrace-api-authentication) manually. Integration requires 'API v2 Ingest logs' token permission. | Yes | - |
+| --target-api-token | TARGET_API_TOKEN | Dynatrace API token. You can learn how to generate token [Dynatrace API - Tokens and authentication](https://www.dynatrace.com/support/help/dynatrace-api/basics/dynatrace-api-authentication) manually. **Integration requires 'API v2 Ingest logs' token permission.** | Yes | - |
 | --enable-self-monitoring | SFM_ENABLED | Send custom metrics to Azure. To use it remember to set up Managed identity for Function App (more details in Self-monitoring section). Self monitoring allows to diagnose quickly if your function processes and sends logs to Dynatrace properly. By default (if this option is not provided) custom metrics won't be sent to Azure. | No | false | 
 | --resource-group | RESOURCE_GROUP | Name of the Azure Resource Group in which Function will be deployed. To create new one run: `az group create --name <resource_group> --location <region>` | Yes | - |
 | --event-hub-connection-string | EVENT_HUB_CONNECTION_STRING | Connection string for Azure EventHub that is configured for receiving logs. You can create policy in Event Hub Namespace -> Event Hub -> Shared Access policies (listen permission is required). More info here: [https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string) | Yes | - |
@@ -150,8 +149,15 @@ Namespace: dynatrace_logs_self_monitoring
 You can apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
 
 ### How to apply filters
-You need to specify FILTER_CONFIG environment variable. You can apply filters during dynatrace-azure-log-forwarder installation or declare FILTER_CONFIG variable later in Azure Portal in Function App Configuration (function restart is needed). \
-FILTER_CONFIG is a key-value pair variable. \
+If you want to apply filters you need to:
+* set FILTER_CONFIG environment variable before running dynatrace-azure-log-forwarder installation script:
+```shell script
+export FILTER_CONFIG="FILTER.GLOBAL.MIN_LOG_LEVEL=<log_level>;FILTER.GLOBAL.CONTAINS_PATTERN=<pattern>;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.<resource_type>=<log_level>;FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.<resource_type>=<pattern>;FILTER.RESOURCE_ID.MIN_LOG_LEVEL.<resource_id>=<log_level>;FILTER.RESOURCE_ID.CONTAINS_PATTERN.<resource_id>=<pattern>"
+```
+
+* or declare FILTER_CONFIG later in Azure Portal in Function App Configuration (function restart is needed).
+
+FILTER_CONFIG is a key-value pair variable.
 You can declare two types of filters: MIN_LOG_LEVEL and CONTAINS_PATTERN for three groups: GLOBAL, RESOURCE_TYPE and RESOURCE_ID.
 
 **MIN_LOG_LEVEL:**
