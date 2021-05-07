@@ -28,7 +28,7 @@ readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --event-hub-name EVENT_HUB_NAME --filter-config FILTER_CONFIG [--use-existing-active-gate] [--target-paas-token TARGET_PAAS_TOKEN] [--require-valid-certificate] [--enable-self-monitoring]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --event-hub-name EVENT_HUB_NAME [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--use-existing-active-gate] [--require-valid-certificate] [--enable-self-monitoring]
 
 arguments:
     -h, --help              Show this help message and exit

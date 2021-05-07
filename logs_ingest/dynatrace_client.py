@@ -22,9 +22,9 @@ from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import Request
 
-from . import logging
 from logs_ingest.self_monitoring import SelfMonitoring, DynatraceConnectivity
 from logs_ingest.utils import get_int_environment_value
+from . import logging
 
 should_verify_ssl_certificate = os.environ.get("REQUIRE_VALID_CERTIFICATE", "True") in ["True", "true"]
 ssl_context = ssl.create_default_context()
@@ -35,7 +35,7 @@ if not should_verify_ssl_certificate:
 
 def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
     # pylint: disable=R0912
-    start_time = time.time()
+    start_time = time.perf_counter()
     log_ingest_url = urlparse(dynatrace_url + "/api/v2/logs/ingest").geturl()
     batches = prepare_serialized_batches(logs)
 
@@ -84,7 +84,7 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
             if number_of_http_errors == len(batches):
                 raise e
         finally:
-            self_monitoring.sending_time = time.time() - start_time
+            self_monitoring.sending_time = time.perf_counter() - start_time
 
 
 def _perform_http_request(

@@ -53,7 +53,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
             raise Exception(f"Please set {DYNATRACE_URL} and {DYNATRACE_ACCESS_KEY} in application settings")
 
         dt_payload = []
-        start_time = time.time()
+        start_time = time.perf_counter()
         for event in events:
             timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
             if not is_too_old(timestamp, self_monitoring, "event"):
@@ -67,7 +67,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
                         self_monitoring.parsing_errors += 1
                         logging.exception("Failed to parse log record")
 
-        self_monitoring.processing_time = time.time() - start_time
+        self_monitoring.processing_time = time.perf_counter() - start_time
         logging.info(f"Successfully parsed {len(dt_payload)} log records")
         if dt_payload:
             send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], dt_payload, self_monitoring)
@@ -76,6 +76,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         raise e
     finally:
         self_monitoring_enabled = os.environ.get("SELF_MONITORING_ENABLED", "False") in ["True", "true"]
+        self_monitoring.log_self_monitoring_data()
         if self_monitoring_enabled:
             self_monitoring.push_time_series_to_azure()
 
