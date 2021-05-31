@@ -1,6 +1,6 @@
 # Dynatrace Azure Log Forwarder
 ## Overview
-This project provides mechanism that allows to stream Azure logs from Azure Event Hub into Dynatrace Logs via Azure Function App. 
+This project provides a mechanism that allows streaming Azure logs from Azure Event Hub into Dynatrace Logs via Azure Function App. 
 It supports both: Azure Resource Logs and Azure Activity Logs.
 
 Prerequisites:
@@ -11,7 +11,7 @@ Prerequisites:
 
 *Architecture*
 
-azure-log-forwarder-function is an Azure Function App written in Python that pulls logs for configured services. Function execution is triggered by Azure Event Hub. When all log records are processed, they are pushed to Dynatrace Logs API.   
+azure-log-forwarder-function is an Azure Function App written in Python that pulls logs for configured services. The Function execution is triggered by Azure Event Hub. Once all log records are processed, they are pushed to Dynatrace Logs API.   
 
 `azure-log-forwarder` (with containerized ActiveGate)  components:
 * `azure-log-forwarder-function` - function app that subscribes to one Event Hub which is in the same location where you deploy azure-log-forwarder; deployment with App Service Plan and minimum `S1 Standard` pricing tier 
@@ -24,9 +24,26 @@ You need to deploy azure-log-forwarder in each region you want to pull logs from
 
 
 # Deployment
+Please refer to the instructions:  
+   [Dytantrace log forwarder Documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd)
 
-Please refer to instructions  
-   > [Dytantrace log forwarder Documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#azure-)
+# Viewing Azure logs in Dynatrace UI
+ Please [refer to documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#view-azure-logs).
+
+# Self-monitoring
+
+### Self-monitoring metrics
+Please [refer to documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#self-monitoring-optional).
+
+#### Azure Authentication
+Managed identity from Azure Active Directory (AD) is used to authenticate to Azure. It allows an app to easily access other Azure AD-protected resources.
+
+To use Managed identity for Function App, after deployment of azure-log-forwarder is finished you need to add a system-assigned identity. 
+In the portal you need to go to Settings section of Function App and select Identity. Within the System assigned tab, switch Status to On.
+One more step is left - in Azure role assignments you need to grant permission **Monitoring Metrics Publisher** to Resource Group where Function App is deployed.
+
+More info here: [How to use managed identities for App Service and Azure Functions](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=dotnet)
+
 
 
 
@@ -41,15 +58,6 @@ az network profile delete --name {DEPLOYMENT_NAME}networkProfile --resource-grou
 ```
 
 Then retry removing the VNet from Azure Portal
-
-### Azure Authentication
-Managed identity from Azure Active Directory (AD) is used to authenticate to Azure. It allows an app to easily access other Azure AD-protected resources.
-
-To use Managed identity for Function App, after deployment of azure-log-forwarder is finished you need to add a system-assigned identity. 
-In the portal you need to go to Settings section of Function App and select Identity. Within the System assigned tab, switch Status to On.
-One more step is left - in Azure role assignments you need to grant permission **Monitoring Metrics Publisher** to Resource Group where Function App is deployed.
-
-More info here: [How to use managed identities for App Service and Azure Functions](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=dotnet)
 
 ## License
 
