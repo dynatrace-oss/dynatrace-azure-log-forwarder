@@ -25,7 +25,7 @@ You need to deploy azure-log-forwarder in each region you want to pull logs from
 
 # Deployment
 Please refer to the instructions:  
-   [Dytantrace log forwarder Documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd)
+   [Dynatrace log forwarder Documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd)
 
 # Viewing Azure logs in Dynatrace UI
  Please [refer to documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#view-azure-logs).
@@ -44,12 +44,13 @@ One more step is left - in Azure role assignments you need to grant permission *
 
 More info here: [How to use managed identities for App Service and Azure Functions](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=dotnet)
 
-
-
+## Pricing
+ Ingested logs will consume DDUs. For more details: 
+  - [Azure service monitoring consumption](https://www.dynatrace.com/support/help/reference/monitoring-consumption-calculation/#expand-azure-service-monitoring-consumption-103)
+  - [How to calculate consumption](https://www.dynatrace.com/support/help/reference/monitoring-consumption-calculation/log-monitoring-consumption/)
 
 ##Issues 
-
-#### Virtual Network cleanup
+### Virtual Network cleanup
 
 You may encounter issue with removing Virtual Network created for containerised Active Gate. Due to unresolved Azure bug, related sub-resource (Network Profile) is not deleted correctly. To remove the Virtual Network, first run cli command:
 
