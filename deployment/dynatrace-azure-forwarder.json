@@ -217,7 +217,7 @@
                             "environmentVariables": [
                                 {
                                     "name": "DT_CAPABILITIES",
-                                    "value": "log_analytics_collector"
+                                    "value": "log_analytics_collector,restInterface"
                                 },
                                 {
                                     "name": "DT_ID_SKIP_HOSTNAME",
