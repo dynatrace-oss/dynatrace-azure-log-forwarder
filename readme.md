@@ -23,12 +23,12 @@ Please refer to [self-monitoring](https://www.dynatrace.com/support/help/shortli
 # Additional resources
 - [Architecture](Architecture.md)
 - ### Azure Authentication:
-Managed identity from Azure Active Directory (AD) is used to authenticate to Azure. It allows an app to easily access other Azure AD-protected resources.
-To use Managed identity for Function App, after deployment of azure-log-forwarder is finished you need to add a system-assigned identity. 
-In the portal you need to go to Settings section of Function App and select Identity. Within the System assigned tab, switch Status to On.
-One more step is left - in Azure role assignments you need to grant permission **Monitoring Metrics Publisher** to Resource Group where Function App is deployed.
-More info here: [How to use managed identities for App Service and Azure Functions](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=dotnet)
-
+   Managed identity from Azure Active Directory (AD) is used to authenticate to Azure. It allows an app to easily access other Azure AD-protected resources.
+   To use Managed identity for Function App, after deployment of azure-log-forwarder is finished you need to add a system-assigned identity. 
+   In the portal you need to go to Settings section of Function App and select Identity. Within the System assigned tab, switch Status to On.
+   One more step is left - in Azure role assignments you need to grant permission **Monitoring Metrics Publisher** to Resource Group where Function App is deployed.
+   More info here: [How to use managed identities for App Service and Azure Functions](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=dotnet)
+- GCP [monitoring](https://github.com/dynatrace-oss/dynatrace-gcp-function)
 
 ## Issues 
 ### Virtual Network cleanup
