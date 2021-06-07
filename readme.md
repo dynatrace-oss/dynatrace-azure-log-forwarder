@@ -4,16 +4,16 @@
 
 
 # Prerequisites
- Please refer to [Prerequisites](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#prerequisites-) documentation.
+Please refer to [Prerequisites](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#prerequisites-) Documentation.
  
 # Deployment
-Please [refer  to Dynatrace log forwarder Documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd)
+Please refer  to [Dynatrace log forwarder](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd) Documentation.
 
 # Viewing Azure logs in Dynatrace UI
- Please [refer to documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#view-azure-logs).
+Please refer to [documentation](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#view-azure-logs).
 
 # Self-monitoring
-Please [refer to self-monitoring](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#self-monitoring-optional)  documentation.
+Please refer to [self-monitoring](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#self-monitoring-optional)  Documentation.
 
 # Pricing
  Ingested logs will consume DDUs. For more details: 
