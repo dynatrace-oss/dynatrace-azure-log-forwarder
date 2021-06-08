@@ -29,7 +29,7 @@
         },
         {
           "key": "audit.result",
-          "pattern": "if(starts_with(resultType, 'Succeeded') || starts_with(resultType, 'succeeded'), &'succeeded', &resultType, @)"
+          "pattern": "replace_regex(resultType,'(.*)\\.$','$1') || resultType"
         }
       ]
     },
@@ -64,7 +64,7 @@
         },
         {
           "key": "audit.result",
-          "pattern": "if(starts_with(resultSignature, 'Succeeded') || starts_with(resultSignature, 'succeeded'), &'succeeded', &resultSignature, @)"
+          "pattern": "replace_regex(resultSignature,'(.*)\\.$','$1') || resultSignature"
         }
       ]
     },
@@ -95,7 +95,7 @@
         },
         {
           "key": "audit.result",
-          "pattern": "if(starts_with(resultType, 'Succeeded') || starts_with(resultType, 'succeeded'), &'succeeded', &resultType, @)"
+          "pattern": "replace_regex(resultType,'(.*)\\.$','$1') || resultType"
         }
       ]
     },
@@ -130,7 +130,7 @@
         },
         {
           "key": "audit.result",
-          "pattern": "if(starts_with(resultSignature, 'Succeeded') || starts_with(resultSignature, 'succeeded'), &'succeeded', &resultSignature, @)"
+          "pattern": "replace_regex(resultSignature,'(.*)\\.$','$1') || resultSignature"
         }
       ]
     }

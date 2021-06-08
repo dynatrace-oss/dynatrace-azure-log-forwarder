@@ -22,13 +22,13 @@ from logs_ingest.mapping import RESOURCE_NAME_ATTRIBUTE, RESOURCE_TYPE_ATTRIBUTE
     SUBSCRIPTION_ATTRIBUTE, RESOURCE_ID_ATTRIBUTE
 from logs_ingest.self_monitoring import SelfMonitoring
 
-activity_record = {
+alert_record = {
     "time": "2021-02-09T11:15:57.0501894Z",
     "resourceId": "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/DTMAWO/PROVIDERS/MICROSOFT.INSIGHTS/ACTIVITYLOGALERTS/AA - ALERT ADMINISTRACYJNY",
     "correlationId": "d9381714-0c92-49e4-b471-d67199f857c0",
     "operationName": "Microsoft.Insights/ActivityLogAlerts/Activated/action",
     "level": "Information",
-    "resultType": "Succeeded",
+    "resultType": "Succeeded.",
     "resultDescription": "Alert: AA - Alert Administracyjny called on action groups : sendwebhook",
     "category": "Alert",
     "properties": {
@@ -45,7 +45,7 @@ activity_record = {
     }
 }
 
-activity_expected_output = {
+alert_expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "2021-02-09T11:15:57.0501894Z",
     "log.source": "Activity Log - Alert",
@@ -57,7 +57,7 @@ activity_expected_output = {
     RESOURCE_TYPE_ATTRIBUTE: "MICROSOFT.INSIGHTS/ACTIVITYLOGALERTS",
     RESOURCE_NAME_ATTRIBUTE: "AA - ALERT ADMINISTRACYJNY",
     "audit.action": "Microsoft.Insights/ActivityLogAlerts/Activated/action",
-    "audit.result": "succeeded"
+    "audit.result": "Succeeded"
 }
 
 administrative_record = {
@@ -201,7 +201,7 @@ policy_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "CB989D3E-4BCC-4ABC-BC32-D1B6DFA2E6B0-AZUREBATCH-VMSS-D",
     "dt.source_entity": "AZURE_VM_SCALE_SET-E65F5FB7B1076140",
     "audit.action": "MICROSOFT.AUTHORIZATION/POLICIES/AUDIT/ACTION",
-    "audit.result": "succeeded"
+    "audit.result": "Succeeded"
 }
 
 resource_health_record = {
@@ -247,9 +247,9 @@ def self_monitoring():
     return SelfMonitoring(execution_time=datetime.utcnow())
 
 
-def test_activity_log(self_monitoring):
-    actual_output = parse_record(activity_record, self_monitoring)
-    assert actual_output == activity_expected_output
+def test_alert_log(self_monitoring):
+    actual_output = parse_record(alert_record, self_monitoring)
+    assert actual_output == alert_expected_output
 
 
 def test_administrative_log(self_monitoring):

@@ -27,7 +27,7 @@
         },
         {
           "key": "audit.result",
-          "pattern": "if(properties.eventCategory, &if(starts_with(resultType, 'Succeeded') || starts_with(resultType, 'succeeded'), &'succeeded', &resultType, @), &null, @)"
+          "pattern": "if(properties.eventCategory, &(replace_regex(resultType,'(.*)\\.$','$1') || resultType), &null, @)"
         }
       ]
     }
