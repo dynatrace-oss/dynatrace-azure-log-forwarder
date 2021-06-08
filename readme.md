@@ -29,6 +29,7 @@ Please refer to [self-monitoring](https://www.dynatrace.com/support/help/shortli
    One more step is left - in Azure role assignments you need to grant permission **Monitoring Metrics Publisher** to Resource Group where Function App is deployed.
    More info here: [How to use managed identities for App Service and Azure Functions](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=dotnet)
 - GCP [monitoring](https://github.com/dynatrace-oss/dynatrace-gcp-function)
+- AWS [monitoring](https://github.com/dynatrace-oss/dynatrace-aws-log-forwarder)
 
 ## Issues 
 ### Virtual Network cleanup
