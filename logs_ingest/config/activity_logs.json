@@ -22,6 +22,14 @@
         {
           "key": "content",
           "pattern": "resultDescription"
+        },
+        {
+          "key": "audit.action",
+          "pattern": "operationName"
+        },
+        {
+          "key": "audit.result",
+          "pattern": "if(starts_with(resultType, 'Succeeded') || starts_with(resultType, 'succeeded'), &'succeeded', &resultType, @)"
         }
       ]
     },
@@ -45,6 +53,18 @@
         {
           "key": "content",
           "pattern": "if(properties.statusMessage == null, &properties.message, &properties.statusMessage, @)"
+        },
+        {
+          "key": "audit.identity",
+          "pattern": "identity.claims.\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name\""
+        },
+        {
+          "key": "audit.action",
+          "pattern": "operationName"
+        },
+        {
+          "key": "audit.result",
+          "pattern": "if(starts_with(resultSignature, 'Succeeded') || starts_with(resultSignature, 'succeeded'), &'succeeded', &resultSignature, @)"
         }
       ]
     },
@@ -68,6 +88,49 @@
         {
           "key": "content",
           "pattern": "properties.eventProperties"
+        },
+        {
+          "key": "audit.action",
+          "pattern": "operationName"
+        },
+        {
+          "key": "audit.result",
+          "pattern": "if(starts_with(resultType, 'Succeeded') || starts_with(resultType, 'succeeded'), &'succeeded', &resultType, @)"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('Policy')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "join('', ['Activity Log - ', category])"
+        },
+        {
+          "key": "content",
+          "pattern": "properties.message"
+        },
+        {
+          "key": "audit.identity",
+          "pattern": "\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name\""
+        },
+        {
+          "key": "audit.action",
+          "pattern": "operationName"
+        },
+        {
+          "key": "audit.result",
+          "pattern": "if(starts_with(resultSignature, 'Succeeded') || starts_with(resultSignature, 'succeeded'), &'succeeded', &resultSignature, @)"
         }
       ]
     }

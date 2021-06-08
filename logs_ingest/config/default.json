@@ -20,6 +20,14 @@
         {
           "key": "content",
           "pattern": "properties"
+        },
+        {
+          "key": "audit.action",
+          "pattern": "if(properties.eventCategory, &operationName, &null, @)"
+        },
+        {
+          "key": "audit.result",
+          "pattern": "if(properties.eventCategory, &if(starts_with(resultType, 'Succeeded') || starts_with(resultType, 'succeeded'), &'succeeded', &resultType, @), &null, @)"
         }
       ]
     }
