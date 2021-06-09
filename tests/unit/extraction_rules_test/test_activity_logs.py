@@ -22,13 +22,13 @@ from logs_ingest.mapping import RESOURCE_NAME_ATTRIBUTE, RESOURCE_TYPE_ATTRIBUTE
     SUBSCRIPTION_ATTRIBUTE, RESOURCE_ID_ATTRIBUTE
 from logs_ingest.self_monitoring import SelfMonitoring
 
-activity_record = {
+alert_record = {
     "time": "2021-02-09T11:15:57.0501894Z",
     "resourceId": "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/DTMAWO/PROVIDERS/MICROSOFT.INSIGHTS/ACTIVITYLOGALERTS/AA - ALERT ADMINISTRACYJNY",
     "correlationId": "d9381714-0c92-49e4-b471-d67199f857c0",
     "operationName": "Microsoft.Insights/ActivityLogAlerts/Activated/action",
     "level": "Information",
-    "resultType": "Succeeded",
+    "resultType": "Succeeded.",
     "resultDescription": "Alert: AA - Alert Administracyjny called on action groups : sendwebhook",
     "category": "Alert",
     "properties": {
@@ -45,7 +45,7 @@ activity_record = {
     }
 }
 
-activity_expected_output = {
+alert_expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "2021-02-09T11:15:57.0501894Z",
     "log.source": "Activity Log - Alert",
@@ -55,7 +55,9 @@ activity_expected_output = {
     SUBSCRIPTION_ATTRIBUTE: "69B51384-146C-4685-9DAB-5AE01877D7B8",
     RESOURCE_GROUP_ATTRIBUTE: "DTMAWO",
     RESOURCE_TYPE_ATTRIBUTE: "MICROSOFT.INSIGHTS/ACTIVITYLOGALERTS",
-    RESOURCE_NAME_ATTRIBUTE: "AA - ALERT ADMINISTRACYJNY"
+    RESOURCE_NAME_ATTRIBUTE: "AA - ALERT ADMINISTRACYJNY",
+    "audit.action": "Microsoft.Insights/ActivityLogAlerts/Activated/action",
+    "audit.result": "Succeeded"
 }
 
 administrative_record = {
@@ -87,17 +89,19 @@ administrative_record = {
             "iat": "1612785544",
             "nbf": "1612785544",
             "exp": "1612872244",
-            "aio": "E2ZgYDAQS/prW6b0Zsah6KMXtnTEAQA=",
-            "appid": "80369ed6-5f11-4dd9-bef3-692475845e77",
-            "appidacr": "2",
-            "http://schemas.microsoft.com/identity/claims/identityprovider": "https://sts.windows.net/70ebe3a3-5b30-435d-9d67-7716d74ca190/",
-            "http://schemas.microsoft.com/identity/claims/objectidentifier": "e7018f64-88e2-46af-a197-7b9084d8346a",
-            "rh": "0.AAAAo-PrcDBbXUOdZ3cW10yhkNaeNoARX9lNvvNpJHWEXndFAAA.",
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": "e7018f64-88e2-46af-a197-7b9084d8346a",
-            "http://schemas.microsoft.com/identity/claims/tenantid": "70ebe3a3-5b30-435d-9d67-7716d74ca190",
+            "aio": "AUQAu/8TAAAAlSdddOpuxGAphkybH3N4EdIz5xuTrAwxum1uL6e+FO03x2G20rOQD3KvxRiAhzEAPcXk61pJ4Tsv6IzQ9phcsA==",
+            "appid": "04b07795-8ddb-461a-bbee-02f9e1bf7b46",
+            "appidacr": "0",
+            "http://schemas.microsoft.com/2012/01/devicecontext/claims/identifier": "7ey32c5a-9347-4f4c-8518-178b7cc0c1b7",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname": "Kowalski",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname": "Jan",
             "uti": "gVQtWBk9fkuRyF80Tn1XAA",
             "ver": "1.0",
-            "xms_tcdt": "1415644249"
+            "xms_tcdt": "1415644249",
+            "http://schemas.microsoft.com/identity/claims/scope": "user_impersonation",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": "SQDfplmjvs2zlBolO2iAHUNgznOepOpteDiCAs0",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": "jan.kowalski@somewhere.com",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn": "jan.kowalski@somewhere.com",
         }
     },
     "level": "Error",
@@ -107,7 +111,7 @@ administrative_record = {
         "statusMessage": "{\"error\":{\"code\":\"ResourceGroupNotFound\",\"message\":\"Resource group 'mw-gr1' could not be found.\"}}",
         "eventCategory": "Administrative",
         "entity": "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/MW-GR1/PROVIDERS/MICROSOFT.STORAGE/STORAGEACCOUNTS/DTMWSTORAGE1",
-        "message": "Microsoft.Storage/storageAccounts/listAccountSas/action",
+        "message": "MICROSOFT.STORAGE/STORAGEACCOUNTS/LISTACCOUNTSAS/ACTION",
         "hierarchy": "70ebe3a3-5b30-435d-9d67-7716d74ca190/GroupLevel0/GroupALevel1/GroupAALevel2/69b51384-146c-4685-9dab-5ae01877d7b8"
     }
 }
@@ -124,6 +128,9 @@ administrative_expected_output = {
     RESOURCE_TYPE_ATTRIBUTE: "MICROSOFT.STORAGE/STORAGEACCOUNTS",
     RESOURCE_NAME_ATTRIBUTE: "DTMWSTORAGE1",
     "dt.source_entity": "AZURE_STORAGE_ACCOUNT-A5A9F4A68D9B0D44",
+    "audit.identity": "jan.kowalski@somewhere.com",
+    "audit.action": "MICROSOFT.STORAGE/STORAGEACCOUNTS/LISTACCOUNTSAS/ACTION",
+    "audit.result": "Failed.NotFound"
 }
 
 policy_record = {
@@ -186,13 +193,15 @@ policy_expected_output = {
     "timestamp": "2021-02-09T08:45:27.3186996Z",
     "log.source": "Activity Log - Policy",
     "severity": "Warning",
-    "content": json.dumps(policy_record["properties"]),
+    "content": "Microsoft.Authorization/policies/audit/action",
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/97E9B03F-04D6-4B69-B307-35F483F7ED81/RESOURCEGROUPS/AZUREBATCH-CB989D3E-4BCC-4ABC-BC32-D1B6DFA2E6B0-C/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINESCALESETS/CB989D3E-4BCC-4ABC-BC32-D1B6DFA2E6B0-AZUREBATCH-VMSS-D",
     SUBSCRIPTION_ATTRIBUTE: "97E9B03F-04D6-4B69-B307-35F483F7ED81",
     RESOURCE_GROUP_ATTRIBUTE: "AZUREBATCH-CB989D3E-4BCC-4ABC-BC32-D1B6DFA2E6B0-C",
     RESOURCE_TYPE_ATTRIBUTE: "MICROSOFT.COMPUTE/VIRTUALMACHINESCALESETS",
     RESOURCE_NAME_ATTRIBUTE: "CB989D3E-4BCC-4ABC-BC32-D1B6DFA2E6B0-AZUREBATCH-VMSS-D",
     "dt.source_entity": "AZURE_VM_SCALE_SET-E65F5FB7B1076140",
+    "audit.action": "MICROSOFT.AUTHORIZATION/POLICIES/AUDIT/ACTION",
+    "audit.result": "Succeeded"
 }
 
 resource_health_record = {
@@ -228,6 +237,8 @@ resource_health_expected_output = {
     RESOURCE_TYPE_ATTRIBUTE: "MICROSOFT.NETWORK/LOADBALANCERS",
     RESOURCE_NAME_ATTRIBUTE: "KUBERNETES",
     "dt.source_entity": "AZURE_LOAD_BALANCER-0C3A32CD8FA39936",
+    "audit.action": "Microsoft.Resourcehealth/healthevent/Updated/action",
+    "audit.result": "Updated"
 }
 
 
@@ -236,9 +247,9 @@ def self_monitoring():
     return SelfMonitoring(execution_time=datetime.utcnow())
 
 
-def test_activity_log(self_monitoring):
-    actual_output = parse_record(activity_record, self_monitoring)
-    assert actual_output == activity_expected_output
+def test_alert_log(self_monitoring):
+    actual_output = parse_record(alert_record, self_monitoring)
+    assert actual_output == alert_expected_output
 
 
 def test_administrative_log(self_monitoring):

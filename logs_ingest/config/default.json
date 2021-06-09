@@ -20,6 +20,14 @@
         {
           "key": "content",
           "pattern": "properties"
+        },
+        {
+          "key": "audit.action",
+          "pattern": "if(properties.eventCategory, &operationName, &null, @)"
+        },
+        {
+          "key": "audit.result",
+          "pattern": "if(properties.eventCategory, &(replace_regex(resultType,'(.*)\\.$','$1') || resultType), &null, @)"
         }
       ]
     }
