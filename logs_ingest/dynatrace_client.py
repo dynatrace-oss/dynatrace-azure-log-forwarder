@@ -41,43 +41,14 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
 
     number_of_http_errors = 0
     for batch in batches:
-        logs = batch[0]
+        batch_logs = batch[0]
         number_of_logs_in_batch = batch[1]
-        sent = False
-        encoded_body_bytes = logs.encode("UTF-8")
+        encoded_body_bytes = batch_logs.encode("UTF-8")
         display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
+        logging.info(f'Log ingest payload size: {display_payload_size} kB')
+        sent = False
         try:
-            logging.info(f'Log ingest payload size: {display_payload_size} kB')
-            self_monitoring.all_requests += 1
-            status, reason, response = _perform_http_request(
-                method="POST",
-                url=log_ingest_url,
-                encoded_body_bytes=encoded_body_bytes,
-                headers={
-                    "Authorization": f"Api-Token {dynatrace_token}",
-                    "Content-Type": "application/json; charset=utf-8"
-                }
-            )
-            if status > 299:
-                logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"')
-                if status == 400:
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.InvalidInput)
-                elif status == 401:
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.ExpiredToken)
-                elif status == 403:
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongToken)
-                elif status in (404, 405):
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongURL)
-                elif status in (413, 429):
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.TooManyRequests)
-                    raise HTTPError(log_ingest_url, 429, "Dynatrace throttling response", "", "")
-                elif status == 500:
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
-                    raise HTTPError(log_ingest_url, 500, "Dynatrace server error", "", "")
-            else:
-                self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
-                logging.info("Log ingest payload pushed successfully")
-                sent = True
+            sent = _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent)
         except HTTPError as e:
             raise e
         except Exception as e:
@@ -92,6 +63,40 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
             if sent:
                 self_monitoring.log_ingest_payload_size += display_payload_size
                 self_monitoring.sent_log_entries += number_of_logs_in_batch
+
+
+def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
+    self_monitoring.all_requests += 1
+    status, reason, response = _perform_http_request(
+        method="POST",
+        url=log_ingest_url,
+        encoded_body_bytes=encoded_body_bytes,
+        headers={
+            "Authorization": f"Api-Token {dynatrace_token}",
+            "Content-Type": "application/json; charset=utf-8"
+        }
+    )
+    if status > 299:
+        logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"')
+        if status == 400:
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.InvalidInput)
+        elif status == 401:
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.ExpiredToken)
+        elif status == 403:
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongToken)
+        elif status in (404, 405):
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongURL)
+        elif status in (413, 429):
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.TooManyRequests)
+            raise HTTPError(log_ingest_url, 429, "Dynatrace throttling response", "", "")
+        elif status == 500:
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
+            raise HTTPError(log_ingest_url, 500, "Dynatrace server error", "", "")
+    else:
+        self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
+        logging.info("Log ingest payload pushed successfully")
+        sent = True
+    return sent
 
 
 def _perform_http_request(
