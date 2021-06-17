@@ -36,6 +36,8 @@ class SelfMonitoring:
         self.dynatrace_connectivities = []
         self.processing_time: float = 0
         self.sending_time: float = 0
+        self.sent_log_entries: int = 0
+        self.log_ingest_payload_size: float = 0
 
     def log_self_monitoring_data(self):
         dynatrace_connectivity = Counter(self.dynatrace_connectivities)
@@ -47,6 +49,8 @@ class SelfMonitoring:
         logging.info(f"SFM Number of invalid log records due to too old timestamp: {self.too_old_records}")
         logging.info(f"SFM Number of errors occurred during parsing logs: {self.parsing_errors}")
         logging.info(f"SFM Number of records with too long content: {len(self.too_long_content_size)}")
+        logging.info(f"SFM Number of sent logs entries: {self.sent_log_entries}")
+        logging.info(f"SFM Log ingest payload size [kB]: {self.log_ingest_payload_size}")
         logging.info(f"SFM Total logs processing time [s]: {self.processing_time}")
         logging.info(f"SFM Total logs sending time [s]: {self.sending_time}")
 
@@ -92,6 +96,12 @@ class SelfMonitoring:
 
         if self.all_requests:
             self_monitoring_metrics.append(self.metric_data(time, "all_requests", self.all_requests, count=self.all_requests))
+
+        if self.sent_log_entries:
+            self_monitoring_metrics.append(self.metric_data(time, "sent_log_entries", self.sent_log_entries, count=self.sent_log_entries))
+
+        if self.log_ingest_payload_size:
+            self_monitoring_metrics.append(self.metric_data(time, "log_ingest_payload_size", self.log_ingest_payload_size, count=1))
 
         self_monitoring_metrics.append(self.metric_data(time, "processing_time", self.processing_time, count=1))
         self_monitoring_metrics.append(self.metric_data(time, "sending_time", self.sending_time, count=1))

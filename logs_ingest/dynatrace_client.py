@@ -41,10 +41,13 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
 
     number_of_http_errors = 0
     for batch in batches:
+        logs = batch[0]
+        number_of_logs_in_batch = batch[1]
+        sent = False
+        encoded_body_bytes = logs.encode("UTF-8")
+        display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
         try:
-            encoded_body_bytes = batch.encode("UTF-8")
-            logging.info('Log ingest payload size: {} kB'.format(round((len(encoded_body_bytes) / 1024), 3)))
-
+            logging.info(f'Log ingest payload size: {display_payload_size} kB')
             self_monitoring.all_requests += 1
             status, reason, response = _perform_http_request(
                 method="POST",
@@ -74,6 +77,7 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
             else:
                 self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
                 logging.info("Log ingest payload pushed successfully")
+                sent = True
         except HTTPError as e:
             raise e
         except Exception as e:
@@ -85,6 +89,9 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
                 raise e
         finally:
             self_monitoring.sending_time = time.perf_counter() - start_time
+            if sent:
+                self_monitoring.log_ingest_payload_size += display_payload_size
+                self_monitoring.sent_log_entries += number_of_logs_in_batch
 
 
 def _perform_http_request(
@@ -108,17 +115,18 @@ def _perform_http_request(
 
 
 # Heavily based on AWS log forwarder batching implementation
-def prepare_serialized_batches(logs: List[Dict]) -> List[str]:
+def prepare_serialized_batches(logs: List[Dict]) -> List[Tuple[str, int]]:
     request_body_max_size = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE", 1048576)
     request_max_events = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_EVENTS", 5000)
     log_entry_max_size = request_body_max_size - 2  # account for braces
 
-    batches: List[str] = []
+    batches: List[Tuple[str, int]] = []
 
     logs_for_next_batch: List[str] = []
     logs_for_next_batch_total_len = 0
     logs_for_next_batch_events_count = 0
 
+    log_entries = 0
     for log_entry in logs:
         new_batch_len = logs_for_next_batch_total_len + 2 + len(logs_for_next_batch) - 1 # add bracket length (2) and commas for each entry but last one.
 
@@ -133,20 +141,22 @@ def prepare_serialized_batches(logs: List[Dict]) -> List[str]:
 
         if batch_length_if_added_entry > request_body_max_size or logs_for_next_batch_events_count >= request_max_events:
             # would overflow limit, close batch and prepare new
-            batch = "[" + ",".join(logs_for_next_batch) + "]"
+            batch = ("[" + ",".join(logs_for_next_batch) + "]", log_entries)
             batches.append(batch)
+            log_entries = 0
 
             logs_for_next_batch = []
             logs_for_next_batch_total_len = 0
             logs_for_next_batch_events_count = 0
 
         logs_for_next_batch.append(next_entry_serialized)
+        log_entries += 1
         logs_for_next_batch_total_len += next_entry_size
         logs_for_next_batch_events_count += 1
 
     if len(logs_for_next_batch) >= 1:
         # finalize last batch
-        batch = "[" + ",".join(logs_for_next_batch) + "]"
+        batch = ("[" + ",".join(logs_for_next_batch) + "]", log_entries)
         batches.append(batch)
 
     return batches

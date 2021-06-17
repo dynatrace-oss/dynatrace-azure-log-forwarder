@@ -28,6 +28,8 @@ def test_all_self_monitoring_metrics():
     self_monitoring.processing_time = 0.0878758430480957
     self_monitoring.sending_time = 0.3609178066253662
     self_monitoring.too_long_content_size = [2000, 5000, 6000, 40000]
+    self_monitoring.log_ingest_payload_size = 10.123
+    self_monitoring.sent_log_entries = 10
 
     metric_data = self_monitoring.prepare_metric_data()
     assert metric_data == all_expected_metric_data
@@ -94,6 +96,40 @@ all_expected_metric_data = [
                         "max": 3,
                         "sum": 3,
                         "count": 3
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "time": "2021-02-25T09:06:06Z",
+        "data": {
+            "baseData": {
+                "metric": "sent_log_entries",
+                "namespace": "dynatrace_logs_self_monitoring",
+                "series": [
+                    {
+                        "min": 10,
+                        "max": 10,
+                        "sum": 10,
+                        "count": 10
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "time": "2021-02-25T09:06:06Z",
+        "data": {
+            "baseData": {
+                "metric": "log_ingest_payload_size",
+                "namespace": "dynatrace_logs_self_monitoring",
+                "series": [
+                    {
+                        "min": 10.123,
+                        "max": 10.123,
+                        "sum": 10.123,
+                        "count": 1
                     }
                 ]
             }

@@ -50,15 +50,16 @@ def test_prepare_serialized_batches(monkeypatch: MonkeyPatchFixture):
     entries_in_batches = 0
 
     for batch in batches:
-        assert len(batch) <= request_body_len_max
-        entries_in_batches += len(json.loads(batch))
+        batch_log = batch[0]
+        assert len(batch_log) <= request_body_len_max
+        entries_in_batches += len(json.loads(batch_log))
 
     assert entries_in_batches == how_many_logs
 
     logs_lengths = [len(log) for log in logs]
     logs_total_length = sum(logs_lengths)
 
-    batches_lengths = [len(batch) for batch in batches]
+    batches_lengths = [len(batch[0]) for batch in batches]
     batches_total_length = sum(batches_lengths)
 
     assert batches_total_length > logs_total_length
@@ -79,6 +80,7 @@ def test_prepare_serialized_batches_split_by_events_limit(monkeypatch: MonkeyPat
     entries_in_batches = 0
 
     for batch in batches:
-        entries_in_batches += len(json.loads(batch))
+        batch_log = batch[0]
+        entries_in_batches += len(json.loads(batch_log))
 
     assert entries_in_batches == how_many_logs
