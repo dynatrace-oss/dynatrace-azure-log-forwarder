@@ -116,6 +116,7 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
     assert Counter(self_monitoring.dynatrace_connectivities) == {DynatraceConnectivity.Ok: 3}
     assert self_monitoring.processing_time > 0
     assert self_monitoring.sending_time > 0
+    assert self_monitoring.sent_log_entries == 12
 
 
 def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_monitoring):
@@ -144,6 +145,7 @@ def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_m
     assert Counter(self_monitoring.dynatrace_connectivities) == {DynatraceConnectivity.ExpiredToken: 3}
     assert self_monitoring.processing_time > 0
     assert self_monitoring.sending_time > 0
+    assert self_monitoring.sent_log_entries == 0
 
 
 def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_monitoring):
@@ -173,6 +175,7 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
     assert Counter(self_monitoring.dynatrace_connectivities) == {DynatraceConnectivity.Other:1}
     assert self_monitoring.processing_time > 0
     assert self_monitoring.sending_time > 0
+    assert self_monitoring.sent_log_entries == 0
 
 
 def response(status: int, status_message: str):

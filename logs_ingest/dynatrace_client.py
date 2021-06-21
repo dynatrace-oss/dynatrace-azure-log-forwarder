@@ -41,39 +41,14 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
 
     number_of_http_errors = 0
     for batch in batches:
+        batch_logs = batch[0]
+        number_of_logs_in_batch = batch[1]
+        encoded_body_bytes = batch_logs.encode("UTF-8")
+        display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
+        logging.info(f'Log ingest payload size: {display_payload_size} kB')
+        sent = False
         try:
-            encoded_body_bytes = batch.encode("UTF-8")
-            logging.info('Log ingest payload size: {} kB'.format(round((len(encoded_body_bytes) / 1024), 3)))
-
-            self_monitoring.all_requests += 1
-            status, reason, response = _perform_http_request(
-                method="POST",
-                url=log_ingest_url,
-                encoded_body_bytes=encoded_body_bytes,
-                headers={
-                    "Authorization": f"Api-Token {dynatrace_token}",
-                    "Content-Type": "application/json; charset=utf-8"
-                }
-            )
-            if status > 299:
-                logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"')
-                if status == 400:
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.InvalidInput)
-                elif status == 401:
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.ExpiredToken)
-                elif status == 403:
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongToken)
-                elif status in (404, 405):
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongURL)
-                elif status in (413, 429):
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.TooManyRequests)
-                    raise HTTPError(log_ingest_url, 429, "Dynatrace throttling response", "", "")
-                elif status == 500:
-                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
-                    raise HTTPError(log_ingest_url, 500, "Dynatrace server error", "", "")
-            else:
-                self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
-                logging.info("Log ingest payload pushed successfully")
+            sent = _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent)
         except HTTPError as e:
             raise e
         except Exception as e:
@@ -85,6 +60,43 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
                 raise e
         finally:
             self_monitoring.sending_time = time.perf_counter() - start_time
+            if sent:
+                self_monitoring.log_ingest_payload_size += display_payload_size
+                self_monitoring.sent_log_entries += number_of_logs_in_batch
+
+
+def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
+    self_monitoring.all_requests += 1
+    status, reason, response = _perform_http_request(
+        method="POST",
+        url=log_ingest_url,
+        encoded_body_bytes=encoded_body_bytes,
+        headers={
+            "Authorization": f"Api-Token {dynatrace_token}",
+            "Content-Type": "application/json; charset=utf-8"
+        }
+    )
+    if status > 299:
+        logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"')
+        if status == 400:
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.InvalidInput)
+        elif status == 401:
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.ExpiredToken)
+        elif status == 403:
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongToken)
+        elif status in (404, 405):
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongURL)
+        elif status in (413, 429):
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.TooManyRequests)
+            raise HTTPError(log_ingest_url, 429, "Dynatrace throttling response", "", "")
+        elif status == 500:
+            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
+            raise HTTPError(log_ingest_url, 500, "Dynatrace server error", "", "")
+    else:
+        self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
+        logging.info("Log ingest payload pushed successfully")
+        sent = True
+    return sent
 
 
 def _perform_http_request(
@@ -108,17 +120,18 @@ def _perform_http_request(
 
 
 # Heavily based on AWS log forwarder batching implementation
-def prepare_serialized_batches(logs: List[Dict]) -> List[str]:
+def prepare_serialized_batches(logs: List[Dict]) -> List[Tuple[str, int]]:
     request_body_max_size = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE", 1048576)
     request_max_events = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_EVENTS", 5000)
     log_entry_max_size = request_body_max_size - 2  # account for braces
 
-    batches: List[str] = []
+    batches: List[Tuple[str, int]] = []
 
     logs_for_next_batch: List[str] = []
     logs_for_next_batch_total_len = 0
     logs_for_next_batch_events_count = 0
 
+    log_entries = 0
     for log_entry in logs:
         new_batch_len = logs_for_next_batch_total_len + 2 + len(logs_for_next_batch) - 1 # add bracket length (2) and commas for each entry but last one.
 
@@ -133,20 +146,22 @@ def prepare_serialized_batches(logs: List[Dict]) -> List[str]:
 
         if batch_length_if_added_entry > request_body_max_size or logs_for_next_batch_events_count >= request_max_events:
             # would overflow limit, close batch and prepare new
-            batch = "[" + ",".join(logs_for_next_batch) + "]"
+            batch = ("[" + ",".join(logs_for_next_batch) + "]", log_entries)
             batches.append(batch)
+            log_entries = 0
 
             logs_for_next_batch = []
             logs_for_next_batch_total_len = 0
             logs_for_next_batch_events_count = 0
 
         logs_for_next_batch.append(next_entry_serialized)
+        log_entries += 1
         logs_for_next_batch_total_len += next_entry_size
         logs_for_next_batch_events_count += 1
 
     if len(logs_for_next_batch) >= 1:
         # finalize last batch
-        batch = "[" + ",".join(logs_for_next_batch) + "]"
+        batch = ("[" + ",".join(logs_for_next_batch) + "]", log_entries)
         batches.append(batch)
 
     return batches
