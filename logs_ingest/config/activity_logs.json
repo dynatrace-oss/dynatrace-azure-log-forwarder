@@ -21,7 +21,7 @@
         },
         {
           "key": "content",
-          "pattern": "resultDescription"
+          "pattern": "@"
         },
         {
           "key": "audit.action",
@@ -52,7 +52,7 @@
         },
         {
           "key": "content",
-          "pattern": "if(properties.statusMessage == null, &properties.message, &properties.statusMessage, @)"
+          "pattern": "@"
         },
         {
           "key": "audit.identity",
@@ -87,7 +87,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties.eventProperties"
+          "pattern": "@"
         },
         {
           "key": "audit.action",
@@ -118,7 +118,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties.message"
+          "pattern": "@"
         },
         {
           "key": "audit.identity",
