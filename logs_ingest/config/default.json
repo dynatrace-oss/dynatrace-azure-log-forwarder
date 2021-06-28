@@ -19,7 +19,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties"
+          "pattern": "if(properties.eventCategory == null, &properties, &@, @)"
         },
         {
           "key": "audit.action",

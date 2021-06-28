@@ -117,7 +117,7 @@ expected_output_activity_log = {
     "timestamp": "2021-02-09T09:57:26.498Z",
     "log.source": "Activity Log - ServiceHealth",
     "severity": "Information",
-    "content": json.dumps(default_activity_log["properties"]),
+    "content": json.dumps(default_activity_log),
     "audit.action": "Microsoft.ServiceHealth/actionrequired/action",
     "audit.result": "Activated"
 }
