@@ -4,6 +4,7 @@ notifications:
     on_success: never
 stages:
 - tests
+- e2e-test
 - deployment
 env:
   global:
@@ -29,6 +30,44 @@ jobs:
         - pylint --rcfile=pylint-tests.cfg ./tests
         - pytest tests/unit -v
         - pytest tests/integration -v
+    - stage: e2e-test
+      name: E2E Azure Log Forwarder test
+      sudo: required
+      language: shell
+      if: (branch = master OR type = pull_request) AND fork = false
+      env:
+        - RESOURCE_GROUP_NAME="logs-forwarding-e2e-rg-tmp"
+        - DEPLOYMENT_NAME="e2e-deployment"
+        - REMOVE_ALL_DEPLOYMENT_NAME="remove-all"
+        - STORAGE_ACCOUNT_NAME="e2etestrepository"
+        - STORAGE_ACCOUNT_DIR_NAME="e2edeployment"
+        - secure: m5BnOt9xH87aAARQNnfagFQj4qvvQls08WdfITRwvjanyr5Ii8qIu7P0PqqwVC/jFDVMQZgGQhKrmUWDcPtBwyrW5Y7UH1S070Ny7JeRWtr4DD3pMGTiGLCSRls3c7sgEhQRO8gsn55SGnDB/TLW8QZNdn0U6szDEDIAQ43axeJ5OjdPo5KBzP3mNkVktl6HVnNBNH4X2FC7MlGswLiUJV0IfvnSY1bCqdTD+JhntbfSd9DqDSNgLQJJywYcccRa3jAbbS7nArBfxCksXm4i8bh6egS5TuykHbZvXk/XRdYmyKrQ4cWazfZfkzkOJADsuZPIG8bVlqcsvbVIoYFPPfA1GA5XlR6rgageckHqeHY8zLFCtdpQ8xhlfPqqx5czBWUj/u5x0LCVOHGhHOrDDNbZ4c74c0hdMHA3XKu5HWx8BgOhEZ7zlVQyUrN4FNtPL0V5JGA6aM4MLYkIkMQMSeIi8YqTQbIFOcJ+fnHMmP6xJDJ3bZdq2+HmKVKSQJUjPoG5dvOZUSEqZ4OgadCXork2pa8TF2qZSbGZKmW7xQbu5UDf1/+I5oipEMxg/kZuuNpWu4/uflkLiZ86FUVMRnQkbpSgyIAqA0I3bID3J05BNQF91zfshpg8y+IxtdI1FJElM4+hfQZUeWD3Alq+C5Tx1dTs57Cp8fQsiqvfEoc=
+        - secure: 3v3dYByQgolntXPt3OoHarZI/OUwN+KPJMDhPLnCbiZKlcvrh5tFVMylaBwXcVfWiuCByvcblFr0uR7RrteilIZ+Rv6sAgLSjfILfpzkHeBHxCpKxIYSg7LHu+QCVKZ9wRLfB+qjlRh005x5N/X9Lt1xW+VlxgKH15Cd5VbH5AdUHG19c+AjH0IrcgJRNo0ORaZ7YScyXIAnxFITeyud4atd+RjSP8PVVYR5jqUYBjfLJCSBUM+KvzsbPaPRouAZLTzJHPrWlUbDabjyqfCdxF0JVaMDzCbC1gB1942y3QND+1oz0nkJkirj0a9kw+2Ah5vtxzJxuYh1a/DYvhTxoHqhfC040q+yeGaVY3VCpjOfMha2NULAsvVS95jY6Isj6griUyABvZBdKcjPl/xSyUjUImstOBPvpnymYjhBuZ8XbbYSJTFBznuUAsByrCnHdUsNUZPBXghCUGbP7MhB3HMGwQO35bXhlcj0s2xPrDOiqnXRjjnPWO1JKB6qolwZ5Lwhzr3ubg6KjYm9KH9kudanY7XchjXouIK+U5jGyqT/U9MmbULIsjQwNIc3obt3tuMP1R60J2YEfZeES6qvrP0+afirU4o6BzBBtlheOZz+2lkvff8VC2ZKg1m9nC/pkqZSCwATJpSApfcRgNNRDRYiIwAJeKgWON5TFAoItt0=
+        - secure: pNsJPTEbHo9IAZ2HYhWHS3KGJhkdZceGViw64Ce3RKhNwIh9feF2eU8+LEey8rof2Q5/azAlwuFeX/XDfoA3kkOhuk9st7j2DlOPVuRSkMaSEsRzxi2Fv2sbE5sMkS77xBVWD4kJ1OxJzeIPsyuUcAlIUa19frGNe3LCnlpmSB366RnxIs3/4XvWMjY2p/cYVVI0UF2jgl+LOaEBzsucnO5VCRG7Jh3+O1UK3E9b0xjy6QmCnLsQdJknKay+6lsWozz07Fk9QrfKl6Ujf8SwhDhOdbcdzgmqPQ2Qe4W6d1Wk/z9mY9/NKsf3M7cmYdvAHRYYCg1FSZ6LXfFa/2QiX7TPFtY+NlpJ0EKlfE/RNfqbCwCxj5hmBmdU2NtO3DPpQsxkRBy0yvqhWzNKbxyX0+sdERuWyb2+Iic7SBkOjBKhxwLtVURW2tGZDmIYBwFERvjUsUrmBNrHdQeo5Ca9P6veayCz4Ztfg3UHfOha7kV5Nld6Q7ftdkT/T3V7TVf6hKdIT1X/qqOaYwl+iAdSvb3Dar5ul4c7K/CmkLcmA1/Jsck+77Km8wiU0PmXWx2xd7dVciylN0jjN86ft7ybO7xNpK2lHg/itkwd5LpDEY312NESPYPBd8yTopVvCfdhcpZtsQBp1QKmFnyWstq3J7u3F6WLLckzhqtawpQVnxc=
+        - secure: OQYBccEuMDuM308vZQ0a3E+7QU+h0rtcrtIdSjYlbT8xHRcFMlgRDiTyqzUwut765WBl5ES2UVojDCHMByDl5rlvySZEzOvVssJZZXhanadbCWir/slPREMTkG1lFuYoaQ7XdIjBINo3nsEUWRn/MaHtzTTO092x9WJ2dzGU9t5Wr09fAExc5Wpz9ajIf1MzPOrP7oz4Y0c7hcxr66FbLfaZCgG+FlYfCcAmSnQH6+j9Tyi77uL8KxBj/TRMmoqbJQIvfze+tSWew8f7bW4gtGrZ45E4VwJq0fy10JdJBU16z+V4PlEIqlfrYNKYuhChSsLQHETTQS0JsBflIeO0ypsiF4gmbT0aZSMHdZEeey2TWOVdgbHf95j5ygklKyKFu5QT66h7QZBtYWdBMSEK8HQAWLJGSSBgKo9oPmvD31FF7Z73meCJBljSgzi2Z0IVLPImSJSfS4B4FNEgdq1npAdwFuD66nxzgFa8oBlzZA8vt4wI8/H14FS3YT2mrxYu7e+VvucttVkdr2ZBjXdk1hQXfWg84fJX2E3LlI+EX4LULF1szOH1XjIa/zQ6NxaqfM5lGAOx0vPjyNfNg1MnQa/jdBblfKxkp+aS4zDZ9Fb1cXEvfC+PAcWq3SEhnaoEFNDTguE0ejsLaLZb67FcfkpEyLEIZ/ESmzECM64YXV4=
+        - secure: cCnxwrmRFB1jats6iY9blIcA378iZrC7G1zcPVRozud7SrhbJeufGw0mNbIQe9q7w5Xg7tAPu/p1VKFzqGGO+0U7fH+wvU+LRj1LeaUMGQD/s99QI5R265J3EC46fKBy8LIhSwoqfwjAYH1+VG37WoOtvyLotdsQjzF9ppKm4LE9lrCIjQ+067uD7BrNdTVXLpL2wp+ogmX/5b31oi1dia8MDig5+4SrdtBX5l2p8fZA16tOgPnHXsTFqHoE6qwzbvvNRT/9DKHGgMXo5IeBM7ufS9M0O+qt8twuLxCfnxOmzv1mGQ9PrdkAEHq+ZF6xO+vF0ze+4pWsEBMPztL81oqLthPRkNpV4zR7agEMDamlNryn0efEYS7zvVlYWL3PjqECpjOLNw0L+tPLVuuH47voRo4ryFRV6ewJhfXUCCGRsbPgP9ZML3+GSKhGMWywobIEIDpvdCSMQL+Po1NaP14f27spLNf8D5Ksb8Mv4UoqrbxITbQVQC/Hg0iWF68dwn84wwuP+Q/ZUZB40lPfNN60WuuzKdT01vpfKDbtDaogLDw8XmliFkhvGauX1MoUe4eLMikIopq3fvtoDbEHhTOaRIbxzAKyoDqgEHUCvUWBLwJbCAVCjimnvwY2SNbn7DnGNLZZMKvrieX+KkLJeQfaSxFok8dF5gnQ6EX3C9I=
+        - secure: fZrlr4woKvsTS+UGNvUXmUkryt32sVWJEiyWMTqFcX8xJM9aujhlSfgPpW5EJUyoYSNzi8Vl5CtQNb8gav1MjDeGzgIagT7mQM8h7Yw1b8w++lIUq4WBKK0KDPg5fIwnTNAzAlbITH35G5A1Y9gE80b020sbAW+d0xjiE617a0IHdCJIq6PA1fA3yXXJh6LepYn66Ez1B8G+JhQSeHOxyFDsgKnmrxXv5Z5H1iOM2+V2fjHiME62tQbGJ7Xy+/mwB9oOFfcRwrpvCRAt5x8xmqOEQFDxDZN7hqROSgBvRGiPDdrzok/pNFUY/jiMRRGuuxf6shExL6j63tFv+rR47ghWivihYTNRFHmGIcwt4p2FHvNQWJcuL1qYSF+Jr430dahl7bnw9MQrgKlEqRP5ip6whv0YkpbXU0MQEkiJ4dYXPt0pK6qOyx+dgJiwwa0U1KQWX6nTzI8CaEC9s+uMp+E45PWQCTlvIe2qKbdeCkMaEpUQgHlcTLF6KgIWQkHAB6yyvH7+iXzDHvykH97aAiRXWL+iWybCur5oH9HlaZURL4OrIQ+hWwldfv8o05EId/uinZZFGEdzwbDb+3mxGFmShf5pHwWvsmlIJTUibNkzp59qNfVqt+C03tJYRHCGTx7dUZujCc7+lMI4cioLK+j9LM5Wq1eY9df790p3YsE=
+        - secure: tW9nGCWetuzV95szZmfb4KuiS25cahKATJAHaUKaXoafUnGkjkPudpqR5Zp+1EByGnWQed7XFUS/YerscF9Y9/jXOHLQgOcmGv/Qc/mePd6piawAY8WrWxzPB3r6BkwyNfvOyRFW7nZ+kRFLY8rAdUYPpoMkEOQlz/kYV4MS3RspjxYF7rZVVS+nCieMWGpcHfDpi32bzjdV5KD8uxSyzmUDZoW2IJPGWO3HCc5tmzXIEluN2rdDBxSAXnptA0xubANQSROtmPzSbbxViRYpuX341ic495F+xxYdi+lG2TGpavcbxOv/aEXmS8RoluYt+F3ATLh5AwBpV/JcWzE/vubsTq8VIdR4Pl1wtj6ekF/BVIV4B9GOjQtTkbra5/wuUW1ri/c5etO3G5e+h1SS/ReCXMh7e1aElhW1irG/RnAlcLmZplHcznFjejupXQcn35b1MWkLgtyY9emBLrJc/s83+wY54g2b4HzPsv8Ina7JKpdPPL9L60V/3PDVpGG8aYyaENYrjm1u33nK9V4tdMqm/ivirAPqweCoRSEY/2C7uVwo4oFf2+UNApgMv2PybY1YLiBasC9bTMpy7/inMPZ1gtze0HWhsRkxk9J95nHbuEqfWwokOHtmJlR5KjGAs5Y4z2aFk8nvzRVwjIt8YoKYaglMtZCQCPQoeJUHEsw=
+        - secure: s9bauoRxmsyEF3lzEW7fFqqUi7d8wuZVbIYJ/MMWPPhF1lEpcmwgsKOnkQ9QvD8NgeosgJmqjCMFKfYeR2C5cx4lGp/S7KlbJqTNBVTyB1wrYdTJDZP5+555qwJJ9+FA00T73o8KqQDYcxnlddiDS/4qllQQJlhGf/Q+VLzRFoDCA9hbmZKI944tQdtHQok4h8X5YsNVftmQlC+4bhfplBYgAXkOYR9qNHL9QWrk7+IU99oD7Gp/8rJJ4RkXaui+ONz31XwKdDlFr8De55VPeoNVnIauDMbGO5ah0TC9Cy6JPAH+FzzYgV63nJgzWrJhxk9P7RZM3w/1ghe4GhN5nHT5GZQZI2a6em3ljhLo+TLsuBaDHoN0R4B0tQ60sqD8BkCelwSK2zIV009W1qMDGIX1ajc5kqcN4o5viIJXeaI0vX68UiQWqzl2qzhbUaZ9xFWAjrrwOnn4fIgw22tOgoQtT4EsjEYw9Dug3JgtU07/9qHaimOZnvE2nngyS9Q3d5CtKQ1LtUWuTYEq3hw0P1nQrEW5Y9jSoZqL/8T/rCHDaW8uLHHq42MT8NI3NvxZH5P7JtNRJXiN0js7z5+jWKH6Xup7YRDDN8xp2LUvOkKH6kss6sxcOv/ClPs+wG8toQMplM2arL4530nbxwcc73YyQWb0F9tqoU9hel/wLbo=
+      install:
+        - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+      before_script:
+        - az login --service-principal --username "$USER_NAME"  --password "$PASSWORD" --tenant "$TENANT" > /dev/null
+        - chmod +x buildZip.sh
+        - chmod +x version.sh
+        - ./buildZip.sh
+        - mv publish.zip dynatrace-azure-log-forwarder.zip
+        - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --source "dynatrace-azure-log-forwarder.zip" --path "dynatrace-azure-log-forwarder.zip"
+        - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --source "deployment/dynatrace-azure-forwarder.json" --path "dynatrace-azure-forwarder.json"
+        - chmod +x deployment/dynatrace-azure-logs.sh
+      script:
+        - ./deployment/dynatrace-azure-logs.sh --deployment-name "$DEPLOYMENT_NAME" --resource-group "$RESOURCE_GROUP_NAME" --target-url "$TARGET_URL" --target-api-token "$TARGET_API_TOKEN" --target-paas-token "$TARGET_PAAS_TOKEN" --event-hub-name "logs-forwarding-e2e" --event-hub-connection-string "$EH_CONNECTION_STRING" --repository-release-url "https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${STORAGE_ACCOUNT_DIR_NAME}/"
+      after_script:
+        - az storage fs file delete --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --path "dynatrace-azure-forwarder.json" --yes
+        - az storage fs file delete --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --path "dynatrace-azure-log-forwarder.zip" --yes
+        - travis_wait 30 az deployment group create --name "$REMOVE_ALL_DEPLOYMENT_NAME" --mode complete --template-file tests/e2e/removeall.json --resource-group "$RESOURCE_GROUP_NAME"
+        - az deployment group delete --name "$DEPLOYMENT_NAME" --resource-group "$RESOURCE_GROUP_NAME"
+        - az deployment group delete --name "$REMOVE_ALL_DEPLOYMENT_NAME" --resource-group "$RESOURCE_GROUP_NAME"
     - stage: deployment
       name: Github Release Deployment
       if: tag =~ /^release.*$/
