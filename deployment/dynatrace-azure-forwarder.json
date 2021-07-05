@@ -279,6 +279,7 @@
                     "defaultAction": "Allow"
                 },
                 "supportsHttpsTrafficOnly": true,
+                "allowBlobPublicAccess": false,
                 "encryption": {
                     "services": {
                         "file": {
