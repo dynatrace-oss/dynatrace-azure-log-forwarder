@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 #     Copyright 2021 Dynatrace LLC
 #
 #     Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,7 +74,7 @@ check_arg()
     ARGUMENT=$2
     REGEX=$3
     if [ -z "$ARGUMENT" ]
-    then 
+    then
         echo "No $CLI_ARGUMENT_NAME"
         exit 1
     else
@@ -86,6 +86,23 @@ check_arg()
     fi
 }
 
+check_api_token() {
+  if RESPONSE=$(curl -k -s -X POST -d "{\"token\":\"$TARGET_API_TOKEN\"}" "$TARGET_URL/api/v2/apiTokens/lookup" -w "<<HTTP_CODE>>%{http_code}" -H "accept: application/json; charset=utf-8" -H "Content-Type: application/json; charset=utf-8" -H "Authorization: Api-Token $TARGET_API_TOKEN"); then
+    CODE=$(sed -rn 's/.*<<HTTP_CODE>>(.*)$/\1/p' <<<"$RESPONSE")
+    RESPONSE=$(sed -r 's/(.*)<<HTTP_CODE>>.*$/\1/' <<<"$RESPONSE")
+    if [ "$CODE" -ge 300 ]; then
+      echo "Failed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url and --target-api-token. $RESPONSE"
+      exit 1
+    fi
+    if ! grep -q "logs.ingest" <<<"$RESPONSE"; then
+      echo "Missing Ingest logs permission for the API token"
+      exit 1
+    fi
+  else
+      echo "Failed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url and --target-api-token."
+  fi
+}
+
 RUN_INTERACTIVE_MODE=false
 while (( "$#" )); do
     case "$1" in
@@ -93,7 +110,7 @@ while (( "$#" )); do
                 print_help
                 exit 0
             ;;
-            
+
             "-i" | "--interactive")
                 RUN_INTERACTIVE_MODE=true
                 shift
@@ -171,18 +188,18 @@ then
 
     if [ -z "$USE_EXISTING_ACTIVE_GATE" ]; then USE_EXISTING_ACTIVE_GATE=false; fi
     if [ -z "$TARGET_URL" ]
-    then 
+    then
         echo "No --target-url"
         exit 1
-     else   
+     else
         if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]
         then
             echo "Not correct --target-url. Example of proper url for deployment with ActiveGate: https://environment-id.live.dynatrace.com"
-            exit 1 
+            exit 1
         elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]
         then
             echo "Not correct --target-url. Example of proper url for deployment without ActiveGate: https://environemnt-active-gate-url:9999/e/environment-id"
-            exit 1 
+            exit 1
         fi
     fi
 
@@ -190,7 +207,7 @@ then
     if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then echo "No --target-paas-token"; exit 1; fi
     if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=false; fi
     if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
-    if [[ "$USE_EXISTING_ACTIVE_GATE" = true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
+    if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
     print_all_parameters
 
 else
@@ -382,6 +399,7 @@ fi
 
 
 echo
+check_api_token
 echo "- deploying function infrastructure into Azure..."
 
 az deployment group create \
