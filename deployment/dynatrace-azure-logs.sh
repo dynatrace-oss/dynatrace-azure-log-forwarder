@@ -91,15 +91,15 @@ check_api_token() {
     CODE=$(sed -rn 's/.*<<HTTP_CODE>>(.*)$/\1/p' <<<"$RESPONSE")
     RESPONSE=$(sed -r 's/(.*)<<HTTP_CODE>>.*$/\1/' <<<"$RESPONSE")
     if [ "$CODE" -ge 300 ]; then
-      echo "Failed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url and --target-api-token. $RESPONSE"
+      echo "Failed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL}) and --target-api-token. $RESPONSE"
       exit 1
     fi
-    if ! grep -q "logs.ingest" <<<"$RESPONSE"; then
-      echo "Missing Ingest logs permission for the API token"
+    if ! grep -q '"logs.ingest"' <<<"$RESPONSE"; then
+      echo "Missing Ingest logs permission (v2) for the API token"
       exit 1
     fi
   else
-      echo "Failed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url and --target-api-token."
+      echo "Failed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL})"
   fi
 }
 
@@ -194,11 +194,11 @@ then
      else
         if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]
         then
-            echo "Not correct --target-url. Example of proper url for deployment with ActiveGate: https://environment-id.live.dynatrace.com"
+            echo "Not correct --target-url. Example of proper url for deployment with ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
             exit 1
         elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]
         then
-            echo "Not correct --target-url. Example of proper url for deployment without ActiveGate: https://environment-active-gate-url:9999/e/environment-id"
+            echo "Not correct --target-url. Example of proper url for deployment without ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
             exit 1
         fi
     fi
@@ -278,7 +278,7 @@ else
 
     if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
     then
-        echo "Please provide the endpoint used to ingest logs to Dynatrace, for example: https://environment-active-gate-url:9999/e/environment-id"
+        echo "Please provide the endpoint used to ingest logs to Dynatrace, for example: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
         while ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]; do
             read -p "Enter Dynatrace ActiveGate API URI: " TARGET_URL
         done
@@ -294,7 +294,7 @@ else
     else
         REQUIRE_VALID_CERTIFICATE="N"
 
-        echo "Please provide the dynatrace environment endpoint, for example: https://environment-id.live.dynatrace.com"
+        echo "Please provide the dynatrace environment endpoint, for example: https://<your_environment_ID>.live.dynatrace.com"
         while ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]; do
             read -p "Enter Dynatrace environment URI: " TARGET_URL
         done
