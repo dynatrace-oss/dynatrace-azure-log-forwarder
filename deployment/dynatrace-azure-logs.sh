@@ -198,7 +198,7 @@ then
             exit 1
         elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]
         then
-            echo "Not correct --target-url. Example of proper url for deployment without ActiveGate: https://environemnt-active-gate-url:9999/e/environment-id"
+            echo "Not correct --target-url. Example of proper url for deployment without ActiveGate: https://environment-active-gate-url:9999/e/environment-id"
             exit 1
         fi
     fi
@@ -278,7 +278,7 @@ else
 
     if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
     then
-        echo "Please provide the endpoint used to ingest logs to Dynatrace, for example: https://environemnt-active-gate-url:9999/e/environment-id"
+        echo "Please provide the endpoint used to ingest logs to Dynatrace, for example: https://environment-active-gate-url:9999/e/environment-id"
         while ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]; do
             read -p "Enter Dynatrace ActiveGate API URI: " TARGET_URL
         done
