@@ -91,15 +91,15 @@ check_api_token() {
     CODE=$(sed -rn 's/.*<<HTTP_CODE>>(.*)$/\1/p' <<<"$RESPONSE")
     RESPONSE=$(sed -r 's/(.*)<<HTTP_CODE>>.*$/\1/' <<<"$RESPONSE")
     if [ "$CODE" -ge 300 ]; then
-      echo "Failed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL}) and --target-api-token. $RESPONSE"
+      echo -e "\e[93mWARNING: \e[37mFailed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL}) and --target-api-token. $RESPONSE"
       exit 1
     fi
     if ! grep -q '"logs.ingest"' <<<"$RESPONSE"; then
-      echo "Missing Ingest logs permission (v2) for the API token"
+      echo -e "\e[93mWARNING: \e[37mMissing Ingest logs permission (v2) for the API token"
       exit 1
     fi
   else
-      echo "Failed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL})"
+      echo -e "\e[93mWARNING: \e[37mFailed to connect to Dynatrace/ActiveGate endpoint $URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
   fi
 }
 
@@ -418,7 +418,7 @@ filterConfig="${FILTER_CONFIG}"
 
 if [[ $? != 0 ]]
 then
-    echo "Function deployment failed"
+    echo -e "\e[91mFunction deployment failed"
     exit 2
 fi
 
