@@ -53,9 +53,8 @@ jobs:
       before_script:
         - az login --service-principal --username "$USER_NAME"  --password "$PASSWORD" --tenant "$TENANT" > /dev/null
         - ./buildZip.sh
-        - mv publish.zip dynatrace-azure-log-forwarder.zip
         - az storage fs create --name "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --public-access file
-        - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "dynatrace-azure-log-forwarder.zip" --path "dynatrace-azure-log-forwarder.zip"
+        - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "publish.zip" --path "dynatrace-azure-log-forwarder.zip"
         - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "deployment/dynatrace-azure-forwarder.json" --path "dynatrace-azure-forwarder.json"
         - az group create --name "$RESOURCE_GROUP_NAME" --location westeurope
       script:
