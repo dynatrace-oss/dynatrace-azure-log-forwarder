@@ -17,8 +17,8 @@ readonly FUNCTION_ARM=dynatrace-azure-forwarder.json
 readonly FUNCTION_ZIP_PACKAGE=dynatrace-azure-log-forwarder.zip
 # Please be cautious with editing the following line, as CI is changing latest to specific version on release, see: .travis.yml
 readonly FUNCTION_REPOSITORY_RELEASE_URL=https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/
-readonly DYNATRACE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=\/]{1,256}$"
-readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[-a-z0-9\/]{1,36}$"
+readonly DYNATRACE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}[\/]{0,1}$"
+readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[-a-z0-9]{1,36}[\/]{0,1}$"
 readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
 readonly RESOURCE_GROUP_REGEX="^[a-zA-Z0-9.()-]{1,90}$"
 readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*$"
