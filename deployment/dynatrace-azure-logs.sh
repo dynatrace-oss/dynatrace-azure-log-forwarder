@@ -43,7 +43,7 @@ arguments:
                             Dynatrace API token. Integration requires API v1 Log import Token permission.
     --target-paas-token TARGET_PAAS_TOKEN
                             Dynatrace PaaS token, only when deploy ActiveGate is chosen
-    --resource-group RESOURCE_GROUP   
+    --resource-group RESOURCE_GROUP
                             Name of the Azure Resource Group in which Function will be deployed
     --event-hub-connection-string EVENT_HUB_CONNECTION_STRING
                             Connection string for Azure EventHub that is configured for receiving logs
@@ -87,8 +87,7 @@ check_arg()
 }
 
 check_api_token() {
-  URL=$(echo "$TARGET_URL" | sed 's:/*$::')
-  if RESPONSE=$(curl -k -s -X POST -d "{\"token\":\"$TARGET_API_TOKEN\"}" "$URL/api/v2/apiTokens/lookup" -w "<<HTTP_CODE>>%{http_code}" -H "accept: application/json; charset=utf-8" -H "Content-Type: application/json; charset=utf-8" -H "Authorization: Api-Token $TARGET_API_TOKEN"); then
+  if RESPONSE=$(curl -k -s -X POST -d "{\"token\":\"$TARGET_API_TOKEN\"}" "$TARGET_URL/api/v2/apiTokens/lookup" -w "<<HTTP_CODE>>%{http_code}" -H "accept: application/json; charset=utf-8" -H "Content-Type: application/json; charset=utf-8" -H "Authorization: Api-Token $TARGET_API_TOKEN"); then
     CODE=$(sed -rn 's/.*<<HTTP_CODE>>(.*)$/\1/p' <<<"$RESPONSE")
     RESPONSE=$(sed -r 's/(.*)<<HTTP_CODE>>.*$/\1/' <<<"$RESPONSE")
     if [ "$CODE" -ge 300 ]; then
@@ -398,6 +397,7 @@ else
     fi
 fi
 
+TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
 
 echo
 check_api_token
