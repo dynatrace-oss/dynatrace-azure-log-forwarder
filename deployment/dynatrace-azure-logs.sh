@@ -182,7 +182,7 @@ then
         elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]
         then
             echo "Not correct --target-url. Example of proper url for deployment without ActiveGate: https://environemnt-active-gate-url:9999/e/environment-id"
-            exit 1 
+            exit 1
         fi
     fi
 
@@ -400,7 +400,7 @@ filterConfig="${FILTER_CONFIG}"
 
 if [[ $? != 0 ]]
 then
-    echo "Function deployment failed"
+    echo -e "\e[91mFunction deployment failed"
     exit 2
 fi
 
@@ -418,7 +418,7 @@ az webapp deployment source config-zip  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GRO
 
 if [[ $? != 0 ]]
 then
-    echo "Function code deployment failed"
+    echo -e "\e[91mFunction code deployment failed"
     exit 3
 fi
 
@@ -427,4 +427,13 @@ echo "- cleaning up"
 echo "- removing function package [$FUNCTION_ZIP_PACKAGE]"
 rm $FUNCTION_ZIP_PACKAGE
 
-echo "Done"
+if [[ "${DEPLOY_ACTIVEGATE}" == "true" ]]; then
+  # To build Log viewer link we need Dynatrace url which is set only when deployment with new ActiveGate is chosen.
+  # For deployment with existing ActiveGate (ActiveGate url is used as TARGET_URL) we are not able to build the link - LOG_VIEWER is empty then.
+  LOG_VIEWER="Log Viewer: ${TARGET_URL}/ui/log-monitoring?query=cloud.provider%3D%22azure%22"
+fi
+
+echo
+echo -e "\e[92m- Deployment complete. Check logs in Dynatrace in 10 min. ${LOG_VIEWER}\e[37m"
+echo "If you won't see any Azure logs after that time make sure you configured all prerequisites: https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#anchor_prereq"
+echo "Additionally you can enable self-monitoring for diagnostic purpose: https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#self-monitoring-optional"
