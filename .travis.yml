@@ -37,6 +37,7 @@ jobs:
 #      if: (branch = master OR type = pull_request) AND fork = false
       env:
         - RESOURCE_GROUP_NAME="logs-forwarding-e2e-rg-${TRAVIS_BUILD_ID}"
+        - RESOURCE_GROUP_STATIC_RESOURCES="logs-forwarding-e2e-static-resources"
         - STORAGE_ACCOUNT_NAME="e2erepository"
         - STORAGE_ACCOUNT_DIR_NAME="e2edeployment${TRAVIS_BUILD_ID}"
         - secure: m5BnOt9xH87aAARQNnfagFQj4qvvQls08WdfITRwvjanyr5Ii8qIu7P0PqqwVC/jFDVMQZgGQhKrmUWDcPtBwyrW5Y7UH1S070Ny7JeRWtr4DD3pMGTiGLCSRls3c7sgEhQRO8gsn55SGnDB/TLW8QZNdn0U6szDEDIAQ43axeJ5OjdPo5KBzP3mNkVktl6HVnNBNH4X2FC7MlGswLiUJV0IfvnSY1bCqdTD+JhntbfSd9DqDSNgLQJJywYcccRa3jAbbS7nArBfxCksXm4i8bh6egS5TuykHbZvXk/XRdYmyKrQ4cWazfZfkzkOJADsuZPIG8bVlqcsvbVIoYFPPfA1GA5XlR6rgageckHqeHY8zLFCtdpQ8xhlfPqqx5czBWUj/u5x0LCVOHGhHOrDDNbZ4c74c0hdMHA3XKu5HWx8BgOhEZ7zlVQyUrN4FNtPL0V5JGA6aM4MLYkIkMQMSeIi8YqTQbIFOcJ+fnHMmP6xJDJ3bZdq2+HmKVKSQJUjPoG5dvOZUSEqZ4OgadCXork2pa8TF2qZSbGZKmW7xQbu5UDf1/+I5oipEMxg/kZuuNpWu4/uflkLiZ86FUVMRnQkbpSgyIAqA0I3bID3J05BNQF91zfshpg8y+IxtdI1FJElM4+hfQZUeWD3Alq+C5Tx1dTs57Cp8fQsiqvfEoc=
@@ -58,14 +59,14 @@ jobs:
         - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "publish.zip" --path "dynatrace-azure-log-forwarder.zip"
         - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "deployment/dynatrace-azure-forwarder.json" --path "dynatrace-azure-forwarder.json"
         - az group create --name "$RESOURCE_GROUP_NAME" --location westeurope
-        - az resource invoke-action --action enable  --name "logs-forwarding-e2e-logicapp" -g "$RESOURCE_GROUP_NAME" --resource-type "Microsoft.Logic/workflows"
+        - az resource invoke-action --action enable  --name "logs-forwarding-e2e-logicapp" -g "$RESOURCE_GROUP_STATIC_RESOURCES" --resource-type "Microsoft.Logic/workflows"
       script:
         - ./deployment/dynatrace-azure-logs.sh --deployment-name "e2e-${TRAVIS_BUILD_ID}" --resource-group "$RESOURCE_GROUP_NAME" --target-url "$TARGET_URL" --target-api-token "$TARGET_API_TOKEN" --target-paas-token "$TARGET_PAAS_TOKEN" --event-hub-name "logs-forwarding-e2e-eh" --event-hub-connection-string "$EH_CONNECTION_STRING" --repository-release-url "https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${STORAGE_ACCOUNT_DIR_NAME}/"
         - ./tests/e2e/execution-test.sh
       after_script:
         - az storage fs delete --name "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --yes
         - az group delete --name "$RESOURCE_GROUP_NAME" --yes
-        - az resource invoke-action --action disable  --name "logs-forwarding-e2e-logicapp" -g "$RESOURCE_GROUP_NAME" --resource-type "Microsoft.Logic/workflows"
+        - az resource invoke-action --action disable  --name "logs-forwarding-e2e-logicapp" -g "$RESOURCE_GROUP_STATIC_RESOURCES" --resource-type "Microsoft.Logic/workflows"
     - stage: deployment
       name: Github Release Deployment
       if: tag =~ /^release.*$/
