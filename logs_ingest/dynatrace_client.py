@@ -36,7 +36,7 @@ if not should_verify_ssl_certificate:
 def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
     # pylint: disable=R0912
     start_time = time.perf_counter()
-    log_ingest_url = urlparse(dynatrace_url + "/api/v2/logs/ingest").geturl()
+    log_ingest_url = urlparse(dynatrace_url.rstrip("/") + "/api/v2/logs/ingest").geturl()
     batches = prepare_serialized_batches(logs)
 
     number_of_http_errors = 0
