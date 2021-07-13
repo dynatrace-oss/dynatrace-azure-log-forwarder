@@ -87,20 +87,46 @@ check_arg()
 }
 
 check_api_token() {
-  if RESPONSE=$(curl -k -s -X POST -d "{\"token\":\"$TARGET_API_TOKEN\"}" "$TARGET_URL/api/v2/apiTokens/lookup" -w "<<HTTP_CODE>>%{http_code}" -H "accept: application/json; charset=utf-8" -H "Content-Type: application/json; charset=utf-8" -H "Authorization: Api-Token $TARGET_API_TOKEN"); then
+  if RESPONSE=$(curl -k -s -X POST -d "{\"token\":\"$TARGET_API_TOKEN\"}" "$TARGET_URL/api/v2/apiTokens/lookup" -w "<<HTTP_CODE>>%{http_code}" -H "accept: application/json; charset=utf-8" -H "Content-Type: application/json; charset=utf-8" -H "Authorization: Api-Token $TARGET_API_TOKEN" --connect-timeout 20); then
     CODE=$(sed -rn 's/.*<<HTTP_CODE>>(.*)$/\1/p' <<<"$RESPONSE")
     RESPONSE=$(sed -r 's/(.*)<<HTTP_CODE>>.*$/\1/' <<<"$RESPONSE")
     if [ "$CODE" -ge 300 ]; then
-      echo -e "\e[93mWARNING: \e[37mFailed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL}) and --target-api-token. $RESPONSE"
+      echo -e "\e[91mERROR: \e[37mFailed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL}) and --target-api-token. $RESPONSE"
       exit 1
     fi
     if ! grep -q '"logs.ingest"' <<<"$RESPONSE"; then
-      echo -e "\e[93mWARNING: \e[37mMissing Ingest logs permission (v2) for the API token"
+      echo -e "\e[91mERROR: \e[37mMissing Ingest logs permission (v2) for the API token"
       exit 1
     fi
   else
       echo -e "\e[93mWARNING: \e[37mFailed to connect to Dynatrace/ActiveGate endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
   fi
+}
+
+check_dynatrace_log_ingest_url() {
+  if RESPONSE=$(curl -k -s -X POST -d "$(generate_test_log)" "$TARGET_URL/api/v2/logs/ingest" -w "<<HTTP_CODE>>%{http_code}" -H "accept: application/json; charset=utf-8" -H "Content-Type: application/json; charset=utf-8" -H "Authorization: Api-Token $TARGET_API_TOKEN" --connect-timeout 20); then
+    CODE=$(sed -rn 's/.*<<HTTP_CODE>>(.*)$/\1/p' <<<"$RESPONSE")
+    RESPONSE=$(sed -r 's/(.*)<<HTTP_CODE>>.*$/\1/' <<<"$RESPONSE")
+    if [ "$CODE" -ge 300 ]; then
+      echo -e "\e[91mERROR: \e[37mFailed to send a test log to Dynatrace - please verify provided log ingest url ($TARGET_URL) and API token. $RESPONSE"
+      exit 1
+    fi
+  else
+    echo -e "\e[93mWARNING: \e[37mFailed to connect with provided log ingest url ($TARGET_URL) to send a test log. It can be ignored if ActiveGate does not allow public access."
+  fi
+}
+
+generate_test_log()
+{
+  DATE=$(date --iso-8601=seconds)
+  cat <<EOF
+{
+"timestamp": "$DATE",
+"cloud.provider": "azure",
+"content": "Azure Log Forwarder installation log",
+"severity": "INFO"
+}
+EOF
 }
 
 RUN_INTERACTIVE_MODE=false
@@ -194,11 +220,11 @@ then
      else
         if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]
         then
-            echo "Not correct --target-url. Example of proper url for deployment with ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
+            echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
             exit 1
         elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]
         then
-            echo "Not correct --target-url. Example of proper url for deployment without ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
+            echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment without ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
             exit 1
         fi
     fi
@@ -217,7 +243,7 @@ else
     if ! command -v az &> /dev/null
     then
 
-        echo -e "\e[93mWARNING: \e[37mAzure CLI is required to install Dynatrace function. It should be already installed in Cloud Shell."
+        echo -e "\e[91mERROR: \e[37mAzure CLI is required to install Dynatrace function. It should be already installed in Cloud Shell."
         echo -e "If you are running this script from other hosts go to following link in your browser and install latest version of Azure CLI:"
         echo -e
         echo -e "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
@@ -231,7 +257,7 @@ else
     az account list -o table | grep 'Enabled  True'
     if [[ $? != 0 ]]
     then
-        echo "Exiting, please run azure cli login, set active subscription by running \"az account set --subscription <id>\" and rerun installation"
+        echo "\e[91mERROR: \e[37mExiting, please run azure cli login, set active subscription by running \"az account set --subscription <id>\" and rerun installation"
         exit 1
     fi
 
@@ -243,7 +269,7 @@ else
 
     if [[ "${CONTINUE}" == "N" ]]
     then
-        echo "Exiting, please set active subscription running \"az account set --subscription <id>\" and rerun installation"
+        echo "\e[91mERROR: \e[37mExiting, please set active subscription running \"az account set --subscription <id>\" and rerun installation"
         exit 1
     fi
 
@@ -271,7 +297,7 @@ else
         DEPLOY_ACTIVEGATE=false
         ;;
     *)
-        echo "DEPLOY_ACTIVEGATE - unexpected option value"
+        echo "\e[91mERROR: \e[37mDEPLOY_ACTIVEGATE - unexpected option value"
         exit 1
         ;;
     esac
@@ -316,7 +342,7 @@ else
         REQUIRE_VALID_CERTIFICATE=false
         ;;
     *)
-        echo "REQUIRE_VALID_CERTIFICATE - unexpected option value"
+        echo "\e[91mERROR: \e[37mREQUIRE_VALID_CERTIFICATE - unexpected option value"
         exit 1
         ;;
     esac
@@ -343,7 +369,7 @@ else
         SFM_ENABLED=false
         ;;
     *)
-        echo "SFM_ENABLED - unexpected option value"
+        echo "\e[91mERROR: \e[37mSFM_ENABLED - unexpected option value"
         exit 1
         ;;
     esac
@@ -382,7 +408,7 @@ else
         APPLY_FILTER_CONFIG=false
         ;;
     *)
-        echo "APPLY_FILTER_CONFIG - unexpected option value"
+        echo "\e[91mERROR: \e[37mAPPLY_FILTER_CONFIG - unexpected option value"
         exit 1
         ;;
     esac
@@ -401,6 +427,12 @@ TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
 
 echo
 check_api_token
+
+if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
+then
+  check_dynatrace_log_ingest_url
+fi
+
 echo "- deploying function infrastructure into Azure..."
 
 az deployment group create \
