@@ -28,7 +28,7 @@ readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --event-hub-name EVENT_HUB_NAME [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--use-existing-active-gate] [--require-valid-certificate] [--enable-self-monitoring]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --event-hub-name EVENT_HUB_NAME [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--use-existing-active-gate] [--require-valid-certificate] [--enable-self-monitoring] [--repository-release-url REPOSITORY_RELEASE_URL]
 
 arguments:
     -h, --help              Show this help message and exit
@@ -55,12 +55,14 @@ arguments:
                             Self monitoring allows to diagnose quickly your function by Azure custom metrics. By default (if this option is not provided) custom metrics won't be sent to Azure.
     --filter-config
                             Apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
+    --repository-release-url REPOSITORY_RELEASE_URL
+                            Change repository url to custom. Do not change without specific reason
     "
 }
 
 print_all_parameters()
 {
-    PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, EVENT_HUB_NAME=$EVENT_HUB_NAME, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED"
+    PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, EVENT_HUB_NAME=$EVENT_HUB_NAME, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL"
     if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]];then PARAMETERS+=", TARGET_PAAS_TOKEN=*****";fi
     if [ ! -z "$FILTER_CONFIG" ];then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG";fi
     echo
@@ -171,6 +173,11 @@ while (( "$#" )); do
                 shift
             ;;
 
+            "--repository-release-url")
+                REPOSITORY_RELEASE_URL=$2
+                shift; shift
+            ;;
+
             *)
             echo "Unknown param $1"
             print_help
@@ -208,6 +215,7 @@ then
     if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=false; fi
     if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
     if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
+    if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}; fi
     print_all_parameters
 
 else
@@ -405,7 +413,7 @@ echo "- deploying function infrastructure into Azure..."
 
 az deployment group create \
 --resource-group ${RESOURCE_GROUP} \
---template-uri ${FUNCTION_REPOSITORY_RELEASE_URL}${FUNCTION_ARM} \
+--template-uri ${REPOSITORY_RELEASE_URL}${FUNCTION_ARM} \
 --parameters forwarderName="${DEPLOYMENT_NAME}" \
 targetUrl="${TARGET_URL}" \
 targetAPIToken="${TARGET_API_TOKEN}" \
@@ -424,8 +432,8 @@ then
 fi
 
 echo
-echo "- downloading function code zip [${FUNCTION_REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE}]"
-wget -q ${FUNCTION_REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE} -O ${FUNCTION_ZIP_PACKAGE}
+echo "- downloading function code zip [${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE}]"
+wget -q ${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE} -O ${FUNCTION_ZIP_PACKAGE}
 
 FUNCTIONAPP_NAME="${DEPLOYMENT_NAME}-function"
 echo
