@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 #     Copyright 2021 Dynatrace LLC
 #
 #     Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,8 @@ readonly FUNCTION_ARM=dynatrace-azure-forwarder.json
 readonly FUNCTION_ZIP_PACKAGE=dynatrace-azure-log-forwarder.zip
 # Please be cautious with editing the following line, as CI is changing latest to specific version on release, see: .travis.yml
 readonly FUNCTION_REPOSITORY_RELEASE_URL=https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/
-readonly DYNATRACE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}$"
-readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[a-z0-9-]{1,36}$"
+readonly DYNATRACE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}[\/]{0,1}$"
+readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[-a-z0-9]{1,36}[\/]{0,1}$"
 readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
 readonly RESOURCE_GROUP_REGEX="^[a-zA-Z0-9.()-]{1,90}$"
 readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*$"
@@ -43,7 +43,7 @@ arguments:
                             Dynatrace API token. Integration requires API v1 Log import Token permission.
     --target-paas-token TARGET_PAAS_TOKEN
                             Dynatrace PaaS token, only when deploy ActiveGate is chosen
-    --resource-group RESOURCE_GROUP   
+    --resource-group RESOURCE_GROUP
                             Name of the Azure Resource Group in which Function will be deployed
     --event-hub-connection-string EVENT_HUB_CONNECTION_STRING
                             Connection string for Azure EventHub that is configured for receiving logs
@@ -76,7 +76,7 @@ check_arg()
     ARGUMENT=$2
     REGEX=$3
     if [ -z "$ARGUMENT" ]
-    then 
+    then
         echo "No $CLI_ARGUMENT_NAME"
         exit 1
     else
@@ -88,6 +88,23 @@ check_arg()
     fi
 }
 
+check_api_token() {
+  if RESPONSE=$(curl -k -s -X POST -d "{\"token\":\"$TARGET_API_TOKEN\"}" "$TARGET_URL/api/v2/apiTokens/lookup" -w "<<HTTP_CODE>>%{http_code}" -H "accept: application/json; charset=utf-8" -H "Content-Type: application/json; charset=utf-8" -H "Authorization: Api-Token $TARGET_API_TOKEN"); then
+    CODE=$(sed -rn 's/.*<<HTTP_CODE>>(.*)$/\1/p' <<<"$RESPONSE")
+    RESPONSE=$(sed -r 's/(.*)<<HTTP_CODE>>.*$/\1/' <<<"$RESPONSE")
+    if [ "$CODE" -ge 300 ]; then
+      echo -e "\e[93mWARNING: \e[37mFailed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL}) and --target-api-token. $RESPONSE"
+      exit 1
+    fi
+    if ! grep -q '"logs.ingest"' <<<"$RESPONSE"; then
+      echo -e "\e[93mWARNING: \e[37mMissing Ingest logs permission (v2) for the API token"
+      exit 1
+    fi
+  else
+      echo -e "\e[93mWARNING: \e[37mFailed to connect to Dynatrace/ActiveGate endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
+  fi
+}
+
 RUN_INTERACTIVE_MODE=false
 while (( "$#" )); do
     case "$1" in
@@ -95,7 +112,7 @@ while (( "$#" )); do
                 print_help
                 exit 0
             ;;
-            
+
             "-i" | "--interactive")
                 RUN_INTERACTIVE_MODE=true
                 shift
@@ -178,18 +195,18 @@ then
 
     if [ -z "$USE_EXISTING_ACTIVE_GATE" ]; then USE_EXISTING_ACTIVE_GATE=false; fi
     if [ -z "$TARGET_URL" ]
-    then 
+    then
         echo "No --target-url"
         exit 1
-     else   
+     else
         if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]
         then
-            echo "Not correct --target-url. Example of proper url for deployment with ActiveGate: https://environment-id.live.dynatrace.com"
-            exit 1 
+            echo "Not correct --target-url. Example of proper url for deployment with ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
+            exit 1
         elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]
         then
-            echo "Not correct --target-url. Example of proper url for deployment without ActiveGate: https://environemnt-active-gate-url:9999/e/environment-id"
-            exit 1 
+            echo "Not correct --target-url. Example of proper url for deployment without ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
+            exit 1
         fi
     fi
 
@@ -197,9 +214,8 @@ then
     if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then echo "No --target-paas-token"; exit 1; fi
     if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=false; fi
     if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
-    if [[ "$USE_EXISTING_ACTIVE_GATE" = true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
+    if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
     if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}; fi
-
     print_all_parameters
 
 else
@@ -270,7 +286,7 @@ else
 
     if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
     then
-        echo "Please provide the endpoint used to ingest logs to Dynatrace, for example: https://environemnt-active-gate-url:9999/e/environment-id"
+        echo "Please provide the endpoint used to ingest logs to Dynatrace, for example: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
         while ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]; do
             read -p "Enter Dynatrace ActiveGate API URI: " TARGET_URL
         done
@@ -286,7 +302,7 @@ else
     else
         REQUIRE_VALID_CERTIFICATE="N"
 
-        echo "Please provide the dynatrace environment endpoint, for example: https://environment-id.live.dynatrace.com"
+        echo "Please provide the dynatrace environment endpoint, for example: https://<your_environment_ID>.live.dynatrace.com"
         while ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]; do
             read -p "Enter Dynatrace environment URI: " TARGET_URL
         done
@@ -389,8 +405,10 @@ else
     fi
 fi
 
+TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
 
 echo
+check_api_token
 echo "- deploying function infrastructure into Azure..."
 
 az deployment group create \
@@ -409,7 +427,7 @@ filterConfig="${FILTER_CONFIG}"
 
 if [[ $? != 0 ]]
 then
-    echo "Function deployment failed"
+    echo -e "\e[91mFunction deployment failed"
     exit 2
 fi
 
