@@ -34,7 +34,7 @@ jobs:
       name: E2E Azure Log Forwarder test
       sudo: required
       language: shell
-      if: (branch = master OR type = pull_request) AND fork = false
+#      if: (branch = master OR type = pull_request) AND fork = false
       env:
         - RESOURCE_GROUP_NAME="logs-forwarding-e2e-rg-${TRAVIS_BUILD_ID}"
         - STORAGE_ACCOUNT_NAME="e2erepository"
@@ -50,6 +50,7 @@ jobs:
         - secure: HGKRJnJ2Y/JURFKWKWNtFpOMk1u99WIest+2SbuDBlDSVEtVWmUjUpAjz+TdaFt1XIaTANiQrHJdmsc4qgQW4QOhqjpOa4pm3CY74OfG7BYsBsaE5Ja8AiCYoiJ57VFejNQQdUMAzV8GWBjpX0CHbSwsG38ObyU6msql+DhLQXtyZZgbVXHq1DwrCAFB3xDazzePzcRuVikIZ70RoM5qa7VLxfWhI1oqHp31il4x3lr+vPYjWDqNulzXXv+8mD9A/GpEtAlDRJ2u2kH/3lSVNkIncUGKbb4Z2OiNUA97V7COLa31lhuDGSTAxVbf9xM9nnEHz/np3z9IHBZMvlCOCIBSPwgClCkUqEp0efKt6OufuAV/TkyFi0Llp4jeaTGeRRfPYF6hAZBbAR+2mOlyom6L6MBw0jrdnJq7euqdS/k/CdxkyMaXGGjqridGRrsRwZ//2ULcXbMgmKehSaqez/1ss4UtnV6LQqqbQQbZQppywz/j9bUoS8XGxaOAfhATRxOLbqQgKYmRD5YnJB+leVwFg3/YpTAiReEMrSwbyEN8OcAenHZtdCg+JwV/ZgobcerBTK0vXcWWlQgttqQEyT41qRU5kvkDfCc1UFDYWkVfaaRs0t+l4W+2YmtzIpDQk081JqFZHz6fXbadAIQu+J8Igap6bp9Y86eMUlLIwc4=
       install:
         - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        - sudo apt-get install jq
       before_script:
         - az login --service-principal --username "$USER_NAME"  --password "$PASSWORD" --tenant "$TENANT" > /dev/null
         - ./buildZip.sh
@@ -57,11 +58,14 @@ jobs:
         - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "publish.zip" --path "dynatrace-azure-log-forwarder.zip"
         - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "deployment/dynatrace-azure-forwarder.json" --path "dynatrace-azure-forwarder.json"
         - az group create --name "$RESOURCE_GROUP_NAME" --location westeurope
+        - az resource invoke-action --action enable  --name "logs-forwarding-e2e-logicapp" -g "$RESOURCE_GROUP_NAME" --resource-type "Microsoft.Logic/workflows"
       script:
         - ./deployment/dynatrace-azure-logs.sh --deployment-name "e2e-${TRAVIS_BUILD_ID}" --resource-group "$RESOURCE_GROUP_NAME" --target-url "$TARGET_URL" --target-api-token "$TARGET_API_TOKEN" --target-paas-token "$TARGET_PAAS_TOKEN" --event-hub-name "logs-forwarding-e2e-eh" --event-hub-connection-string "$EH_CONNECTION_STRING" --repository-release-url "https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${STORAGE_ACCOUNT_DIR_NAME}/"
+        - ./tests/e2e/execution-test.sh
       after_script:
         - az storage fs delete --name "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --yes
         - az group delete --name "$RESOURCE_GROUP_NAME" --yes
+        - az resource invoke-action --action disable  --name "logs-forwarding-e2e-logicapp" -g "$RESOURCE_GROUP_NAME" --resource-type "Microsoft.Logic/workflows"
     - stage: deployment
       name: Github Release Deployment
       if: tag =~ /^release.*$/
