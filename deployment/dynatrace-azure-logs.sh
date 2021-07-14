@@ -447,9 +447,11 @@ fi
 TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
 
 echo
-if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]; then
+if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]];
+then
   check_activegate_state
 fi
+
 check_api_token
 
 if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
