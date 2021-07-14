@@ -8,7 +8,7 @@ stages:
 - deployment
 env:
   global:
-    - RELEASE_REPO_TO_FIND="https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/"
+    - RELEASE_REPO_TO_FIND="https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/latest/download/"
     - RELEASE_REPO_TO_REPLACE="https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/$TRAVIS_TAG/"
 jobs:
   include:
