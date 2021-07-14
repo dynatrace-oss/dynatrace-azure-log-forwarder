@@ -89,7 +89,7 @@ check_arg()
 }
 
 check_activegate_state() {
-  if ACTIVE_GATE_STATE=$(curl -ksS "${TARGET_URL}/rest/health"); then
+  if ACTIVE_GATE_STATE=$(curl -ksS "${TARGET_URL}/rest/health" --connect-timeout 20); then
     if [[ "$ACTIVE_GATE_STATE" != "RUNNING" ]]
     then
       echo -e ""
