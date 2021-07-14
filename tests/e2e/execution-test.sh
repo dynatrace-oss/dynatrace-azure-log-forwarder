@@ -13,9 +13,11 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-echo "Waiting for Logic app to produce logs for 5 min..."
+readonly EXPECTED_NUMBER_OF_LOGS=3
+
+echo "Waiting for Logic app to produce logs for 3 min..."
 START_TIME=$(date +%s%N | cut -b1-13)
-sleep 5m
+sleep 3m
 END_TIME=$(date +%s%N | cut -b1-13)
 echo "Try to receive logs from Dynatrace in 5 min (timeframe: start time=$START_TIME, end time=$END_TIME)"
 sleep 5m
@@ -32,12 +34,12 @@ then
 fi
 
 NUMBER_OF_LOGS=$(jq -r '.sliceSize' <<< "$RESPONSE")
-# We should receive 5 Logic App logs from Dynatrace with status 'Running' in 5 min time span (Logic App is triggered once per min)
-if [ "$NUMBER_OF_LOGS" -eq 5 ]; then
+# We should receive 3 Logic App logs from Dynatrace with status 'Running' in 3 min time span (Logic App is triggered once per min)
+if [ "$NUMBER_OF_LOGS" -eq $EXPECTED_NUMBER_OF_LOGS ]; then
   echo "Successfully received all expected logs from Dynatrace"
   exit 0
-elif [ "$NUMBER_OF_LOGS" -gt 0 ] && [ "$NUMBER_OF_LOGS" -ne 5 ]; then
-  echo "Failed, received: $NUMBER_OF_LOGS logs from Dynatrace (should be 5)"
+elif [ "$NUMBER_OF_LOGS" -gt 0 ] && [ "$NUMBER_OF_LOGS" -ne $EXPECTED_NUMBER_OF_LOGS ]; then
+  echo "Failed, received: $NUMBER_OF_LOGS logs from Dynatrace (should be $EXPECTED_NUMBER_OF_LOGS)"
   exit 1
 else
   echo "Failed, no logs received from Dynatrace"
