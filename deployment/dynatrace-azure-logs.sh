@@ -92,11 +92,12 @@ check_activegate_state() {
   if ACTIVE_GATE_STATE=$(curl -ksS "${TARGET_URL}/rest/health"); then
     if [[ "$ACTIVE_GATE_STATE" != "RUNNING" ]]
     then
-      echo -e "ActiveGate endpoint ${TARGET_URL} is not reporting RUNNING state. Please verify provided values for parameters: --target-url (${TARGET_URL})."
+      echo -e ""
+      echo -e "\e[91mERROR: \e[37mActiveGate endpoint is not reporting RUNNING state. Please verify provided values for parameters: --target-url (${TARGET_URL})."
       exit 1
     fi
   else
-      echo -e "\e[93mWARNING: \e[37mUnable to connect to ActiveGate endpoint ${TARGET_URL}. It can be ignored if ActiveGate does not allow public access."
+      echo -e "\e[93mWARNING: \e[37mFailed to connect with provided ActiveGate url ($TARGET_URL) to check state. It can be ignored if ActiveGate does not allow public access."
   fi
 }
 
@@ -446,7 +447,9 @@ fi
 TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
 
 echo
-check_activegate_state
+if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]; then
+  check_activegate_state
+fi
 check_api_token
 
 if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
