@@ -16,7 +16,7 @@
 readonly FUNCTION_ARM=dynatrace-azure-forwarder.json
 readonly FUNCTION_ZIP_PACKAGE=dynatrace-azure-log-forwarder.zip
 # Please be cautious with editing the following line, as CI is changing latest to specific version on release, see: .travis.yml
-readonly FUNCTION_REPOSITORY_RELEASE_URL=https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/latest/
+readonly FUNCTION_REPOSITORY_RELEASE_URL=https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/latest/download/
 readonly DYNATRACE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}[\/]{0,1}$"
 readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[-a-z0-9]{1,36}[\/]{0,1}$"
 readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
@@ -86,6 +86,19 @@ check_arg()
             exit 1
         fi
     fi
+}
+
+check_activegate_state() {
+  if ACTIVE_GATE_STATE=$(curl -ksS "${TARGET_URL}/rest/health" --connect-timeout 20); then
+    if [[ "$ACTIVE_GATE_STATE" != "RUNNING" ]]
+    then
+      echo -e ""
+      echo -e "\e[91mERROR: \e[37mActiveGate endpoint is not reporting RUNNING state. Please verify provided values for parameters: --target-url (${TARGET_URL})."
+      exit 1
+    fi
+  else
+      echo -e "\e[93mWARNING: \e[37mFailed to connect with provided ActiveGate url ($TARGET_URL) to check state. It can be ignored if ActiveGate does not allow public access."
+  fi
 }
 
 check_api_token() {
@@ -434,6 +447,11 @@ fi
 TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
 
 echo
+if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]];
+then
+  check_activegate_state
+fi
+
 check_api_token
 
 if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
