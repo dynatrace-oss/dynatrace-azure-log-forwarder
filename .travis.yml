@@ -4,12 +4,16 @@ notifications:
     on_success: never
 stages:
 - tests
+- build-package
 - e2e-test
 - deployment
 env:
   global:
     - RELEASE_REPO_TO_FIND="https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/latest/download/"
     - RELEASE_REPO_TO_REPLACE="https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder/releases/download/$TRAVIS_TAG/"
+    - STORAGE_ACCOUNT_NAME="e2erepository"
+    - STORAGE_ACCOUNT_DIR_NAME="e2edeployment${TRAVIS_BUILD_ID}"
+    - secure: sDNv5zI4GfrSMODSdRJ+6NbTh7ppg9eLFGlfTS/hneOBF7Zgt9Yi8P71+OehiAqPOGuXe5L6nP3CqgcCFQzl2oUTgl+aU8ZQFSL4nTX5cstc0T06yqMuyzSr9dGbZFYP3Hb27NpJk7KVe/ddOfTcL/MmEsOJqMuzVvklL7GzuxbjlVm6O1Rhc94lsEWctPaS337yOlrc5CKAxFuTl3ohou3Tode9MuZeVd4XKcxrhfZl/8BAYtfV8wim8hwYDXKTBjcOfB7qd8+3Un4tYAXMGjx5wYKOVOoihuim/7sDn0V+YxHKFhXJp8lWa7oITQaGhlMHGNSCNPdQ0nxnntfdKUtD2rxhAjTUXhoaF+bk4mrjRGxgXN80P9rrQjSCN0JyjWx4tnWj2ivjmhGHQZl4swvMp7k9Sikyj0f9KevtsotQBYAQEzTuzPi0kf9uDiZ05/fnttsHpYKw+BpWqbzl5NBQAuJQuoRREwOGOS4CSpybRhS9Bx/i2+lgfT5NXhr76KWD/uN5KurZvuBgbVzdWSXxq4zh6vM2R9iyvgsCN1TzpU/JXfnQDHC8OJMRDqX7pGoYzwEnq6jatRf8ED7yFm86a5hW1u7bWgIgC3TrkCTXcyZvh8lOKl647i9cxCjLfy411PFim8Ic2UY5jMAEMfVwpLV3HcXbZ7ye8HK/bWI=
 jobs:
   include:
     - stage: tests
@@ -30,18 +34,28 @@ jobs:
         - pylint --rcfile=pylint-tests.cfg ./tests
         - pytest tests/unit -v
         - pytest tests/integration -v
+    - stage: build-package
+      name: Building package & Deploying to Storage Account
+      sudo: required
+      if: ((branch=master OR type = pull_request) AND fork = false) OR tag =~ /^release.*$/
+      language: minimal
+      install:
+        - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+      script:
+        - ./buildZip.sh
+        - az storage fs create --name "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --public-access file
+        - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "publish.zip" --path "dynatrace-azure-log-forwarder.zip"
+        - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "deployment/dynatrace-azure-forwarder.json" --path "dynatrace-azure-forwarder.json"
     - stage: e2e-test
       name: E2E Azure Log Forwarder test
       sudo: required
       language: python
       python:
         - "3.8"
-      if: (branch = master OR type = pull_request) AND fork = false
+      if: (branch=master OR type = pull_request) AND fork = false
       env:
         - RESOURCE_GROUP_NAME="logs-forwarding-e2e-rg-${TRAVIS_BUILD_ID}"
         - RESOURCE_GROUP_STATIC_RESOURCES="logs-forwarding-e2e-static-resources"
-        - STORAGE_ACCOUNT_NAME="e2erepository"
-        - STORAGE_ACCOUNT_DIR_NAME="e2edeployment${TRAVIS_BUILD_ID}"
         - LOGIC_APP_NAME="logs-forwarding-e2e-logicapp"
         - LOGIC_APP_RESOURCE_TYPE="Microsoft.Logic/workflows"
         - secure: m5BnOt9xH87aAARQNnfagFQj4qvvQls08WdfITRwvjanyr5Ii8qIu7P0PqqwVC/jFDVMQZgGQhKrmUWDcPtBwyrW5Y7UH1S070Ny7JeRWtr4DD3pMGTiGLCSRls3c7sgEhQRO8gsn55SGnDB/TLW8QZNdn0U6szDEDIAQ43axeJ5OjdPo5KBzP3mNkVktl6HVnNBNH4X2FC7MlGswLiUJV0IfvnSY1bCqdTD+JhntbfSd9DqDSNgLQJJywYcccRa3jAbbS7nArBfxCksXm4i8bh6egS5TuykHbZvXk/XRdYmyKrQ4cWazfZfkzkOJADsuZPIG8bVlqcsvbVIoYFPPfA1GA5XlR6rgageckHqeHY8zLFCtdpQ8xhlfPqqx5czBWUj/u5x0LCVOHGhHOrDDNbZ4c74c0hdMHA3XKu5HWx8BgOhEZ7zlVQyUrN4FNtPL0V5JGA6aM4MLYkIkMQMSeIi8YqTQbIFOcJ+fnHMmP6xJDJ3bZdq2+HmKVKSQJUjPoG5dvOZUSEqZ4OgadCXork2pa8TF2qZSbGZKmW7xQbu5UDf1/+I5oipEMxg/kZuuNpWu4/uflkLiZ86FUVMRnQkbpSgyIAqA0I3bID3J05BNQF91zfshpg8y+IxtdI1FJElM4+hfQZUeWD3Alq+C5Tx1dTs57Cp8fQsiqvfEoc=
@@ -51,35 +65,29 @@ jobs:
         - secure: cCnxwrmRFB1jats6iY9blIcA378iZrC7G1zcPVRozud7SrhbJeufGw0mNbIQe9q7w5Xg7tAPu/p1VKFzqGGO+0U7fH+wvU+LRj1LeaUMGQD/s99QI5R265J3EC46fKBy8LIhSwoqfwjAYH1+VG37WoOtvyLotdsQjzF9ppKm4LE9lrCIjQ+067uD7BrNdTVXLpL2wp+ogmX/5b31oi1dia8MDig5+4SrdtBX5l2p8fZA16tOgPnHXsTFqHoE6qwzbvvNRT/9DKHGgMXo5IeBM7ufS9M0O+qt8twuLxCfnxOmzv1mGQ9PrdkAEHq+ZF6xO+vF0ze+4pWsEBMPztL81oqLthPRkNpV4zR7agEMDamlNryn0efEYS7zvVlYWL3PjqECpjOLNw0L+tPLVuuH47voRo4ryFRV6ewJhfXUCCGRsbPgP9ZML3+GSKhGMWywobIEIDpvdCSMQL+Po1NaP14f27spLNf8D5Ksb8Mv4UoqrbxITbQVQC/Hg0iWF68dwn84wwuP+Q/ZUZB40lPfNN60WuuzKdT01vpfKDbtDaogLDw8XmliFkhvGauX1MoUe4eLMikIopq3fvtoDbEHhTOaRIbxzAKyoDqgEHUCvUWBLwJbCAVCjimnvwY2SNbn7DnGNLZZMKvrieX+KkLJeQfaSxFok8dF5gnQ6EX3C9I=
         - secure: fZrlr4woKvsTS+UGNvUXmUkryt32sVWJEiyWMTqFcX8xJM9aujhlSfgPpW5EJUyoYSNzi8Vl5CtQNb8gav1MjDeGzgIagT7mQM8h7Yw1b8w++lIUq4WBKK0KDPg5fIwnTNAzAlbITH35G5A1Y9gE80b020sbAW+d0xjiE617a0IHdCJIq6PA1fA3yXXJh6LepYn66Ez1B8G+JhQSeHOxyFDsgKnmrxXv5Z5H1iOM2+V2fjHiME62tQbGJ7Xy+/mwB9oOFfcRwrpvCRAt5x8xmqOEQFDxDZN7hqROSgBvRGiPDdrzok/pNFUY/jiMRRGuuxf6shExL6j63tFv+rR47ghWivihYTNRFHmGIcwt4p2FHvNQWJcuL1qYSF+Jr430dahl7bnw9MQrgKlEqRP5ip6whv0YkpbXU0MQEkiJ4dYXPt0pK6qOyx+dgJiwwa0U1KQWX6nTzI8CaEC9s+uMp+E45PWQCTlvIe2qKbdeCkMaEpUQgHlcTLF6KgIWQkHAB6yyvH7+iXzDHvykH97aAiRXWL+iWybCur5oH9HlaZURL4OrIQ+hWwldfv8o05EId/uinZZFGEdzwbDb+3mxGFmShf5pHwWvsmlIJTUibNkzp59qNfVqt+C03tJYRHCGTx7dUZujCc7+lMI4cioLK+j9LM5Wq1eY9df790p3YsE=
         - secure: jq+9YRcf8bp0WRdIiHGYl8GS0ehQju4Ax4jAIZBPPb8g9D+E9+nCXoqxuG/CyRTnLM5veyz1Xunn39Wm3OVpSaq6ypu913OJ2KbLWAEdgy9XwJ8A1k7h+jPoV3rby7zcNF4dgP/51DSIhzupqGJQYiUEI3Qs8fVSK3DtcrCGALCi2U/zmTxGQYb+dfRbR5Tvzu+BGvGbiz6VpG1ynofONEvO1PpjcDxhQlZNiZ/qM10G0VPh1AqPV2c/wlCfnb2Y97JAluKpOrD0xDY+TdXM1l//mqA6NYO5jaovr16ZX1Xnb/x7lp7Fkec+nE1kYZuY1ylWnKbHU0Hc+tp8KqJ2JXFia3DZGmZ0JszYO7cBBBBsgTvX8UgFSLFrJmCobHnyXQ8WV145QO06Eui3KEVG4S9UZbAQciwmoTFzRRRjEA5Kainhf8Nu7ewSmd2IlSUxDj5T7PmkN5gNK7I/YfhIKZqZTwvY1IQeIswogXwb3Adso1CE0hyiD9siTXTgJN1ew6xI3eN0LL150dip4vmCBP+xt3aJRwgKTmVTlnLoMjFdVN5Gr7ytifRuo9LHt+cuPFWF78dZ0C2j0YTseeQ2JeFLOiJxvWtCMIsgVmPXavZiYOcFIEMF9PqmoLZVE56wznqQoCbHIHl3MMnIKOBN6dc0V7swhB766QRPIYd3bjw=
-        - secure: sDNv5zI4GfrSMODSdRJ+6NbTh7ppg9eLFGlfTS/hneOBF7Zgt9Yi8P71+OehiAqPOGuXe5L6nP3CqgcCFQzl2oUTgl+aU8ZQFSL4nTX5cstc0T06yqMuyzSr9dGbZFYP3Hb27NpJk7KVe/ddOfTcL/MmEsOJqMuzVvklL7GzuxbjlVm6O1Rhc94lsEWctPaS337yOlrc5CKAxFuTl3ohou3Tode9MuZeVd4XKcxrhfZl/8BAYtfV8wim8hwYDXKTBjcOfB7qd8+3Un4tYAXMGjx5wYKOVOoihuim/7sDn0V+YxHKFhXJp8lWa7oITQaGhlMHGNSCNPdQ0nxnntfdKUtD2rxhAjTUXhoaF+bk4mrjRGxgXN80P9rrQjSCN0JyjWx4tnWj2ivjmhGHQZl4swvMp7k9Sikyj0f9KevtsotQBYAQEzTuzPi0kf9uDiZ05/fnttsHpYKw+BpWqbzl5NBQAuJQuoRREwOGOS4CSpybRhS9Bx/i2+lgfT5NXhr76KWD/uN5KurZvuBgbVzdWSXxq4zh6vM2R9iyvgsCN1TzpU/JXfnQDHC8OJMRDqX7pGoYzwEnq6jatRf8ED7yFm86a5hW1u7bWgIgC3TrkCTXcyZvh8lOKl647i9cxCjLfy411PFim8Ic2UY5jMAEMfVwpLV3HcXbZ7ye8HK/bWI=
         - secure: HGKRJnJ2Y/JURFKWKWNtFpOMk1u99WIest+2SbuDBlDSVEtVWmUjUpAjz+TdaFt1XIaTANiQrHJdmsc4qgQW4QOhqjpOa4pm3CY74OfG7BYsBsaE5Ja8AiCYoiJ57VFejNQQdUMAzV8GWBjpX0CHbSwsG38ObyU6msql+DhLQXtyZZgbVXHq1DwrCAFB3xDazzePzcRuVikIZ70RoM5qa7VLxfWhI1oqHp31il4x3lr+vPYjWDqNulzXXv+8mD9A/GpEtAlDRJ2u2kH/3lSVNkIncUGKbb4Z2OiNUA97V7COLa31lhuDGSTAxVbf9xM9nnEHz/np3z9IHBZMvlCOCIBSPwgClCkUqEp0efKt6OufuAV/TkyFi0Llp4jeaTGeRRfPYF6hAZBbAR+2mOlyom6L6MBw0jrdnJq7euqdS/k/CdxkyMaXGGjqridGRrsRwZ//2ULcXbMgmKehSaqez/1ss4UtnV6LQqqbQQbZQppywz/j9bUoS8XGxaOAfhATRxOLbqQgKYmRD5YnJB+leVwFg3/YpTAiReEMrSwbyEN8OcAenHZtdCg+JwV/ZgobcerBTK0vXcWWlQgttqQEyT41qRU5kvkDfCc1UFDYWkVfaaRs0t+l4W+2YmtzIpDQk081JqFZHz6fXbadAIQu+J8Igap6bp9Y86eMUlLIwc4=
       install:
         - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
         - pip install -r tests/requirements.txt
       before_script:
         - az login --service-principal --username "$USER_NAME"  --password "$PASSWORD" --tenant "$TENANT" > /dev/null
-        - ./buildZip.sh
-        - az storage fs create --name "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --public-access file
-        - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "publish.zip" --path "dynatrace-azure-log-forwarder.zip"
-        - az storage fs file upload --file-system "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --source "deployment/dynatrace-azure-forwarder.json" --path "dynatrace-azure-forwarder.json"
         - az group create --name "$RESOURCE_GROUP_NAME" --location westeurope
         - az resource invoke-action --action enable  --name "$LOGIC_APP_NAME" -g "$RESOURCE_GROUP_STATIC_RESOURCES" --resource-type "$LOGIC_APP_RESOURCE_TYPE"
       script:
         - ./deployment/dynatrace-azure-logs.sh --deployment-name "e2e-${TRAVIS_BUILD_ID}" --resource-group "$RESOURCE_GROUP_NAME" --target-url "$TARGET_URL" --target-api-token "$TARGET_API_TOKEN" --target-paas-token "$TARGET_PAAS_TOKEN" --event-hub-name "logs-forwarding-e2e-eh" --event-hub-connection-string "$EH_CONNECTION_STRING" --repository-release-url "https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${STORAGE_ACCOUNT_DIR_NAME}/"
         - pytest tests/e2e -v
       after_script:
-        - az storage fs delete --name "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --yes
         - az group delete --name "$RESOURCE_GROUP_NAME" --yes
         - az resource invoke-action --action disable  --name "$LOGIC_APP_NAME" -g "$RESOURCE_GROUP_STATIC_RESOURCES" --resource-type "$LOGIC_APP_RESOURCE_TYPE"
+        - if [[ ! $TRAVIS_TAG =~ ^release.*$ ]]; then az storage fs delete --name "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --yes; fi
     - stage: deployment
       name: Github Release Deployment
       if: tag =~ /^release.*$/
       language: shell
+      install:
+        - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
       before_deploy:
-        - chmod +x buildZip.sh
-        - chmod +x version.sh
-        - ./buildZip.sh
-        - mv publish.zip dynatrace-azure-log-forwarder.zip
+        - wget "https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${STORAGE_ACCOUNT_DIR_NAME}/dynatrace-azure-log-forwarder.zip"
         - sed -i -e "s@$RELEASE_REPO_TO_FIND@$RELEASE_REPO_TO_REPLACE@g" ./deployment/dynatrace-azure-logs.sh
       deploy:
         provider: releases
@@ -91,3 +99,5 @@ jobs:
         skip_cleanup: true
         on:
           tags: true
+      after_deploy:
+        - az storage fs delete --name "$STORAGE_ACCOUNT_DIR_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --account-key "$STORAGE_ACCOUNT_KEY" --yes
