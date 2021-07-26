@@ -52,7 +52,7 @@ jobs:
       language: python
       python:
         - "3.8"
-      if: (branch=master OR type = pull_request) AND fork = false
+      if: (branch = master OR type = pull_request) AND fork = false
       env:
         - RESOURCE_GROUP_NAME="logs-forwarding-e2e-rg-${TRAVIS_BUILD_ID}"
         - RESOURCE_GROUP_STATIC_RESOURCES="logs-forwarding-e2e-static-resources"
