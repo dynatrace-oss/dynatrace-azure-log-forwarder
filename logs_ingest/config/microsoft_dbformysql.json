@@ -74,7 +74,7 @@
         },
         {
           "key": "db.user",
-          "pattern": "replace_regex(properties.user,'(.*?)\\[.*$','$1') || properties.user"
+          "pattern": "if(properties.user != null, &(replace_regex(properties.user,'(.*?)\\[.*$','$1') || properties.user), &null, @)"
         },
         {
           "key": "db.operation",
