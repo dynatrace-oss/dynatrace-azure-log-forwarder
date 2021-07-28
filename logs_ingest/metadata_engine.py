@@ -28,6 +28,7 @@ from .mapping import RESOURCE_TYPE_ATTRIBUTE
 
 _CONDITION_COMPARATOR_MAP = {
     "$eq".casefold(): lambda x, y: str(x).casefold() == str(y).casefold(),
+    "$in".casefold(): lambda x, y: str(x).casefold() in str(y).casefold().split(','),
     "$prefix".casefold(): lambda x, y: str(x).casefold().startswith(str(y).casefold()),
     "$contains".casefold(): lambda x, y: str(y).casefold() in str(x).casefold(),
 }
@@ -61,7 +62,7 @@ class SourceMatcher:
                 self._evaluator = _CONDITION_COMPARATOR_MAP[key]
                 break
         operands = re.findall(r"'(.*?)'", condition, re.DOTALL)
-        self._operand = operands[0] if operands else None
+        self._operand = ','.join(operands) if operands else None
         self._source_value_extractor = _SOURCE_VALUE_EXTRACTOR_MAP.get(source.casefold(), None)
 
         if not self._source_value_extractor:
