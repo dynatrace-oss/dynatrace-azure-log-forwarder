@@ -1,0 +1,102 @@
+{
+  "name": "cloud:azure:dbformariadb",
+  "displayName": "Azure DB for MariaDB",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('MySqlSlowLogs')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.DBFORMARIADB/SERVERS')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "db.name",
+          "pattern": "properties.db"
+        },
+        {
+          "key": "db.statement",
+          "pattern": "properties.sql_text"
+        },
+        {
+          "key": "db.user",
+          "pattern": "replace_regex(properties.host,'(.*?)\\[.*$','$1') || properties.host"
+        },
+        {
+          "key": "db.system",
+          "pattern": "'mariadb'"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "severity",
+          "pattern": "'Warning'"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('MySqlAuditLogs')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.DBFORMARIADB/SERVERS')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "db.name",
+          "pattern": "properties.db"
+        },
+        {
+          "key": "db.statement",
+          "pattern": "properties.sql_text"
+        },
+        {
+          "key": "db.user",
+          "pattern": "if(properties.user != null, &(replace_regex(properties.user,'(.*?)\\[.*$','$1') || properties.user), &null, @)"
+        },
+        {
+          "key": "db.system",
+          "pattern": "'mariadb'"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "join(' - ', [category, properties.event_class])"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "severity",
+          "pattern": "if(properties.error_code != null && properties.error_code > `0`, &'Error', &'Informational', @)"
+        }
+      ]
+    }
+  ]
+}
