@@ -23,5 +23,6 @@ def get_azure_token():
         token = credential_chain.get_token("https://monitoring.azure.com//.default")
         return token.token
     except Exception as e:
-        logging.exception(f"Failed to retrieve Azure token. Reason is {type(e).__name__} {e}")
+        logging.exception(f"Failed to retrieve Azure token. Reason is {type(e).__name__} {e}",
+                          "azure-token-retrieval-exception")
         return None

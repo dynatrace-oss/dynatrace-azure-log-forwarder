@@ -52,7 +52,7 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
         except HTTPError as e:
             raise e
         except Exception as e:
-            logging.exception("Failed to ingest logs")
+            logging.exception("Failed to ingest logs", "ingesting-logs-exception")
             self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
             number_of_http_errors += 1
             # all http requests failed and this is the last batch, raise this exception to trigger retry
@@ -77,7 +77,8 @@ def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitor
         }
     )
     if status > 299:
-        logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"')
+        logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"',
+                      "log-ingest-error")
         if status == 400:
             self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.InvalidInput)
         elif status == 401:

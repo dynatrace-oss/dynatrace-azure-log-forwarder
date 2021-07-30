@@ -121,7 +121,8 @@ class LogFilter:
                 log_level_set = {severity for log_level_digit, severity in log_level_to_severity_dict.items()
                                  if log_level_digit <= min_log_level_digit}
             else:
-                logging.warning(f"Incorrect log level in FILTER_CONFIG: {min_log_level}.")
+                logging.warning(f"Incorrect log level in FILTER_CONFIG: {min_log_level}.",
+                                "incorrect-log-level-warning")
         return log_level_set
 
 
