@@ -54,15 +54,16 @@ def debug(msg, caller: str, *args, **kwargs):
 
 
 def check_if_caller_exceeded_limit(caller):
-    log_calls_left = LOG_THROTTLING_LIMIT_PER_CALLER - log_call_count.get(caller, 0)
+    log_calls_performed = log_call_count.get(caller, 0)
+    log_calls_left = LOG_THROTTLING_LIMIT_PER_CALLER - log_calls_performed
 
     if log_calls_left == 0:
-        log_call_count[caller] = log_call_count.get(caller, 0) + 1
+        log_call_count[caller] = log_calls_performed + 1
         logging.warning(_version_tag + f"Logging calls from caller '{caller}' exceeded the throttling limit of"
                         f" {LOG_THROTTLING_LIMIT_PER_CALLER}. Further logs from this caller will be discarded")
 
     caller_exceeded_limit = log_calls_left <= 0
     if not caller_exceeded_limit:
-        log_call_count[caller] = log_call_count.get(caller, 0) + 1
+        log_call_count[caller] = log_calls_performed + 1
 
     return caller_exceeded_limit
