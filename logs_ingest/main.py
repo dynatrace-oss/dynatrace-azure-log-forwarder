@@ -102,7 +102,7 @@ def is_too_old(timestamp: str, self_monitoring: SelfMonitoring, log_part: str):
                 return True
         except Exception:
             # Not much we can do when we can't parse the timestamp
-            logging.debug(f"Failed to parse timestamp {timestamp}", "timestamp-parsing-debug")
+            logging.exception(f"Failed to parse timestamp {timestamp}", "timestamp-parsing-debug")
             self_monitoring.parsing_errors += 1
     return False
 

@@ -47,9 +47,7 @@ def info(msg, *args, **kwargs):
     logging.info(_version_tag + msg, *args, **kwargs)
 
 
-def debug(msg, caller: str, *args, **kwargs):
-    if check_if_caller_exceeded_limit(caller):
-        return
+def debug(msg, *args, **kwargs):
     logging.debug(_version_tag + msg, *args, **kwargs)
 
 

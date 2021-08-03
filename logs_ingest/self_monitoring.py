@@ -77,8 +77,7 @@ class SelfMonitoring:
                 metric_name = self_monitoring_metric.get("data", "").get("baseData", "").get("metric", "")
                 try:
                     urllib.request.urlopen(req)
-                    logging.debug(f'Successfully sent self monitoring metric ({metric_name}) to Azure',
-                                  "sfm-push-success-debug")
+                    logging.debug(f'Successfully sent self monitoring metric ({metric_name}) to Azure')
                 except HTTPError as e:
                     logging.exception(
                         f'Failed to push self monitoring metric ({metric_name}) to Azure: {e.code}, reason: {e.reason}", url: {url}',
