@@ -49,7 +49,8 @@ try:
             key = ",".join(filter(None, [resource_type, category]))
             dt_me_type_mapper.update({key: resource_type_to_me_type["meType"]})
 except Exception:
-    logging.exception(f"Failed to load file with meType mapping: '{me_type_mapper_file_path}'")
+    logging.exception(f"Failed to load file with meType mapping: '{me_type_mapper_file_path}'",
+                      "meType-mapping-file-loading-exception")
 
 
 def extract_resource_id_attributes(parsed_record: Dict, resource_id: str):

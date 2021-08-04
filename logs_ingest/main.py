@@ -65,14 +65,14 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
                         process_record(dt_payload, record, self_monitoring)
                     except Exception:
                         self_monitoring.parsing_errors += 1
-                        logging.exception("Failed to parse log record")
+                        logging.exception("Failed to parse log record", "log-record-parsing-exception")
 
         self_monitoring.processing_time = time.perf_counter() - start_time
         logging.info(f"Successfully parsed {len(dt_payload)} log records")
         if dt_payload:
             send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], dt_payload, self_monitoring)
     except Exception as e:
-        logging.exception("Failed to process logs")
+        logging.exception("Failed to process logs", "log-processing-exception")
         raise e
     finally:
         self_monitoring_enabled = os.environ.get("SELF_MONITORING_ENABLED", "False") in ["True", "true"]
@@ -102,7 +102,7 @@ def is_too_old(timestamp: str, self_monitoring: SelfMonitoring, log_part: str):
                 return True
         except Exception:
             # Not much we can do when we can't parse the timestamp
-            logging.debug(f"Failed to parse timestamp {timestamp}")
+            logging.exception(f"Failed to parse timestamp {timestamp}", "timestamp-parsing-exception")
             self_monitoring.parsing_errors += 1
     return False
 

@@ -66,10 +66,12 @@ class SourceMatcher:
         self._source_value_extractor = _SOURCE_VALUE_EXTRACTOR_MAP.get(source.casefold(), None)
 
         if not self._source_value_extractor:
-            logging.warning(f"Unsupported source type: '{source}'")
+            logging.warning(f"Unsupported source type: '{source}'",
+                            "unsupported-source-type-warning")
             self.valid = False
         if not self._evaluator or not self._operand:
-            logging.warning(f"Failed to parse condition macro for expression: '{condition}'")
+            logging.warning(f"Failed to parse condition macro for expression: '{condition}'",
+                            "condition-macro-parsing-warning")
             self.valid = False
 
     def match(self, record: Dict, parsed_record: Dict) -> bool:
@@ -113,7 +115,8 @@ class MetadataEngine:
                     else:
                         self.rules.extend(_create_config_rules(config_json))
             except Exception:
-                logging.exception(f"Failed to load configuration file: '{config_file_path}'")
+                logging.exception(f"Failed to load configuration file: '{config_file_path}'",
+                                  "config-file-loading-exception")
 
     def apply(self, record: Dict, parsed_record: Dict):
         try:
@@ -125,7 +128,7 @@ class MetadataEngine:
             if self.default_rule:
                 _apply_rule(self.default_rule, record, parsed_record)
         except Exception:
-            logging.exception("Encountered exception when running Rule Engine")
+            logging.exception("Encountered exception when running Rule Engine", "rule-engine-run-exception")
 
 
 def _check_if_rule_applies(rule: ConfigRule, record: Dict, parsed_record: Dict):
@@ -139,7 +142,8 @@ def _apply_rule(rule, record, parsed_record):
             if value:
                 parsed_record[attribute.key] = value
         except Exception:
-            logging.exception(f"Encountered exception when evaluating attribute {attribute} of rule for {rule.entity_type_name}")
+            logging.exception(f"Encountered exception when evaluating attribute {attribute} of rule for {rule.entity_type_name}",
+                              "rule-attribute-evaluation-exception")
 
 
 def _create_sources(sources_json: List[Dict]) -> List[SourceMatcher]:
@@ -156,7 +160,8 @@ def _create_sources(sources_json: List[Dict]) -> List[SourceMatcher]:
         if source_matcher and source_matcher.valid:
             result.append(source_matcher)
         else:
-            logging.warning(f"Encountered invalid rule source, parameters were: source= {source}, condition = {condition}")
+            logging.warning(f"Encountered invalid rule source, parameters were: source= {source}, condition = {condition}",
+                            "invalid-rule-source-warning")
             return []
 
     return result
@@ -172,7 +177,8 @@ def _create_attributes(attributes_json: List[Dict]) -> List[Attribute]:
         if key and pattern:
             result.append(Attribute(key, pattern))
         else:
-            logging.warning(f"Encountered invalid rule attribute with missing parameter, parameters were: key = {key}, pattern = {pattern}")
+            logging.warning(f"Encountered invalid rule attribute with missing parameter, parameters were: key = {key}, pattern = {pattern}",
+                            "attribute-missing-parameter-warning")
 
     return result
 
@@ -180,11 +186,13 @@ def _create_attributes(attributes_json: List[Dict]) -> List[Attribute]:
 def _create_config_rule(entity_name: str, rule_json: Dict) -> Optional[ConfigRule]:
     sources_json = rule_json.get("sources", [])
     if entity_name != "default" and not sources_json:
-        logging.warning(f"Encountered invalid rule with missing sources for config entry named {entity_name}")
+        logging.warning(f"Encountered invalid rule with missing sources for config entry named {entity_name}",
+                        "rule-sources-missing-warning")
         return None
     sources = _create_sources(sources_json)
     if entity_name != "default" and not sources:
-        logging.warning(f"Encountered invalid rule with invalid sources for config entry named {entity_name}: {sources_json}")
+        logging.warning(f"Encountered invalid rule with invalid sources for config entry named {entity_name}: {sources_json}",
+                        "invalid-rule-invalid-sources-warning")
         return None
     attributes = _create_attributes(rule_json.get("attributes", []))
     return ConfigRule(entity_type_name=entity_name, source_matchers=sources, attributes=attributes)
