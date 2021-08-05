@@ -1,0 +1,74 @@
+{
+  "name": "cloud:azure:dbforpostgresql",
+  "displayName": "Azure DB for PostgreSQL",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('PostgreSQLLogs')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$in('MICROSOFT.DBFORPOSTGRESQL/SERVERS', 'MICROSOFT.DBFORPOSTGRESQL/SERVERSV2', 'MICROSOFT.DBFORPOSTGRESQL/FLEXIBLESERVERS')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "db.system",
+          "pattern": "'postgresql'"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "severity",
+          "pattern": "if(properties.errorLevel != null && properties.errorLevel == 'ERROR', &'Error', &if(properties.errorLevel != null && properties.errorLevel == `NOTICE`, &'Notice', &'Informational', @), @)"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$in('QueryStoreRuntimeStatistics', 'QueryStoreWaitStatistics')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$in('MICROSOFT.DBFORPOSTGRESQL/SERVERS', 'MICROSOFT.DBFORPOSTGRESQL/SERVERSV2', 'MICROSOFT.DBFORPOSTGRESQL/FLEXIBLESERVERS')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "db.system",
+          "pattern": "'postgresql'"
+        },
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        }
+      ]
+    }
+  ]
+}
