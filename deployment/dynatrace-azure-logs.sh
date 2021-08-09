@@ -20,7 +20,6 @@ readonly FUNCTION_REPOSITORY_RELEASE_URL=https://github.com/dynatrace-oss/dynatr
 readonly DYNATRACE_TARGET_URL_REGEX="^(https?:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/?)(\/e\/[a-z0-9-]{36}\/?)?$"
 readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[-a-z0-9]{1,36}[\/]{0,1}$"
 readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
-readonly RESOURCE_GROUP_REGEX="^[a-zA-Z0-9.()-]{1,90}$"
 readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*$"
 readonly EVENT_HUB_NAME_REGEX="^[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}$"
 readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
@@ -227,7 +226,7 @@ done
 if ! $RUN_INTERACTIVE_MODE
 then
     check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
-    check_arg --resource-group "$RESOURCE_GROUP" "$RESOURCE_GROUP_REGEX"
+    check_arg --resource-group "$RESOURCE_GROUP" ""
     check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
     check_arg --event-hub-name "$EVENT_HUB_NAME" "$EVENT_HUB_NAME_REGEX"
     if [ ! -z "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
@@ -396,7 +395,7 @@ else
     esac
 
     echo "Please provide the name of Azure resource group to deploy Dynatrace function into"
-    while ! [[ "${RESOURCE_GROUP}" =~ $RESOURCE_GROUP_REGEX ]]; do
+    while ! [[ "${RESOURCE_GROUP}" != "" ]]; do
         read -p "Enter Azure Resource Group name: " RESOURCE_GROUP
     done
     echo ""
