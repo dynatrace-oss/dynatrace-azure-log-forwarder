@@ -444,8 +444,7 @@ else
         ;;
     esac
 
-    if [[ "${APPLY_TAGS}" == "true" ]]
-    then
+    if [[ "${APPLY_TAGS}" == "true" ]]; then
       echo "Please provide comma separated tag:value pairs in format: tagName:tagValue,tagName2:tagValue2"
       while ! [[ "${TAGS}" =~ $TAGS_REGEX ]]; do
           read -p "Enter Azure tags: " TAGS
@@ -474,8 +473,7 @@ else
         ;;
     esac
 
-    if [[ "${APPLY_FILTER_CONFIG}" == "true" ]]
-    then
+    if [[ "${APPLY_FILTER_CONFIG}" == "true" ]]; then
       echo "Please provide filter config in key-value pair format for example: FILTER.GLOBAL.MIN_LOG_LEVEL=Warning"
       while ! [[ "${FILTER_CONFIG}" =~ $FILTER_CONFIG_REGEX ]]; do
           read -p "Enter filter config: " FILTER_CONFIG
@@ -503,8 +501,7 @@ echo "- deploying function infrastructure into Azure..."
 
 IFS=',' read -r -a TAG_PAIRS <<< "$TAGS"
 LOG_FORWARDER_TAGS="\"LogsForwarderDeployment\":\"${DEPLOYMENT_NAME}\""
-for TAG_PAIR in "${TAG_PAIRS[@]}"
-do
+for TAG_PAIR in "${TAG_PAIRS[@]}"; do
   IFS=':' read -r -a TAG_KEY_VALUE <<< "$TAG_PAIR"
   LOG_FORWARDER_TAGS="${LOG_FORWARDER_TAGS},\"${TAG_KEY_VALUE[0]}\":\"${TAG_KEY_VALUE[1]}\""
 done
