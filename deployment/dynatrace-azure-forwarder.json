@@ -65,6 +65,9 @@
             "type": "object",
             "defaultValue": {
                 "LogsForwarderDeployment": "[parameters('forwarderName')]"
+            },
+            "metadata": {
+                "description": "Azure tags"
             }
         },
         "filterConfig": {
