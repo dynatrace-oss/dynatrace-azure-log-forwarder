@@ -23,6 +23,7 @@ readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
 readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*$"
 readonly EVENT_HUB_NAME_REGEX="^[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}$"
 readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
+readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 
 print_help()
 {
@@ -48,6 +49,9 @@ arguments:
                             Connection string for Azure EventHub that is configured for receiving logs
     --event-hub-name EVENT_HUB_NAME
                             Name of Azure Event Hub configured for receiving logs
+    --tags TAGS
+                            Comma separated tag:value pairs added to Azure resources during azure-log-forwarder deployment
+                            e.g. \"tagName:value,tagName2:value2,tagName3:value3\"
     --require-valid-certificate
                             Enables checking SSL certificate of the target Active Gate. By default (if this option is not provided) certificates aren't validated.
     --enable-self-monitoring
@@ -63,7 +67,8 @@ print_all_parameters()
 {
     PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, EVENT_HUB_NAME=$EVENT_HUB_NAME, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL"
     if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]];then PARAMETERS+=", TARGET_PAAS_TOKEN=*****";fi
-    if [ ! -z "$FILTER_CONFIG" ];then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG";fi
+    if [ -n "$FILTER_CONFIG" ];then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG";fi
+    if [ -n "$TAGS" ];then PARAMETERS+=", TAGS=$TAGS";fi
     echo
     echo "Deployment script will use following parameters:"
     echo $PARAMETERS
@@ -216,6 +221,11 @@ while (( "$#" )); do
                 shift; shift
             ;;
 
+            "--tags")
+                TAGS=$2
+                shift; shift
+            ;;
+
             *)
             echo "Unknown param $1"
             print_help
@@ -229,7 +239,8 @@ then
     check_arg --resource-group "$RESOURCE_GROUP" ""
     check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
     check_arg --event-hub-name "$EVENT_HUB_NAME" "$EVENT_HUB_NAME_REGEX"
-    if [ ! -z "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
+    if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
+    if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
 
     if [ -z "$USE_EXISTING_ACTIVE_GATE" ]; then USE_EXISTING_ACTIVE_GATE=false; fi
     if [ -z "$TARGET_URL" ]
@@ -412,6 +423,35 @@ else
     done
     echo ""
 
+    echo "Do you want to apply Azure tags to new created resources?"
+    echo "Y - Yes"
+    echo "N - No"
+    while ! [[ "${APPLY_TAGS}" =~ ^(Y|N)$ ]]; do
+        read -p "Apply Azure tags?: " -i N -e APPLY_TAGS
+    done
+    echo ""
+
+    case ${APPLY_TAGS} in
+    Y)
+        APPLY_TAGS=true
+        ;;
+    N)
+        APPLY_TAGS=false
+        ;;
+    *)
+        echo "\e[91mERROR: \e[37mAPPLY_TAGS - unexpected option value"
+        exit 1
+        ;;
+    esac
+
+    if [[ "${APPLY_TAGS}" == "true" ]]; then
+      echo "Please provide comma separated tag:value pairs in format: tagName:tagValue,tagName2:tagValue2"
+      while ! [[ "${TAGS}" =~ $TAGS_REGEX ]]; do
+          read -p "Enter Azure tags: " TAGS
+      done
+      echo ""
+    fi
+
     echo "Do you want to apply Filter Config?"
     echo "Y - Yes"
     echo "N - No"
@@ -433,8 +473,7 @@ else
         ;;
     esac
 
-    if [[ "${APPLY_FILTER_CONFIG}" == "true" ]]
-    then
+    if [[ "${APPLY_FILTER_CONFIG}" == "true" ]]; then
       echo "Please provide filter config in key-value pair format for example: FILTER.GLOBAL.MIN_LOG_LEVEL=Warning"
       while ! [[ "${FILTER_CONFIG}" =~ $FILTER_CONFIG_REGEX ]]; do
           read -p "Enter filter config: " FILTER_CONFIG
@@ -460,6 +499,14 @@ fi
 
 echo "- deploying function infrastructure into Azure..."
 
+IFS=',' read -r -a TAG_PAIRS <<< "$TAGS"
+LOG_FORWARDER_TAGS="\"LogsForwarderDeployment\":\"${DEPLOYMENT_NAME}\""
+for TAG_PAIR in "${TAG_PAIRS[@]}"; do
+  IFS=':' read -r -a TAG_KEY_VALUE <<< "$TAG_PAIR"
+  LOG_FORWARDER_TAGS="${LOG_FORWARDER_TAGS},\"${TAG_KEY_VALUE[0]}\":\"${TAG_KEY_VALUE[1]}\""
+done
+LOG_FORWARDER_TAGS="{${LOG_FORWARDER_TAGS}}"
+
 az deployment group create \
 --resource-group ${RESOURCE_GROUP} \
 --template-uri ${REPOSITORY_RELEASE_URL}${FUNCTION_ARM} \
@@ -472,7 +519,8 @@ requireValidCertificate=${REQUIRE_VALID_CERTIFICATE} \
 selfMonitoringEnabled="${SFM_ENABLED}" \
 deployActiveGateContainer="${DEPLOY_ACTIVEGATE}" \
 targetPaasToken="${TARGET_PAAS_TOKEN}" \
-filterConfig="${FILTER_CONFIG}"
+filterConfig="${FILTER_CONFIG}" \
+resourceTags="${LOG_FORWARDER_TAGS}"
 
 if [[ $? != 0 ]]
 then
