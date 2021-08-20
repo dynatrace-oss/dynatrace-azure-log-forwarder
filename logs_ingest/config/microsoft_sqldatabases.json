@@ -1,0 +1,82 @@
+{
+  "name": "cloud:azure:sqldatabase",
+  "displayName": "Azure SQL Database",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$in('QueryStoreRuntimeStatistics', 'AutomaticTuning', 'QueryStoreWaitStatistics')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.SQL/SERVERS/DATABASES')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "db.system",
+          "pattern": "'mssql'"
+        },
+        {
+          "key": "db.name",
+          "pattern": "properties.DatabaseName"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$in('Errors', 'Timeouts', 'Deadlocks', 'Blocks')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.SQL/SERVERS/DATABASES')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "db.system",
+          "pattern": "'mssql'"
+        },
+        {
+          "key": "db.name",
+          "pattern": "properties.DatabaseName"
+        },
+        {
+          "key": "severity",
+          "pattern": "'ERROR'"
+        }
+      ]
+    }
+  ]
+}
