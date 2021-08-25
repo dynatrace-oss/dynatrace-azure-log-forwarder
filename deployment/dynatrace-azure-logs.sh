@@ -480,6 +480,8 @@ else
       done
       echo ""
     fi
+
+    REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}
 fi
 
 TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
