@@ -1,0 +1,114 @@
+{
+  "name": "cloud:azure:sqlmanagedinstance",
+  "displayName": "Azure SQL Managed Instance",
+  "rules": [
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$in('QueryStoreRuntimeStatistics', 'QueryStoreWaitStatistics', 'SQLInsights')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.SQL/MANAGEDINSTANCES/DATABASES')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "db.system",
+          "pattern": "'mssql'"
+        },
+        {
+          "key": "db.name",
+          "pattern": "properties.DatabaseName"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$eq('Errors')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.SQL/MANAGEDINSTANCES/DATABASES')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "db.system",
+          "pattern": "'mssql'"
+        },
+        {
+          "key": "db.name",
+          "pattern": "properties.DatabaseName"
+        },
+        {
+          "key": "severity",
+          "pattern": "'ERROR'"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$in('ResourceUsageStats', 'DevOpsOperationsAudit', 'SQLSecurityAuditEvents')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.SQL/MANAGEDINSTANCES')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "db.system",
+          "pattern": "'mssql'"
+        }
+      ]
+    }
+  ]
+}
