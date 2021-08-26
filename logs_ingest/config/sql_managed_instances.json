@@ -1,18 +1,18 @@
 {
-  "name": "cloud:azure:sqldatabase",
-  "displayName": "Azure SQL Database",
+  "name": "cloud:azure:sqlmanagedinstance",
+  "displayName": "Azure SQL Managed Instance",
   "rules": [
     {
       "sources": [
         {
           "sourceType": "logs",
           "source": "category",
-          "condition": "$in('QueryStoreRuntimeStatistics', 'AutomaticTuning', 'QueryStoreWaitStatistics', 'SQLInsights')"
+          "condition": "$in('QueryStoreRuntimeStatistics', 'QueryStoreWaitStatistics', 'SQLInsights')"
         },
         {
           "sourceType": "logs",
           "source": "resourceType",
-          "condition": "$eq('MICROSOFT.SQL/SERVERS/DATABASES')"
+          "condition": "$eq('MICROSOFT.SQL/MANAGEDINSTANCES/DATABASES')"
         }
       ],
       "attributes": [
@@ -43,12 +43,12 @@
         {
           "sourceType": "logs",
           "source": "category",
-          "condition": "$in('Errors', 'Timeouts', 'Deadlocks', 'Blocks')"
+          "condition": "$eq('Errors')"
         },
         {
           "sourceType": "logs",
           "source": "resourceType",
-          "condition": "$eq('MICROSOFT.SQL/SERVERS/DATABASES')"
+          "condition": "$eq('MICROSOFT.SQL/MANAGEDINSTANCES/DATABASES')"
         }
       ],
       "attributes": [
@@ -75,6 +75,38 @@
         {
           "key": "severity",
           "pattern": "'ERROR'"
+        }
+      ]
+    },
+    {
+      "sources": [
+        {
+          "sourceType": "logs",
+          "source": "category",
+          "condition": "$in('ResourceUsageStats', 'DevOpsOperationsAudit', 'SQLSecurityAuditEvents')"
+        },
+        {
+          "sourceType": "logs",
+          "source": "resourceType",
+          "condition": "$eq('MICROSOFT.SQL/MANAGEDINSTANCES')"
+        }
+      ],
+      "attributes": [
+        {
+          "key": "timestamp",
+          "pattern": "time"
+        },
+        {
+          "key": "log.source",
+          "pattern": "category"
+        },
+        {
+          "key": "content",
+          "pattern": "properties"
+        },
+        {
+          "key": "db.system",
+          "pattern": "'mssql'"
         }
       ]
     }

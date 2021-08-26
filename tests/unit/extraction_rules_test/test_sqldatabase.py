@@ -168,13 +168,22 @@ database_wait_statistics_log = {
   "properties": {
     "ElasticPoolName": "",
     "DatabaseName": "mssql-log-test",
-    "wait_type": "Queue waits",
-    "start_utc_date": "2021-08-12T07:26:59.4015726Z",
-    "end_utc_date": "2021-08-12T07:26:29.4015613Z",
-    "delta_max_wait_time_ms": 30000,
-    "delta_signal_wait_time_ms": 16,
-    "delta_wait_time_ms": 29887,
-    "delta_waiting_tasks_count": 1
+    "interval_start_time": 190829707048576,
+    "interval_end_time": 190829708128576,
+    "exec_type": 0,
+    "wait_category": "NETWORKIO",
+    "count_executions": 1.0,
+    "total_query_wait_time_ms": 27,
+    "max_query_wait_time_ms": 27,
+    "is_parameterizable": "false",
+    "statement_type": "x_estypSelect",
+    "query_id": 28,
+    "statement_key_hash": "1938133272",
+    "plan_id": 1,
+    "query_param_type": 1,
+    "query_hash": "0xE2D481769B70E309",
+    "query_plan_hash": "0xF98B361CAF20A317",
+    "statement_sql_handle": "0x0900D261C85875D4EF3C90BD18D02D6245380000000000000000000000000000000000000000000000000000"
   }
 }
 
