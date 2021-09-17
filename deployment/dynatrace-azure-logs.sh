@@ -36,9 +36,11 @@ arguments:
     --deployment-name DEPLOYMENT_NAME
                             e.g. \"dynatracelogs\", use lowercase only
     --use-existing-active-gate
-                            Decide if you want to use existing ActiveGate. By default (if this option is not provided) ActiveGate will be deployed as container in Azure Container Instances.
+                            Decide if you want to use existing ActiveGate (either Public AG or Environment AG). By default (if this option is not provided) ActiveGate will be deployed as container in Azure Container Instances.
     --target-url TARGET_URL
-                            With ActiveGate deployment option set URL to your Dynatrace SaaS, otherwise set ActiveGate endpoint
+                            With ActiveGate deployment option set URL to your Dynatrace SaaS, otherwise set ActiveGate endpoint:
+                              - for Public ActiveGate: https://<your_environment_ID>.live.dynatrace.com
+                              - for Environment ActiveGate: https://<active_gate_address>:9999/e/<environment_id> (e.g. https://22.111.98.222:9999/e/abc12345)
     --target-api-token TARGET_API_TOKEN
                             Dynatrace API token. Integration requires API v1 Log import Token permission.
     --target-paas-token TARGET_PAAS_TOKEN
@@ -250,11 +252,13 @@ then
      else
         if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]
         then
-            echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
+            echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with new ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
             exit 1
-        elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]
+        elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! ([[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]] || [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]])
         then
-            echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment without ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
+            echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with existing ActiveGate:"
+            echo -e "  - for Public ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
+            echo -e "  - for Environment ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
             exit 1
         fi
     fi
