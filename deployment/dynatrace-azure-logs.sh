@@ -27,7 +27,7 @@ readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --event-hub-name EVENT_HUB_NAME [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--use-existing-active-gate] [--require-valid-certificate] [--enable-self-monitoring] [--repository-release-url REPOSITORY_RELEASE_URL]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--use-existing-active-gate] [--require-valid-certificate] [--enable-self-monitoring] [--repository-release-url REPOSITORY_RELEASE_URL]
 
 arguments:
     -h, --help              Show this help message and exit
