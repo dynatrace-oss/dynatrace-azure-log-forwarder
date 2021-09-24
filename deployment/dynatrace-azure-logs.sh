@@ -87,6 +87,10 @@ check_arg() {
   fi
 }
 
+extract_event_hub_name() {
+  EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
+}
+
 check_activegate_state() {
   if ACTIVE_GATE_STATE=$(curl -ksS "${TARGET_URL}/rest/health" --connect-timeout 20); then
     if [[ "$ACTIVE_GATE_STATE" != "RUNNING" ]]
@@ -228,7 +232,7 @@ then
     check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
     check_arg --resource-group "$RESOURCE_GROUP" ""
     check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
-    EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
+    extract_event_hub_name
     if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
     if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
 
@@ -407,7 +411,7 @@ else
     while ! [[ "${EVENT_HUB_CONNECTION_STRING}" =~ $EVENT_HUB_CONNECTION_STRING_REGEX ]]; do
         read -p "Enter EventHub connection string: " EVENT_HUB_CONNECTION_STRING
     done
-    EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
+    extract_event_hub_name
     echo ""
 
     echo "Do you want to apply Azure tags to new created resources?"
