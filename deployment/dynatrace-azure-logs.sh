@@ -20,7 +20,7 @@ readonly FUNCTION_REPOSITORY_RELEASE_URL=https://github.com/dynatrace-oss/dynatr
 readonly DYNATRACE_TARGET_URL_REGEX="^(https?:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/?)(\/e\/[a-z0-9-]{36}\/?)?$"
 readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[-a-z0-9]{1,36}[\/]{0,1}$"
 readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
-readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*$"
+readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*EntityPath=.*$"
 readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 
@@ -84,15 +84,6 @@ check_arg() {
       echo "Not correct $CLI_ARGUMENT_NAME"
       exit 1
     fi
-  fi
-}
-
-extract_event_hub_name() {
-  if ! [[ $EVENT_HUB_CONNECTION_STRING == *";EntityPath="* ]]; then
-    echo -e "\e[91mERROR: \e[37mNot correct --event-hub-connection-string. Please use connection string for an Event Hub instance (not a namespace)."
-    exit 1
-  else
-    EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
   fi
 }
 
@@ -237,7 +228,7 @@ then
     check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
     check_arg --resource-group "$RESOURCE_GROUP" ""
     check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
-    extract_event_hub_name
+    EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
     if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
     if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
 
@@ -416,7 +407,7 @@ else
     while ! [[ "${EVENT_HUB_CONNECTION_STRING}" =~ $EVENT_HUB_CONNECTION_STRING_REGEX ]]; do
         read -p "Enter EventHub connection string: " EVENT_HUB_CONNECTION_STRING
     done
-    extract_event_hub_name
+    EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
     echo ""
 
     echo "Do you want to apply Azure tags to new created resources?"
