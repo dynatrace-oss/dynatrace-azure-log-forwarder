@@ -21,7 +21,6 @@ readonly DYNATRACE_TARGET_URL_REGEX="^(https?:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/?
 readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[-a-z0-9]{1,36}[\/]{0,1}$"
 readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
 readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*$"
-readonly EVENT_HUB_NAME_REGEX="^[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}$"
 readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 
@@ -49,8 +48,6 @@ arguments:
                             Name of the Azure Resource Group in which Function will be deployed
     --event-hub-connection-string EVENT_HUB_CONNECTION_STRING
                             Connection string for Azure EventHub that is configured for receiving logs
-    --event-hub-name EVENT_HUB_NAME
-                            Name of Azure Event Hub configured for receiving logs
     --tags TAGS
                             Comma separated tag:value pairs added to Azure resources during azure-log-forwarder deployment
                             e.g. \"tagName:value,tagName2:value2,tagName3:value3\"
@@ -65,33 +62,38 @@ arguments:
     "
 }
 
-print_all_parameters()
-{
-    PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, EVENT_HUB_NAME=$EVENT_HUB_NAME, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL"
-    if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]];then PARAMETERS+=", TARGET_PAAS_TOKEN=*****";fi
-    if [ -n "$FILTER_CONFIG" ];then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG";fi
-    if [ -n "$TAGS" ];then PARAMETERS+=", TAGS=$TAGS";fi
-    echo
-    echo "Deployment script will use following parameters:"
-    echo $PARAMETERS
+print_all_parameters() {
+  PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL"
+  if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]]; then PARAMETERS+=", TARGET_PAAS_TOKEN=*****"; fi
+  if [ -n "$FILTER_CONFIG" ]; then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG"; fi
+  if [ -n "$TAGS" ]; then PARAMETERS+=", TAGS=$TAGS"; fi
+  echo
+  echo "Deployment script will use following parameters:"
+  echo $PARAMETERS
 }
 
-check_arg()
-{
-    CLI_ARGUMENT_NAME=$1
-    ARGUMENT=$2
-    REGEX=$3
-    if [ -z "$ARGUMENT" ]
-    then
-        echo "No $CLI_ARGUMENT_NAME"
-        exit 1
-    else
-        if ! [[ "$ARGUMENT" =~ $REGEX ]]
-        then
-            echo "Not correct $CLI_ARGUMENT_NAME"
-            exit 1
-        fi
+check_arg() {
+  CLI_ARGUMENT_NAME=$1
+  ARGUMENT=$2
+  REGEX=$3
+  if [ -z "$ARGUMENT" ]; then
+    echo "No $CLI_ARGUMENT_NAME"
+    exit 1
+  else
+    if ! [[ "$ARGUMENT" =~ $REGEX ]]; then
+      echo "Not correct $CLI_ARGUMENT_NAME"
+      exit 1
     fi
+  fi
+}
+
+extract_event_hub_name() {
+  if ! [[ $EVENT_HUB_CONNECTION_STRING == *";EntityPath="* ]]; then
+    echo -e "\e[91mERROR: \e[37mNot correct --event-hub-connection-string. Please use connection string for an Event Hub instance (not a namespace)."
+    exit 1
+  else
+    EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
+  fi
 }
 
 check_activegate_state() {
@@ -198,11 +200,6 @@ while (( "$#" )); do
                 shift; shift
             ;;
 
-            "--event-hub-name")
-                EVENT_HUB_NAME=$2
-                shift; shift
-            ;;
-
             "--filter-config")
                 FILTER_CONFIG=$2
                 shift; shift
@@ -240,7 +237,7 @@ then
     check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
     check_arg --resource-group "$RESOURCE_GROUP" ""
     check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
-    check_arg --event-hub-name "$EVENT_HUB_NAME" "$EVENT_HUB_NAME_REGEX"
+    extract_event_hub_name
     if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
     if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
 
@@ -419,12 +416,7 @@ else
     while ! [[ "${EVENT_HUB_CONNECTION_STRING}" =~ $EVENT_HUB_CONNECTION_STRING_REGEX ]]; do
         read -p "Enter EventHub connection string: " EVENT_HUB_CONNECTION_STRING
     done
-    echo ""
-
-    echo "Please provide the Event Hub name"
-    while ! [[ "${EVENT_HUB_NAME}" =~ $EVENT_HUB_NAME_REGEX ]]; do
-        read -p "Enter EventHub name: " EVENT_HUB_NAME
-    done
+    extract_event_hub_name
     echo ""
 
     echo "Do you want to apply Azure tags to new created resources?"
