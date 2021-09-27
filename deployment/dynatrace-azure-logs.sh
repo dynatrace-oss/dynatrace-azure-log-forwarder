@@ -20,7 +20,7 @@ readonly FUNCTION_REPOSITORY_RELEASE_URL=https://github.com/dynatrace-oss/dynatr
 readonly DYNATRACE_TARGET_URL_REGEX="^(https?:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/?)(\/e\/[a-z0-9-]{36}\/?)?$"
 readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[-a-z0-9]{1,36}[\/]{0,1}$"
 readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
-readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*EntityPath=.*$"
+readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*EntityPath=[^[:space:]]+$"
 readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 
@@ -86,10 +86,6 @@ check_arg() {
       exit 1
     fi
   fi
-}
-
-extract_event_hub_name() {
-  EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
 }
 
 check_activegate_state() {
@@ -233,7 +229,6 @@ then
     check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
     check_arg --resource-group "$RESOURCE_GROUP" ""
     check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
-    extract_event_hub_name
     check_arg --use-existing-active-gate "$USE_EXISTING_ACTIVE_GATE" ""
     if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=false; fi
     if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
@@ -426,7 +421,6 @@ else
     while ! [[ "${EVENT_HUB_CONNECTION_STRING}" =~ $EVENT_HUB_CONNECTION_STRING_REGEX ]]; do
         read -p "Enter EventHub connection string: " EVENT_HUB_CONNECTION_STRING
     done
-    extract_event_hub_name
     echo ""
 
     echo "Do you want to apply Azure tags to new created resources?"
@@ -504,6 +498,8 @@ if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
 then
   check_dynatrace_log_ingest_url
 fi
+
+EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
 
 echo "- deploying function infrastructure into Azure..."
 
