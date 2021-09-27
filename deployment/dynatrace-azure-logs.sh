@@ -63,6 +63,17 @@ arguments:
     "
 }
 
+ensure_param_value_given() {
+  # Checks if a value ($2) was passed for a parameter ($1). The two OR'ed conditions catch the following mistakes:
+  # 1. The parameter is the last one and has no value
+  # 2. The parameter is between other parameters and (as it has no value) the name of the next parameter is taken as its value
+  if [ -z $2 ] || [[ $2 == "--"* ]]; then
+    echo "Missing value for parameter $1";
+    print_help;
+    exit 1;
+  fi
+}
+
 print_all_parameters() {
   PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL"
   if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]]; then PARAMETERS+=", TARGET_PAAS_TOKEN=*****"; fi
@@ -158,61 +169,73 @@ while (( "$#" )); do
             ;;
 
             "--deployment-name")
+                ensure_param_value_given $1 $2
                 DEPLOYMENT_NAME=$2
                 shift; shift
             ;;
 
             "--use-existing-active-gate")
+                ensure_param_value_given $1 $2
                 USE_EXISTING_ACTIVE_GATE=$2
                 shift; shift
             ;;
 
             "--target-url")
+                ensure_param_value_given $1 $2
                 TARGET_URL=$2
                 shift; shift
             ;;
 
             "--target-api-token")
+                ensure_param_value_given $1 $2
                 TARGET_API_TOKEN=$2
                 shift; shift
             ;;
 
             "--target-paas-token")
+                ensure_param_value_given $1 $2
                 TARGET_PAAS_TOKEN=$2
                 shift; shift
             ;;
 
             "--resource-group")
+                ensure_param_value_given $1 $2
                 RESOURCE_GROUP=$2
                 shift; shift
             ;;
 
             "--event-hub-connection-string")
+                ensure_param_value_given $1 $2
                 EVENT_HUB_CONNECTION_STRING=$2
                 shift; shift
             ;;
 
             "--filter-config")
+                ensure_param_value_given $1 $2
                 FILTER_CONFIG=$2
                 shift; shift
             ;;
 
             "--require-valid-certificate")
+                ensure_param_value_given $1 $2
                 REQUIRE_VALID_CERTIFICATE=$2
                 shift; shift
             ;;
 
             "--enable-self-monitoring")
+                ensure_param_value_given $1 $2
                 SFM_ENABLED=$2
                 shift; shift
             ;;
 
             "--repository-release-url")
+                ensure_param_value_given $1 $2
                 REPOSITORY_RELEASE_URL=$2
                 shift; shift
             ;;
 
             "--tags")
+                ensure_param_value_given $1 $2
                 TAGS=$2
                 shift; shift
             ;;
