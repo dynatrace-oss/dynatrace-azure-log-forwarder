@@ -36,10 +36,10 @@ arguments:
                             e.g. \"dynatracelogs\", use lowercase only
     --use-existing-active-gate {true|false}
                           If you choose new ActiveGate deployment, put 'false'. In such case, ActiveGate will be deployed as container in Azure Container Instances.
-                          If you choose to use existing ActiveGate (either Public AG or Environment AG), put 'true'.
+                          If you choose to use direct ingest through the Cluster API or existing ActiveGate, put 'true'.
     --target-url TARGET_URL
                             With ActiveGate deployment option set URL to your Dynatrace SaaS, otherwise set ActiveGate endpoint:
-                              - for Public ActiveGate: https://<your_environment_ID>.live.dynatrace.com
+                              - for direct ingest through the Cluster API: https://<your_environment_ID>.live.dynatrace.com
                               - for Environment ActiveGate: https://<active_gate_address>:9999/e/<environment_id> (e.g. https://22.111.98.222:9999/e/abc12345)
     --target-api-token TARGET_API_TOKEN
                             Dynatrace API token. Integration requires API v1 Log import Token permission.
@@ -118,7 +118,7 @@ check_api_token() {
       exit 1
     fi
   else
-      echo -e "\e[93mWARNING: \e[37mFailed to connect to Dynatrace/ActiveGate endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
+      echo -e "\e[93mWARNING: \e[37mFailed to connect to endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
   fi
 }
 
@@ -144,7 +144,7 @@ check_dynatrace_log_ingest_url() {
       exit 1
     fi
   else
-    echo -e "\e[93mWARNING: \e[37mFailed to connect with provided log ingest url ($TARGET_URL) to send a test log. It can be ignored if ActiveGate does not allow public access."
+    echo -e "\e[93mWARNING: \e[37mFailed to connect to endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
   fi
 }
 
@@ -266,7 +266,7 @@ then
         elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! ([[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]] || [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]])
         then
             echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with existing ActiveGate:"
-            echo -e "  - for Public ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
+            echo -e "  - for direct ingest through the Cluster API: https://<your_environment_ID>.live.dynatrace.com"
             echo -e "  - for Environment ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
             exit 1
         fi
@@ -560,7 +560,7 @@ echo "- removing function package [$FUNCTION_ZIP_PACKAGE]"
 rm $FUNCTION_ZIP_PACKAGE
 
 if [[ "${DEPLOY_ACTIVEGATE}" == "true" ]]; then
-  # To build Log viewer link we need Dynatrace url which is set only when deployment with new ActiveGate is chosen.
+  # To build Log viewer link we need Dynatrace url (available only in deployment with new ActiveGate or direct ingest through the Cluster API)
   # For deployment with existing ActiveGate (ActiveGate url is used as TARGET_URL) we are not able to build the link - LOG_VIEWER is empty then.
   LOG_VIEWER="Log Viewer: ${TARGET_URL}/ui/log-monitoring?query=cloud.provider%3D%22azure%22"
 fi
