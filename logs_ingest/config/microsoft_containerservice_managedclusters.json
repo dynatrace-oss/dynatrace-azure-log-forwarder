@@ -30,7 +30,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties.log"
+          "pattern": "@"
         }
       ]
     },
@@ -62,7 +62,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties.log"
+          "pattern": "@"
         }
       ]
     }

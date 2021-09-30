@@ -26,7 +26,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties"
+          "pattern": "@"
         },
         {
           "key": "db.system",
@@ -62,7 +62,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties"
+          "pattern": "@"
         },
         {
           "key": "db.system",

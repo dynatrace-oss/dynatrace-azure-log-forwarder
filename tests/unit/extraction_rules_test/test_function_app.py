@@ -11,7 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
+import json
 from datetime import datetime
 
 from logs_ingest.main import parse_record
@@ -45,7 +45,7 @@ function_app_logs_expected_output = {
     "timestamp": "2021-02-04T07: 45: 44.5864815Z",
     "log.source": "FunctionAppLogs",
     "severity": "Informational",
-    "content": "Executed \"Functions.logs_ingest\" (Succeeded, Id=26849b40-bba5-41ee-9521-fc3205a39b5e, Duration=50ms)",
+    "content": json.dumps(function_app_logs_record),
     "faas.name": "logs_ingest",
     "faas.instance": "d7e093b6-a758-43c8-b127-1349c016539e",
     "faas.version": "3.0.15277.0",
@@ -74,6 +74,7 @@ not_known_category_expected_output = {
     "timestamp": "2021-02-04T07: 45: 44.5864815Z",
     "log.source": "NotKnownCategory",
     "severity": "Informational",
+    "content": json.dumps(not_known_category_record),
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION",
     SUBSCRIPTION_ATTRIBUTE: "69B51384-146C-4685-9DAB-5AE01877D7B8",
     RESOURCE_GROUP_ATTRIBUTE: "LOGS-INGEST-FUNCTION",

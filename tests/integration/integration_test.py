@@ -39,7 +39,7 @@ EVENTS_NUMBER = 5
 
 MonkeyPatchFixture = NewType("MonkeyPatchFixture", Any)
 system_variables = {
-    'DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE': str(FILE_SIZE),
+    'DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE': str(FILE_SIZE*2),
     'DYNATRACE_URL': 'http://localhost:' + str(MOCKED_API_PORT),
     'DYNATRACE_ACCESS_KEY': ACCESS_KEY,
     'REQUIRE_VALID_CERTIFICATE': 'False'
@@ -96,7 +96,7 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
     # given
     for variable_name in system_variables:
         monkeypatch.setenv(variable_name, system_variables[variable_name])
-    monkeypatch.setattr(main, 'content_length_limit', 500)
+    monkeypatch.setattr(main, 'content_length_limit', 1000)
 
     # when
     main.process_logs(init_events, self_monitoring)
@@ -112,7 +112,7 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
 
     assert self_monitoring.too_old_records == 5
     assert self_monitoring.parsing_errors == 4
-    assert self_monitoring.too_long_content_size == [599, 599, 599, 599]
+    assert self_monitoring.too_long_content_size == [1317, 1317, 1317, 1317]
     assert Counter(self_monitoring.dynatrace_connectivities) == {DynatraceConnectivity.Ok: 3}
     assert self_monitoring.processing_time > 0
     assert self_monitoring.sending_time > 0
@@ -125,7 +125,7 @@ def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_m
     # given
     for variable_name in system_variables:
         monkeypatch.setenv(variable_name, system_variables[variable_name])
-    monkeypatch.setattr(main, 'content_length_limit', 500)
+    monkeypatch.setattr(main, 'content_length_limit', 1000)
 
     # when
     main.process_logs(init_events, self_monitoring)
@@ -141,7 +141,7 @@ def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_m
 
     assert self_monitoring.too_old_records == 5
     assert self_monitoring.parsing_errors == 4
-    assert self_monitoring.too_long_content_size == [599, 599, 599, 599]
+    assert self_monitoring.too_long_content_size == [1317, 1317, 1317, 1317]
     assert Counter(self_monitoring.dynatrace_connectivities) == {DynatraceConnectivity.ExpiredToken: 3}
     assert self_monitoring.processing_time > 0
     assert self_monitoring.sending_time > 0
@@ -154,7 +154,7 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
     # given
     for variable_name in system_variables:
         monkeypatch.setenv(variable_name, system_variables[variable_name])
-    monkeypatch.setattr(main, 'content_length_limit', 500)
+    monkeypatch.setattr(main, 'content_length_limit', 1000)
 
     # when
     with pytest.raises(HTTPError):
@@ -171,7 +171,7 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
 
     assert self_monitoring.too_old_records == 5
     assert self_monitoring.parsing_errors == 4
-    assert self_monitoring.too_long_content_size == [599, 599, 599, 599]
+    assert self_monitoring.too_long_content_size == [1317, 1317, 1317, 1317]
     assert Counter(self_monitoring.dynatrace_connectivities) == {DynatraceConnectivity.Other:1}
     assert self_monitoring.processing_time > 0
     assert self_monitoring.sending_time > 0

@@ -30,7 +30,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties.message"
+          "pattern": "@"
         },
         {
           "key": "faas.name",

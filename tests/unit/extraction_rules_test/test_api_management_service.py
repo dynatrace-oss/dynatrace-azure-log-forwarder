@@ -58,7 +58,7 @@ expected_output = {
     "timestamp": "2021-01-29T09:25:05.3511301Z",
     "log.source": "GatewayLogs",
     "severity": "Informational",
-    "content": json.dumps(record["properties"]),
+    "content": json.dumps(record),
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/TESTMS/PROVIDERS/MICROSOFT.APIMANAGEMENT/SERVICE/WEATHERAPP-API-MGMT",
     SUBSCRIPTION_ATTRIBUTE: "69B51384-146C-4685-9DAB-5AE01877D7B8",
     RESOURCE_GROUP_ATTRIBUTE: "TESTMS",

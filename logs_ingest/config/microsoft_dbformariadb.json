@@ -42,7 +42,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties"
+          "pattern": "@"
         },
         {
           "key": "severity",
@@ -90,7 +90,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties"
+          "pattern": "@"
         },
         {
           "key": "severity",

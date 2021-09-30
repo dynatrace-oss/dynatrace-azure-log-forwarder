@@ -30,7 +30,7 @@
         },
         {
           "key": "content",
-          "pattern": "properties"
+          "pattern": "@"
         },
         {
           "key": "http.client_ip",

@@ -11,7 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
+import json
 from datetime import datetime
 
 from logs_ingest.main import parse_record
@@ -41,7 +41,7 @@ kube_audit_expected_output = {
     'timestamp': '2021-02-02T15:00:00.0000000Z',
     'log.source': 'kube-audit',
     'k8s.pod.name': 'kube-apiserver-6b497d8d5f-rb9qn',
-    'content': '{\"kind\":\"Event\",\"apiVersion\":\"audit.k8s.io/v1\",\"level\":\"RequestResponse\",\"auditID\":\"7df19974-f894-454b-a1f2-137258598c45\",\"stage\":\"ResponseComplete\",\"requestURI\":\"/apis/authorization.k8s.io/v1beta1/subjectaccessreviews\",\"verb\":\"create\",\"user\":{\"username\":\"system:serviceaccount:kube-system:metrics-server\",\"uid\":\"82956dc9-f65d-11e9-b4d7-da0e02e04c9e\",\"groups\":[\"system:serviceaccounts\",\"system:serviceaccounts:kube-system\",\"system:authenticated\"]},\"sourceIPs\":[\"52.188.216.128\"],\"userAgent\":\"metrics-server/v0.0.0 (linux/amd64) kubernetes/$Format\",\"objectRef\":{\"resource\":\"subjectaccessreviews\",\"apiGroup\":\"authorization.k8s.io\",\"apiVersion\":\"v1beta1\"},\"responseStatus\":{\"metadata\":{},\"code\":201},\"requestObject\":{\"kind\":\"SubjectAccessReview\",\"apiVersion\":\"authorization.k8s.io/v1beta1\",\"metadata\":{\"creationTimestamp\":null},\"spec\":{\"nonResourceAttributes\":{\"path\":\"/apis/metrics.k8s.io/v1beta1\",\"verb\":\"get\"},\"user\":\"system:serviceaccount:kube-system:generic-garbage-collector\",\"group\":[\"system:serviceaccounts\",\"system:serviceaccounts:kube-system\",\"system:authenticated\"]},\"status\":{\"allowed\":false}},\"responseObject\":{\"kind\":\"SubjectAccessReview\",\"apiVersion\":\"authorization.k8s.io/v1beta1\",\"metadata\":{\"creationTimestamp\":null,\"managedFields\":[{\"manager\":\"metrics-server\",\"operation\":\"Update\",\"apiVersion\":\"authorization.k8s.io/v1beta1\",\"time\":\"2021-02-02T15:00:00Z\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:spec\":{\"f:group\":{},\"f:nonResourceAttributes\":{\".\":{},\"f:path\":{},\"f:verb\":{}},\"f:user\":{}}}}]},\"spec\":{\"nonResourceAttributes\":{\"path\":\"/apis/metrics.k8s.io/v1beta1\",\"verb\":\"get\"},\"user\":\"system:serviceaccount:kube-system:generic-garbage-collector\",\"group\":[\"system:serviceaccounts\",\"system:serviceaccounts:kube-system\",\"system:authenticated\"]},\"status\":{\"allowed\":true,\"reason\":\"RBAC: allowed by ClusterRoleBinding \\\"system:discovery\\\" of ClusterRole \\\"system:discovery\\\" to Group \\\"system:authenticated\\\"\"}},\"requestReceivedTimestamp\":\"2021-02-02T15:00:00.703531Z\",\"stageTimestamp\":\"2021-02-02T15:00:00.704551Z\",\"annotations\":{\"authentication.k8s.io/legacy-token\":\"system:serviceaccount:kube-system:metrics-server\",\"authorization.k8s.io/decision\":\"allow\",\"authorization.k8s.io/reason\":\"RBAC: allowed by ClusterRoleBinding \\\"metrics-server:system:auth-delegator\\\" of ClusterRole \\\"system:auth-delegator\\\" to ServiceAccount \\\"metrics-server/kube-system\\\"\",\"k8s.io/deprecated\":\"true\",\"k8s.io/removed-release\":\"1.22\"}}\n',
+    'content': json.dumps(kube_audit_record),
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/97E9B03F-04D6-4B69-B307-35F483F7ED81/RESOURCEGROUPS/DEMO-BACKEND-RG/PROVIDERS/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/DEMO-AKS",
     SUBSCRIPTION_ATTRIBUTE: "97E9B03F-04D6-4B69-B307-35F483F7ED81",
     RESOURCE_GROUP_ATTRIBUTE: "DEMO-BACKEND-RG",
@@ -76,7 +76,7 @@ kube_controller_manager_expected_output = {
     "timestamp": "2021-02-02T15:03:28.0000000Z",
     "log.source": "kube-controller-manager",
     "k8s.pod.name": "kube-controller-manager-84595d6f94-wcj7p",
-    "content": "I0202 15:03:28.853066       1 event.go:291] \"Event occurred\" object=\"default/grafana\" kind=\"Service\" apiVersion=\"v1\" type=\"Normal\" reason=\"EnsuringLoadBalancer\" message=\"Ensuring load balancer\"\n",
+    "content": json.dumps(kube_controller_manager_record),
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/97E9B03F-04D6-4B69-B307-35F483F7ED81/RESOURCEGROUPS/DEMO-BACKEND-RG/PROVIDERS/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/DEMO-AKS",
     SUBSCRIPTION_ATTRIBUTE: "97E9B03F-04D6-4B69-B307-35F483F7ED81",
     RESOURCE_GROUP_ATTRIBUTE: "DEMO-BACKEND-RG",
