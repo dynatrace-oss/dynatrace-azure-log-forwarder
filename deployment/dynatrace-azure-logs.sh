@@ -32,7 +32,6 @@ usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TA
 
 arguments:
     -h, --help              Show this help message and exit
-    -i, --interactive       Interactive mode
     --deployment-name DEPLOYMENT_NAME
                             e.g. \"dynatracelogs\", use lowercase only
     --use-existing-active-gate
@@ -150,17 +149,11 @@ check_dynatrace_log_ingest_url() {
   fi
 }
 
-RUN_INTERACTIVE_MODE=false
 while (( "$#" )); do
     case "$1" in
             "-h" | "--help")
                 print_help
                 exit 0
-            ;;
-
-            "-i" | "--interactive")
-                RUN_INTERACTIVE_MODE=true
-                shift
             ;;
 
             "--deployment-name")
@@ -235,258 +228,39 @@ while (( "$#" )); do
     esac
 done
 
-if ! $RUN_INTERACTIVE_MODE
+check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
+check_arg --resource-group "$RESOURCE_GROUP" ""
+check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
+check_arg --event-hub-name "$EVENT_HUB_NAME" "$EVENT_HUB_NAME_REGEX"
+if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
+if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
+
+if [ -z "$USE_EXISTING_ACTIVE_GATE" ]; then USE_EXISTING_ACTIVE_GATE=false; fi
+if [ -z "$TARGET_URL" ]
 then
-    check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
-    check_arg --resource-group "$RESOURCE_GROUP" ""
-    check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
-    check_arg --event-hub-name "$EVENT_HUB_NAME" "$EVENT_HUB_NAME_REGEX"
-    if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
-    if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
-
-    if [ -z "$USE_EXISTING_ACTIVE_GATE" ]; then USE_EXISTING_ACTIVE_GATE=false; fi
-    if [ -z "$TARGET_URL" ]
-    then
-        echo "No --target-url"
-        exit 1
-     else
-        if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]
-        then
-            echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with new ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
-            exit 1
-        elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! ([[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]] || [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]])
-        then
-            echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with existing ActiveGate:"
-            echo -e "  - for Public ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
-            echo -e "  - for Environment ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
-            exit 1
-        fi
-    fi
-
-    if [ -z "$TARGET_API_TOKEN" ]; then echo "No --target-api-token"; exit 1; fi
-    if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then echo "No --target-paas-token"; exit 1; fi
-    if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=false; fi
-    if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
-    if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
-    if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}; fi
-    print_all_parameters
-
-else
-    echo -e "\033[1;34mDynatrace function for Azure logs ingest"
-    echo -e "\033[0;37m"
-
-    if ! command -v az &> /dev/null
-    then
-
-        echo -e "\e[91mERROR: \e[37mAzure CLI is required to install Dynatrace function. It should be already installed in Cloud Shell."
-        echo -e "If you are running this script from other hosts go to following link in your browser and install latest version of Azure CLI:"
-        echo -e
-        echo -e "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
-        echo -e
-        echo
-        exit
-    fi
-
-
-    echo "Function will be deployed into active subscription:"
-    az account list -o table | grep 'Enabled  True'
-    if [[ $? != 0 ]]
-    then
-        echo "\e[91mERROR: \e[37mExiting, please run azure cli login, set active subscription by running \"az account set --subscription <id>\" and rerun installation"
-        exit 1
-    fi
-
-    echo ""
-    while ! [[ "${CONTINUE}" =~ ^(Y|N)$ ]]; do
-        read -p "Continue? Y/N: " -i Y -e CONTINUE
-    done
-    echo ""
-
-    if [[ "${CONTINUE}" == "N" ]]
-    then
-        echo "\e[91mERROR: \e[37mExiting, please set active subscription running \"az account set --subscription <id>\" and rerun installation"
-        exit 1
-    fi
-
-
-    echo "Please provide the name for this Dynatrace Logs Forwarder deployment, for example: dynatracelogs"
-    while ! [[ "${DEPLOYMENT_NAME}" =~ $DEPLOYMENT_NAME_REGEX ]]; do
-        read -p "Enter name (only lowercase letters and numbers, 3 to 20 characters): " DEPLOYMENT_NAME
-    done
-    echo ""
-
-    echo "Do you want to have Dynatrace ActiveGate added as part of this deployment?"
-    echo "ActiveGate will be deployed as container in Azure Container Instances"
-    echo "Y - Yes"
-    echo "N - No, select this option if you already have Dynatrace ActiveGate installed and configured for logs ingest"
-    while ! [[ "${DEPLOY_ACTIVEGATE}" =~ ^(Y|N)$ ]]; do
-        read -p "Deploy Dynatrace ActiveGate?: " -i Y -e DEPLOY_ACTIVEGATE
-    done
-    echo ""
-
-    case ${DEPLOY_ACTIVEGATE} in
-    Y)
-        DEPLOY_ACTIVEGATE=true
-        ;;
-    N)
-        DEPLOY_ACTIVEGATE=false
-        ;;
-    *)
-        echo "\e[91mERROR: \e[37mDEPLOY_ACTIVEGATE - unexpected option value"
-        exit 1
-        ;;
-    esac
-
-    if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
-    then
-        echo "Please provide the endpoint used to ingest logs to Dynatrace, for example: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
-        while ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]; do
-            read -p "Enter Dynatrace ActiveGate API URI: " TARGET_URL
-        done
-        echo ""
-
-        echo "Please specify whether SSL certificate of endpoint used to ingest logs to Dynatrace should be verified"
-        echo "Y - Yes"
-        echo "N - No, select this option for ActiveGates with self-signed SSL certificate"
-        while ! [[ "${REQUIRE_VALID_CERTIFICATE}" =~ ^(Y|N)$ ]]; do
-            read -p "Verify SSL certificate?: " -i N -e REQUIRE_VALID_CERTIFICATE
-        done
-        echo ""
+    echo "No --target-url"
+    exit 1
     else
-        REQUIRE_VALID_CERTIFICATE="N"
-
-        echo "Please provide the dynatrace environment endpoint, for example: https://<your_environment_ID>.live.dynatrace.com"
-        while ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]; do
-            read -p "Enter Dynatrace environment URI: " TARGET_URL
-        done
-        echo ""
-
-        echo "Please log in to Dynatrace, and generate PaaS token (Settings->Integration->Platform as a Service)"
-        while ! [[ "${TARGET_PAAS_TOKEN}" != "" ]]; do
-            read -p "Enter Dynatrace PaaS token: " TARGET_PAAS_TOKEN
-        done
-        echo ""
+    if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]
+    then
+        echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with new ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
+        exit 1
+    elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! ([[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]] || [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]])
+    then
+        echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with existing ActiveGate:"
+        echo -e "  - for Public ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
+        echo -e "  - for Environment ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
+        exit 1
     fi
-
-
-    case $REQUIRE_VALID_CERTIFICATE in
-    Y)
-        REQUIRE_VALID_CERTIFICATE=true
-        ;;
-    N)
-        REQUIRE_VALID_CERTIFICATE=false
-        ;;
-    *)
-        echo "\e[91mERROR: \e[37mREQUIRE_VALID_CERTIFICATE - unexpected option value"
-        exit 1
-        ;;
-    esac
-
-    echo "Please log in to Dynatrace, and generate API token (Settings->Integration->Dynatrace API). The token requires grant of 'API v1 Log import' scope"
-    while ! [[ "${TARGET_API_TOKEN}" != "" ]]; do
-        read -p "Enter Dynatrace API token: " TARGET_API_TOKEN
-    done
-    echo ""
-
-    echo "Do you want to have Dynatrace function self monitoring metrics reported?"
-    echo "Y - Yes"
-    echo "N - No"
-    while ! [[ "${SFM_ENABLED}" =~ ^(Y|N)$ ]]; do
-        read -p "Enable self-monitoring metrics?: " -i N -e SFM_ENABLED
-    done
-    echo ""
-
-    case $SFM_ENABLED in
-    Y)
-        SFM_ENABLED=true
-        ;;
-    N)
-        SFM_ENABLED=false
-        ;;
-    *)
-        echo "\e[91mERROR: \e[37mSFM_ENABLED - unexpected option value"
-        exit 1
-        ;;
-    esac
-
-    echo "Please provide the name of Azure resource group to deploy Dynatrace function into"
-    while ! [[ "${RESOURCE_GROUP}" != "" ]]; do
-        read -p "Enter Azure Resource Group name: " RESOURCE_GROUP
-    done
-    echo ""
-
-    echo "Please provide the EventHub connection string to read log events from"
-    while ! [[ "${EVENT_HUB_CONNECTION_STRING}" =~ $EVENT_HUB_CONNECTION_STRING_REGEX ]]; do
-        read -p "Enter EventHub connection string: " EVENT_HUB_CONNECTION_STRING
-    done
-    echo ""
-
-    echo "Please provide the Event Hub name"
-    while ! [[ "${EVENT_HUB_NAME}" =~ $EVENT_HUB_NAME_REGEX ]]; do
-        read -p "Enter EventHub name: " EVENT_HUB_NAME
-    done
-    echo ""
-
-    echo "Do you want to apply Azure tags to new created resources?"
-    echo "Y - Yes"
-    echo "N - No"
-    while ! [[ "${APPLY_TAGS}" =~ ^(Y|N)$ ]]; do
-        read -p "Apply Azure tags?: " -i N -e APPLY_TAGS
-    done
-    echo ""
-
-    case ${APPLY_TAGS} in
-    Y)
-        APPLY_TAGS=true
-        ;;
-    N)
-        APPLY_TAGS=false
-        ;;
-    *)
-        echo "\e[91mERROR: \e[37mAPPLY_TAGS - unexpected option value"
-        exit 1
-        ;;
-    esac
-
-    if [[ "${APPLY_TAGS}" == "true" ]]; then
-      echo "Please provide comma separated tag:value pairs in format: tagName:tagValue,tagName2:tagValue2"
-      while ! [[ "${TAGS}" =~ $TAGS_REGEX ]]; do
-          read -p "Enter Azure tags: " TAGS
-      done
-      echo ""
-    fi
-
-    echo "Do you want to apply Filter Config?"
-    echo "Y - Yes"
-    echo "N - No"
-    while ! [[ "${APPLY_FILTER_CONFIG}" =~ ^(Y|N)$ ]]; do
-        read -p "Apply Filter Config?: " -i N -e APPLY_FILTER_CONFIG
-    done
-    echo ""
-
-    case ${APPLY_FILTER_CONFIG} in
-    Y)
-        APPLY_FILTER_CONFIG=true
-        ;;
-    N)
-        APPLY_FILTER_CONFIG=false
-        ;;
-    *)
-        echo "\e[91mERROR: \e[37mAPPLY_FILTER_CONFIG - unexpected option value"
-        exit 1
-        ;;
-    esac
-
-    if [[ "${APPLY_FILTER_CONFIG}" == "true" ]]; then
-      echo "Please provide filter config in key-value pair format for example: FILTER.GLOBAL.MIN_LOG_LEVEL=Warning"
-      while ! [[ "${FILTER_CONFIG}" =~ $FILTER_CONFIG_REGEX ]]; do
-          read -p "Enter filter config: " FILTER_CONFIG
-      done
-      echo ""
-    fi
-
-    REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}
 fi
+
+if [ -z "$TARGET_API_TOKEN" ]; then echo "No --target-api-token"; exit 1; fi
+if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then echo "No --target-paas-token"; exit 1; fi
+if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=false; fi
+if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
+if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
+if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}; fi
+print_all_parameters
 
 TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
 
