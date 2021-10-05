@@ -35,11 +35,9 @@ arguments:
     --deployment-name DEPLOYMENT_NAME
                             e.g. \"dynatracelogs\", use lowercase only
     --use-existing-active-gate
-                            Decide if you want to use existing ActiveGate (either Public AG or Environment AG). By default (if this option is not provided) ActiveGate will be deployed as container in Azure Container Instances.
+                            Decide if you want to use existing ActiveGate. By default (if this option is not provided) ActiveGate will be deployed as container in Azure Container Instances.
     --target-url TARGET_URL
-                            With ActiveGate deployment option set URL to your Dynatrace SaaS, otherwise set ActiveGate endpoint:
-                              - for Public ActiveGate: https://<your_environment_ID>.live.dynatrace.com
-                              - for Environment ActiveGate: https://<active_gate_address>:9999/e/<environment_id> (e.g. https://22.111.98.222:9999/e/abc12345)
+                            With ActiveGate deployment option set URL to your Dynatrace SaaS, otherwise set ActiveGate endpoint
     --target-api-token TARGET_API_TOKEN
                             Dynatrace API token. Integration requires API v1 Log import Token permission.
     --target-paas-token TARGET_PAAS_TOKEN
@@ -80,13 +78,11 @@ check_arg()
     CLI_ARGUMENT_NAME=$1
     ARGUMENT=$2
     REGEX=$3
-    if [ -z "$ARGUMENT" ]
-    then
+    if [ -z "$ARGUMENT" ]; then
         echo "No $CLI_ARGUMENT_NAME"
         exit 1
     else
-        if ! [[ "$ARGUMENT" =~ $REGEX ]]
-        then
+        if ! [[ "$ARGUMENT" =~ $REGEX ]]; then
             echo "Not correct $CLI_ARGUMENT_NAME"
             exit 1
         fi
@@ -95,8 +91,7 @@ check_arg()
 
 check_activegate_state() {
   if ACTIVE_GATE_STATE=$(curl -ksS "${TARGET_URL}/rest/health" --connect-timeout 20); then
-    if [[ "$ACTIVE_GATE_STATE" != "RUNNING" ]]
-    then
+    if [[ "$ACTIVE_GATE_STATE" != "RUNNING" ]]; then
       echo -e ""
       echo -e "\e[91mERROR: \e[37mActiveGate endpoint is not reporting RUNNING state. Please verify provided values for parameters: --target-url (${TARGET_URL})."
       exit 1
@@ -228,8 +223,7 @@ while (( "$#" )); do
     esac
 done
 
-if ! command -v az &> /dev/null
-then
+if ! command -v az &> /dev/null; then
 
     echo -e "\e[91mERROR: \e[37mAzure CLI is required to install Dynatrace function. It should be already installed in Cloud Shell."
     echo -e "If you are running this script from other hosts go to following link in your browser and install latest version of Azure CLI:"
@@ -248,20 +242,15 @@ if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FI
 if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
 
 if [ -z "$USE_EXISTING_ACTIVE_GATE" ]; then USE_EXISTING_ACTIVE_GATE=false; fi
-if [ -z "$TARGET_URL" ]
-then
+if [ -z "$TARGET_URL" ]; then
     echo "No --target-url"
     exit 1
-    else
-    if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]
-    then
-        echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with new ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
+  else
+    if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]; then
+        echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
         exit 1
-    elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! ([[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]] || [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]])
-    then
-        echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with existing ActiveGate:"
-        echo -e "  - for Public ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
-        echo -e "  - for Environment ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
+    elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]; then
+        echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment without ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
         exit 1
     fi
 fi
@@ -277,15 +266,13 @@ print_all_parameters
 TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
 
 echo
-if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]];
-then
+if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]; then
   check_activegate_state
 fi
 
 check_api_token
 
-if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]
-then
+if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]; then
   check_dynatrace_log_ingest_url
 fi
 
@@ -314,8 +301,7 @@ targetPaasToken="${TARGET_PAAS_TOKEN}" \
 filterConfig="${FILTER_CONFIG}" \
 resourceTags="${LOG_FORWARDER_TAGS}"
 
-if [[ $? != 0 ]]
-then
+if [[ $? != 0 ]]; then
     echo -e "\e[91mFunction deployment failed"
     exit 2
 fi
@@ -332,8 +318,7 @@ sleep 60 # wait some time to allow functionapp to warmup
 
 az webapp deployment source config-zip  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src ${FUNCTION_ZIP_PACKAGE}
 
-if [[ $? != 0 ]]
-then
+if [[ $? != 0 ]]; then
     echo -e "\e[91mFunction code deployment failed"
     exit 3
 fi
