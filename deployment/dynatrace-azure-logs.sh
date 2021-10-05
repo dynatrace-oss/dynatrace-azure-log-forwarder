@@ -228,6 +228,18 @@ while (( "$#" )); do
     esac
 done
 
+if ! command -v az &> /dev/null
+then
+
+    echo -e "\e[91mERROR: \e[37mAzure CLI is required to install Dynatrace function. It should be already installed in Cloud Shell."
+    echo -e "If you are running this script from other hosts go to following link in your browser and install latest version of Azure CLI:"
+    echo -e
+    echo -e "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
+    echo -e
+    echo
+    exit
+fi
+
 check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
 check_arg --resource-group "$RESOURCE_GROUP" ""
 check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
