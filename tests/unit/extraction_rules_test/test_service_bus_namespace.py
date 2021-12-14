@@ -11,7 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
+import json
 from datetime import datetime
 
 from logs_ingest.main import parse_record
@@ -35,7 +35,7 @@ expected_output = {
     "cloud.provider": "Azure",
     "timestamp": "9/28/2016 8:40:06 PM +00:00",
     "log.source": "OperationalLogs",
-    "content": "EventName: Create Queue, {\"SubscriptionId\":\"1a2109e3-9da0-455b-b937-e35e36c1163c\",\"Namespace\":\"shoeboxehns-cy4001\",\"Via\":\"https://shoeboxehns-cy4001.servicebus.windows.net/f8096791adb448579ee83d30e006a13e/?api-version=2016-07\",\"TrackingId\":\"5ee74c9e-72b5-4e98-97c4-08a62e56e221_G1\"}",
+    "content": json.dumps(record),
     RESOURCE_ID_ATTRIBUTE: "/SUBSCRIPTIONS/1A2109E3-9DA0-455B-B937-E35E36C1163C/RESOURCEGROUPS/DEFAULT-SERVICEBUS-CENTRALUS/PROVIDERS/MICROSOFT.SERVICEBUS/NAMESPACES/SHOEBOXEHNS-CY4001",
     SUBSCRIPTION_ATTRIBUTE: "1A2109E3-9DA0-455B-B937-E35E36C1163C",
     RESOURCE_GROUP_ATTRIBUTE: "DEFAULT-SERVICEBUS-CENTRALUS",
