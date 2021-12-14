@@ -20,24 +20,26 @@ readonly FUNCTION_REPOSITORY_RELEASE_URL=https://github.com/dynatrace-oss/dynatr
 readonly DYNATRACE_TARGET_URL_REGEX="^(https?:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/?)(\/e\/[a-z0-9-]{36}\/?)?$"
 readonly ACTIVE_GATE_TARGET_URL_REGEX="^https:\/\/[-a-zA-Z0-9@:%._+~=]{1,256}\/e\/[-a-z0-9]{1,36}[\/]{0,1}$"
 readonly DEPLOYMENT_NAME_REGEX="^[-a-z0-9]{3,20}$"
-readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*$"
-readonly EVENT_HUB_NAME_REGEX="^[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}$"
+readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*EntityPath=[^[:space:]]+$"
 readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --event-hub-name EVENT_HUB_NAME [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--use-existing-active-gate] [--require-valid-certificate] [--enable-self-monitoring] [--repository-release-url REPOSITORY_RELEASE_URL]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --use-existing-active-gate USE_EXISTING_ACTIVE_GATE [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL]
 
 arguments:
     -h, --help              Show this help message and exit
     --deployment-name DEPLOYMENT_NAME
                             e.g. \"dynatracelogs\", use lowercase only
-    --use-existing-active-gate
-                            Decide if you want to use existing ActiveGate. By default (if this option is not provided) ActiveGate will be deployed as container in Azure Container Instances.
+    --use-existing-active-gate {true|false}
+                          If you choose new ActiveGate deployment, put 'false'. In such case, ActiveGate will be deployed as container in Azure Container Instances.
+                          If you choose to use direct ingest through the Cluster API or existing ActiveGate, put 'true'.
     --target-url TARGET_URL
-                            With ActiveGate deployment option set URL to your Dynatrace SaaS, otherwise set ActiveGate endpoint
+                            With ActiveGate deployment option set URL to your Dynatrace SaaS, otherwise set ActiveGate endpoint:
+                              - for direct ingest through the Cluster API: https://<your_environment_ID>.live.dynatrace.com
+                              - for Environment ActiveGate: https://<active_gate_address>:9999/e/<environment_id> (e.g. https://22.111.98.222:9999/e/abc12345)
     --target-api-token TARGET_API_TOKEN
                             Dynatrace API token. Integration requires API v1 Log import Token permission.
     --target-paas-token TARGET_PAAS_TOKEN
@@ -46,47 +48,54 @@ arguments:
                             Name of the Azure Resource Group in which Function will be deployed
     --event-hub-connection-string EVENT_HUB_CONNECTION_STRING
                             Connection string for Azure EventHub that is configured for receiving logs
-    --event-hub-name EVENT_HUB_NAME
-                            Name of Azure Event Hub configured for receiving logs
     --tags TAGS
                             Comma separated tag:value pairs added to Azure resources during azure-log-forwarder deployment
                             e.g. \"tagName:value,tagName2:value2,tagName3:value3\"
-    --require-valid-certificate
+    --require-valid-certificate {true|false}
                             Enables checking SSL certificate of the target Active Gate. By default (if this option is not provided) certificates aren't validated.
-    --enable-self-monitoring
+    --enable-self-monitoring {true|false}
                             Self monitoring allows to diagnose quickly your function by Azure custom metrics. By default (if this option is not provided) custom metrics won't be sent to Azure.
-    --filter-config
+    --filter-config FILTER_CONFIG
                             Apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
     --repository-release-url REPOSITORY_RELEASE_URL
                             Change repository url to custom. Do not change without specific reason
     "
 }
 
-print_all_parameters()
-{
-    PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, EVENT_HUB_NAME=$EVENT_HUB_NAME, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL"
-    if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]];then PARAMETERS+=", TARGET_PAAS_TOKEN=*****";fi
-    if [ -n "$FILTER_CONFIG" ];then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG";fi
-    if [ -n "$TAGS" ];then PARAMETERS+=", TAGS=$TAGS";fi
-    echo
-    echo "Deployment script will use following parameters:"
-    echo $PARAMETERS
+ensure_param_value_given() {
+  # Checks if a value ($2) was passed for a parameter ($1). The two OR'ed conditions catch the following mistakes:
+  # 1. The parameter is the last one and has no value
+  # 2. The parameter is between other parameters and (as it has no value) the name of the next parameter is taken as its value
+  if [ -z $2 ] || [[ $2 == "--"* ]]; then
+    echo "Missing value for parameter $1";
+    print_help;
+    exit 1;
+  fi
 }
 
-check_arg()
-{
-    CLI_ARGUMENT_NAME=$1
-    ARGUMENT=$2
-    REGEX=$3
-    if [ -z "$ARGUMENT" ]; then
-        echo "No $CLI_ARGUMENT_NAME"
-        exit 1
-    else
-        if ! [[ "$ARGUMENT" =~ $REGEX ]]; then
-            echo "Not correct $CLI_ARGUMENT_NAME"
-            exit 1
-        fi
+print_all_parameters() {
+  PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL"
+  if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]]; then PARAMETERS+=", TARGET_PAAS_TOKEN=*****"; fi
+  if [ -n "$FILTER_CONFIG" ]; then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG"; fi
+  if [ -n "$TAGS" ]; then PARAMETERS+=", TAGS=$TAGS"; fi
+  echo
+  echo "Deployment script will use following parameters:"
+  echo $PARAMETERS
+}
+
+check_arg() {
+  CLI_ARGUMENT_NAME=$1
+  ARGUMENT=$2
+  REGEX=$3
+  if [ -z "$ARGUMENT" ]; then
+    echo "No $CLI_ARGUMENT_NAME"
+    exit 1
+  else
+    if ! [[ "$ARGUMENT" =~ $REGEX ]]; then
+      echo "Not correct $CLI_ARGUMENT_NAME"
+      exit 1
     fi
+  fi
 }
 
 check_activegate_state() {
@@ -114,7 +123,7 @@ check_api_token() {
       exit 1
     fi
   else
-      echo -e "\e[93mWARNING: \e[37mFailed to connect to Dynatrace/ActiveGate endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
+      echo -e "\e[93mWARNING: \e[37mFailed to connect to endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
   fi
 }
 
@@ -140,7 +149,7 @@ check_dynatrace_log_ingest_url() {
       exit 1
     fi
   else
-    echo -e "\e[93mWARNING: \e[37mFailed to connect with provided log ingest url ($TARGET_URL) to send a test log. It can be ignored if ActiveGate does not allow public access."
+    echo -e "\e[93mWARNING: \e[37mFailed to connect to endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
   fi
 }
 
@@ -152,66 +161,73 @@ while (( "$#" )); do
             ;;
 
             "--deployment-name")
+                ensure_param_value_given $1 $2
                 DEPLOYMENT_NAME=$2
                 shift; shift
             ;;
 
             "--use-existing-active-gate")
-                USE_EXISTING_ACTIVE_GATE=true
-                shift
+                ensure_param_value_given $1 $2
+                USE_EXISTING_ACTIVE_GATE=$2
+                shift; shift
             ;;
 
             "--target-url")
+                ensure_param_value_given $1 $2
                 TARGET_URL=$2
                 shift; shift
             ;;
 
             "--target-api-token")
+                ensure_param_value_given $1 $2
                 TARGET_API_TOKEN=$2
                 shift; shift
             ;;
 
             "--target-paas-token")
+                ensure_param_value_given $1 $2
                 TARGET_PAAS_TOKEN=$2
                 shift; shift
             ;;
 
             "--resource-group")
+                ensure_param_value_given $1 $2
                 RESOURCE_GROUP=$2
                 shift; shift
             ;;
 
             "--event-hub-connection-string")
+                ensure_param_value_given $1 $2
                 EVENT_HUB_CONNECTION_STRING=$2
                 shift; shift
             ;;
 
-            "--event-hub-name")
-                EVENT_HUB_NAME=$2
-                shift; shift
-            ;;
-
             "--filter-config")
+                ensure_param_value_given $1 $2
                 FILTER_CONFIG=$2
                 shift; shift
             ;;
 
             "--require-valid-certificate")
-                REQUIRE_VALID_CERTIFICATE=true
-                shift
+                ensure_param_value_given $1 $2
+                REQUIRE_VALID_CERTIFICATE=$2
+                shift; shift
             ;;
 
             "--enable-self-monitoring")
-                SFM_ENABLED=true
-                shift
+                ensure_param_value_given $1 $2
+                SFM_ENABLED=$2
+                shift; shift
             ;;
 
             "--repository-release-url")
+                ensure_param_value_given $1 $2
                 REPOSITORY_RELEASE_URL=$2
                 shift; shift
             ;;
 
             "--tags")
+                ensure_param_value_given $1 $2
                 TAGS=$2
                 shift; shift
             ;;
@@ -237,28 +253,43 @@ fi
 check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
 check_arg --resource-group "$RESOURCE_GROUP" ""
 check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
-check_arg --event-hub-name "$EVENT_HUB_NAME" "$EVENT_HUB_NAME_REGEX"
+check_arg --use-existing-active-gate "$USE_EXISTING_ACTIVE_GATE" ""
+if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=false; fi
+if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
+
+if [[ "$REQUIRE_VALID_CERTIFICATE" != "true" ]] && [[ "$REQUIRE_VALID_CERTIFICATE" != "false" ]]; then
+  echo "Not correct --require-valid-certificate. Provide 'true' or 'false'";
+  exit 1;
+fi
+if [[ "$SFM_ENABLED" != "true" ]] && [[ "$SFM_ENABLED" != "false" ]]; then
+  echo "Not correct --enable-self-monitoring. Provide 'true' or 'false'";
+  exit 1;
+fi
+if [[ "$USE_EXISTING_ACTIVE_GATE" != "true" ]] && [[ "$USE_EXISTING_ACTIVE_GATE" != "false" ]]; then
+  echo "Not correct --use-existing-active-gate. Provide 'true' or 'false'";
+  exit 1;
+fi
+
 if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
 if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
 
-if [ -z "$USE_EXISTING_ACTIVE_GATE" ]; then USE_EXISTING_ACTIVE_GATE=false; fi
 if [ -z "$TARGET_URL" ]; then
-    echo "No --target-url"
+  echo "No --target-url"
+  exit 1
+else
+  if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]; then
+    echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with new ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
     exit 1
-  else
-    if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]; then
-        echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
-        exit 1
-    elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! [[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]]; then
-        echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment without ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
-        exit 1
-    fi
+  elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! ([[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]] || [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]); then
+    echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with existing ActiveGate:"
+    echo -e "  - for direct ingest through the Cluster API: https://<your_environment_ID>.live.dynatrace.com"
+    echo -e "  - for Environment ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
+    exit 1
+  fi
 fi
 
 if [ -z "$TARGET_API_TOKEN" ]; then echo "No --target-api-token"; exit 1; fi
 if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then echo "No --target-paas-token"; exit 1; fi
-if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=false; fi
-if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
 if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
 if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}; fi
 print_all_parameters
@@ -275,6 +306,8 @@ check_api_token
 if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]; then
   check_dynatrace_log_ingest_url
 fi
+
+EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
 
 echo "- deploying function infrastructure into Azure..."
 
@@ -329,7 +362,7 @@ echo "- removing function package [$FUNCTION_ZIP_PACKAGE]"
 rm $FUNCTION_ZIP_PACKAGE
 
 if [[ "${DEPLOY_ACTIVEGATE}" == "true" ]]; then
-  # To build Log viewer link we need Dynatrace url which is set only when deployment with new ActiveGate is chosen.
+  # To build Log viewer link we need Dynatrace url (available only in deployment with new ActiveGate or direct ingest through the Cluster API)
   # For deployment with existing ActiveGate (ActiveGate url is used as TARGET_URL) we are not able to build the link - LOG_VIEWER is empty then.
   LOG_VIEWER="Log Viewer: ${TARGET_URL}/ui/log-monitoring?query=cloud.provider%3D%22azure%22"
 fi
