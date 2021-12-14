@@ -71,6 +71,7 @@ jobs:
         - pip install -r tests/requirements.txt
       before_script:
         - az login --service-principal --username "$USER_NAME"  --password "$PASSWORD" --tenant "$TENANT" > /dev/null
+        - az account set --subscription "$SUBSCRIPTION"
         - az group create --name "$RESOURCE_GROUP_NAME" --location westeurope
         - az resource invoke-action --action enable  --name "$LOGIC_APP_NAME" -g "$RESOURCE_GROUP_STATIC_RESOURCES" --resource-type "$LOGIC_APP_RESOURCE_TYPE"
       script:
