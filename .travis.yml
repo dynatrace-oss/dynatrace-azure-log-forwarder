@@ -1,4 +1,5 @@
 language: shell
+if: fork = false
 notifications:
   email:
     on_success: never
@@ -37,7 +38,7 @@ jobs:
     - stage: build-package
       name: Building package & Deploying to Storage Account
       sudo: required
-      if: ((branch = master OR type = pull_request) AND fork = false) OR tag =~ /^release.*$/
+      if: branch = master OR tag =~ /^release.*$/
       language: minimal
       install:
         - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
