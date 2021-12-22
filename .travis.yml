@@ -38,7 +38,6 @@ jobs:
     - stage: build-package
       name: Building package & Deploying to Storage Account
       sudo: required
-      if: branch = master OR tag =~ /^release.*$/
       language: minimal
       install:
         - curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
