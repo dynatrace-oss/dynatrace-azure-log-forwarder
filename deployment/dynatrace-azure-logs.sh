@@ -250,7 +250,7 @@ if ! command -v az &> /dev/null; then
     exit
 fi
 
-if [ $(az version -o table |awk 'NR >= 3 {print $1}') == "2.31.0" ] &> /dev/null; then
+if [ $(az version -o table |awk 'NR >= 3 {print $1}') == "2.29.0" ] &> /dev/null; then
 
     echo -e "\e[91mERROR: \e[37mVersion 2.29.0 of Azure CLI is subject to a bug which prevents Azure Log Forwarder setup from working properly."
     echo -e "You can find the bug description under the link bellow:"
