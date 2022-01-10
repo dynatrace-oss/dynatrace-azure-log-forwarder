@@ -250,6 +250,21 @@ if ! command -v az &> /dev/null; then
     exit
 fi
 
+if [ $(az version -o table |awk 'NR >= 3 {print $1}') == "2.29.0" ] &> /dev/null; then
+
+    echo -e "\e[91mERROR: \e[37mVersion 2.29.0 of Azure CLI is subject to a bug which prevents Azure Log Forwarder setup from working properly."
+    echo -e "You can find the bug description under the link bellow:"
+    echo -e
+    echo -e "https://github.com/Azure/azure-cli/issues/20131"
+    echo -e
+    echo -e "If you are running this script from other hosts go to following link in your browser and upgrade to a more recent version of Azure CLI:"
+    echo -e
+    echo -e "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
+    echo -e
+    echo
+    exit
+fi
+
 check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
 check_arg --resource-group "$RESOURCE_GROUP" ""
 check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
