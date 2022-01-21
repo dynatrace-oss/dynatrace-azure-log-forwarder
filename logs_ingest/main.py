@@ -37,6 +37,7 @@ content_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_CONTENT_M
 
 DYNATRACE_URL = "DYNATRACE_URL"
 DYNATRACE_ACCESS_KEY = "DYNATRACE_ACCESS_KEY"
+DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED = "[TRUNCATED]"
 
 metadata_engine = MetadataEngine()
 log_filter = LogFilter()
@@ -143,6 +144,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
             parsed_record["content"] = json.dumps(parsed_record["content"])
         if len(parsed_record["content"]) >= content_length_limit:
             self_monitoring.too_long_content_size.append(len(parsed_record["content"]))
-            parsed_record["content"] = parsed_record["content"][:content_length_limit]
-
+            trimmed_len = content_length_limit - len(DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED)
+            parsed_record["content"] = parsed_record["content"][
+                                       :trimmed_len] + DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED
     return parsed_record
