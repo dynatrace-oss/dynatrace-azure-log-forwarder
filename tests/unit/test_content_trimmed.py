@@ -29,19 +29,21 @@ def create_log_entry(message=None):
 
 
 def test_content_trimmed():
+    content_length_limit = 100
     content_length_limit_backup = logs_ingest.main.content_length_limit
 
     # given
     log_entry = create_log_entry(log_message)
-    logs_ingest.main.content_length_limit = 100
+    logs_ingest.main.content_length_limit = content_length_limit
 
     # when
-    actual_output = parse_record(log_entry, SelfMonitoring(execution_time=datetime.utcnow()))
+    try:
+        actual_output = parse_record(log_entry, SelfMonitoring(execution_time=datetime.utcnow()))
+    finally:
+        # restore original value
+        logs_ingest.main.content_length_limit = content_length_limit_backup
 
     # then
     expected_content = "{\"content\": \"WALTHAM, Mass.--(BUSINESS WIRE)-- Software intelligence company Dynatrace (N[TRUNCATED]"
-    assert len(actual_output["content"]) == logs_ingest.main.content_length_limit
+    assert len(actual_output["content"]) == content_length_limit
     assert actual_output["content"] == expected_content
-
-    # restore original value
-    logs_ingest.main.content_length_limit = content_length_limit_backup
