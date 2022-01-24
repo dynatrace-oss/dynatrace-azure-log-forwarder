@@ -142,7 +142,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     if content:
         if not isinstance(content, str):
             parsed_record["content"] = json.dumps(parsed_record["content"])
-        if len(parsed_record["content"]) >= content_length_limit:
+        if len(parsed_record["content"]) > content_length_limit:
             self_monitoring.too_long_content_size.append(len(parsed_record["content"]))
             trimmed_len = content_length_limit - len(DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED)
             parsed_record["content"] = parsed_record["content"][

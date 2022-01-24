@@ -11,6 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+import json
 from datetime import datetime
 
 import logs_ingest.main
@@ -22,9 +23,7 @@ log_message = "WALTHAM, Mass.--(BUSINESS WIRE)-- Software intelligence company D
 
 def create_log_entry(message=None):
     return {
-        'content': message,
-        'cloud.provider': 'Azure',
-        'severity': 'INFO'
+        'content': message
     }
 
 
@@ -47,3 +46,27 @@ def test_content_trimmed():
     expected_content = "{\"content\": \"WALTHAM, Mass.--(BUSINESS WIRE)-- Software intelligence company Dynatrace (N[TRUNCATED]"
     assert len(actual_output["content"]) == content_length_limit
     assert actual_output["content"] == expected_content
+
+
+def test_content_with_exact_len_not_trimmed():
+    message = "WALTHAM, Mass.--(BUSINESS WIRE)-- Software intelligence company Dynatrace (NYSE: DT)"
+    content_length_limit_backup = logs_ingest.main.content_length_limit
+
+    # given
+    log_entry = create_log_entry(message)
+    logs_ingest.main.content_length_limit = len(json.dumps(log_entry))
+
+    # when
+    try:
+        actual_output = parse_record(log_entry, SelfMonitoring(execution_time=datetime.utcnow()))
+    finally:
+        # restore original value
+        logs_ingest.main.content_length_limit = content_length_limit_backup
+
+    # then
+    expected_output = {
+        "cloud.provider": "Azure",
+        "severity": "INFO",
+        "content": '{"content": "WALTHAM, Mass.--(BUSINESS WIRE)-- Software intelligence company Dynatrace (NYSE: DT)"}'
+    }
+    assert actual_output == expected_output
