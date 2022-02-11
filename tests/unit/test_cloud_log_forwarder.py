@@ -19,13 +19,13 @@ from logs_ingest.self_monitoring import SelfMonitoring
 
 
 def test_log_forwarder_setup():
-    function_app_name_backup = logs_ingest.main.function_app_name
-    logs_ingest.main.function_app_name = "MyLogForwarderSetup"
+    cloud_log_forwarder_backup = logs_ingest.main.cloud_log_forwarder
+    logs_ingest.main.cloud_log_forwarder = "MyLogForwarderSetup"
+
     # given
     test_record = {
         "cloud.provider": "Azure",
         "severity": "INFO",
-        "resourceId": "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION",
         "content": '{"content": "WALTHAM, Mass.--(BUSINESS WIRE)-- Software intelligence company Dynatrace (NYSE: DT)"}'
     }
 
@@ -33,7 +33,7 @@ def test_log_forwarder_setup():
     try:
         actual_output = parse_record(test_record, SelfMonitoring(execution_time=datetime.utcnow()))
     finally:
-        logs_ingest.main.function_app_name = function_app_name_backup
+        logs_ingest.main.cloud_log_forwarder = cloud_log_forwarder_backup
 
     # then
-    assert actual_output['cloud.log_forwarder'] == "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION: MyLogForwarderSetup"
+    assert actual_output['cloud.log_forwarder'] == "MyLogForwarderSetup"
