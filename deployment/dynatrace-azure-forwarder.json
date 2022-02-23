@@ -89,7 +89,7 @@
         "containerSubnetName": "aci",
         "appServicePlan": "[concat(parameters('forwarderName'),'azure-log-fwd-plan')]",
         "functionName": "[concat(parameters('forwarderName'),'azure-log-fwd-function')]",
-        "storageAccountName": "[replace(concat(parameters('forwarderName'),'azure-log-fwd-sa'), '-', '')]",
+        "storageAccountName": "[substring(replace(concat(parameters('forwarderName'),'azlogfwdsa'), '-', '')), 0, 24]",
         "virtualNetworkId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
         "functionSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('functionSubnetName'))]",
         "containerSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('containerSubnetName'))]",
