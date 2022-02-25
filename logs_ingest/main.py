@@ -24,8 +24,7 @@ from dateutil import parser
 from . import logging
 from .dynatrace_client import send_logs
 from .filtering import LogFilter
-from .mapping import extract_resource_id_attributes, extract_severity, \
-    azure_properties_names
+from .mapping import extract_resource_id_attributes, extract_severity, azure_properties_names
 from .metadata_engine import MetadataEngine
 from .monitored_entity_id import infer_monitored_entity_id
 from .self_monitoring import SelfMonitoring
@@ -34,6 +33,7 @@ from .utils import get_int_environment_value
 record_age_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_MAX_RECORD_AGE", 3600 * 24)
 attribute_value_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_ATTRIBUTE_VALUE_MAX_LENGTH", 250)
 content_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH", 8192)
+cloud_log_forwarder = os.environ.get("RESOURCE_ID", "")  # Function app id
 
 DYNATRACE_URL = "DYNATRACE_URL"
 DYNATRACE_ACCESS_KEY = "DYNATRACE_ACCESS_KEY"
@@ -120,6 +120,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
         "cloud.provider": "Azure"
     }
     extract_severity(record, parsed_record)
+    extract_cloud_log_forwarder(parsed_record)
 
     if "resourceId" in record:
         extract_resource_id_attributes(parsed_record, record["resourceId"])
@@ -148,3 +149,8 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
             parsed_record["content"] = parsed_record["content"][
                                        :trimmed_len] + DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED
     return parsed_record
+
+
+def extract_cloud_log_forwarder(parsed_record):
+    if cloud_log_forwarder:
+        parsed_record["cloud.log_forwarder"] = cloud_log_forwarder
