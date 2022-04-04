@@ -16,6 +16,7 @@ import json
 import os
 import time
 from datetime import datetime, timezone
+from json import JSONDecodeError
 from typing import List, Dict
 
 import azure.functions as func
@@ -53,6 +54,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         if DYNATRACE_URL not in os.environ.keys() or DYNATRACE_ACCESS_KEY not in os.environ.keys():
             raise Exception(f"Please set {DYNATRACE_URL} and {DYNATRACE_ACCESS_KEY} in application settings")
 
+        logging.log_call_count = dict()
         dt_payload = []
         start_time = time.perf_counter()
         for event in events:
@@ -64,9 +66,13 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
                 for record in records:
                     try:
                         process_record(dt_payload, record, self_monitoring)
-                    except Exception:
+                    except JSONDecodeError as json_e:
                         self_monitoring.parsing_errors += 1
-                        logging.exception("Failed to parse log record", "log-record-parsing-exception")
+                        logging.exception(f"Failed to decode JSON for the record:\n{record}\nThe reason:\n{json_e}",
+                                              "log-record-parsing-jsondecode-exception")
+                    except Exception as e:
+                        self_monitoring.parsing_errors += 1
+                        logging.exception(f"Failed to parse log record\n{record}.\nThe reason:\n{e}", "log-record-parsing-exception")
 
         self_monitoring.processing_time = time.perf_counter() - start_time
         logging.info(f"Successfully parsed {len(dt_payload)} log records")
