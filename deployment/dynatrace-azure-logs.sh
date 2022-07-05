@@ -100,7 +100,7 @@ check_arg() {
 
 check_activegate_state() {
   if ACTIVE_GATE_STATE=$(curl -ksS "${TARGET_URL}/rest/health" --connect-timeout 20); then
-    if [[ "$ACTIVE_GATE_STATE" != "RUNNING" ]]; then
+    if [[ "$ACTIVE_GATE_STATE" != "\"RUNNING\"" ]]; then
       echo -e ""
       echo -e "\e[91mERROR: \e[37mActiveGate endpoint is not reporting RUNNING state. Please verify provided values for parameters: --target-url (${TARGET_URL})."
       exit 1
