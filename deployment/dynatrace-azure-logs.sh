@@ -27,13 +27,14 @@ readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING --use-existing-active-gate USE_EXISTING_ACTIVE_GATE [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL]
 
 arguments:
     -h, --help              Show this help message and exit
     --deployment-name DEPLOYMENT_NAME
                             e.g. \"dynatracelogs\", use lowercase only
     --use-existing-active-gate {true|false}
+                          Optional, 'true' by default.
                           If you choose new ActiveGate deployment, put 'false'. In such case, ActiveGate will be deployed as container in Azure Container Instances.
                           If you choose to use direct ingest through the Cluster API or existing ActiveGate, put 'true'.
     --target-url TARGET_URL
@@ -56,7 +57,7 @@ arguments:
     --enable-self-monitoring {true|false}
                             Self monitoring allows to diagnose quickly your function by Azure custom metrics. By default (if this option is not provided) custom metrics won't be sent to Azure.
     --filter-config FILTER_CONFIG
-                            Apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
+                            Optional. Apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
     --repository-release-url REPOSITORY_RELEASE_URL
                             Change repository url to custom. Do not change without specific reason
     "
@@ -268,7 +269,6 @@ fi
 check_arg --deployment-name "$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME_REGEX"
 check_arg --resource-group "$RESOURCE_GROUP" ".+"
 check_arg --event-hub-connection-string "$EVENT_HUB_CONNECTION_STRING" "$EVENT_HUB_CONNECTION_STRING_REGEX"
-check_arg --use-existing-active-gate "$USE_EXISTING_ACTIVE_GATE" ".+"
 if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=false; fi
 if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
 
@@ -280,7 +280,9 @@ if [[ "$SFM_ENABLED" != "true" ]] && [[ "$SFM_ENABLED" != "false" ]]; then
   echo "Not correct --enable-self-monitoring. Provide 'true' or 'false'";
   exit 1;
 fi
-if [[ "$USE_EXISTING_ACTIVE_GATE" != "true" ]] && [[ "$USE_EXISTING_ACTIVE_GATE" != "false" ]]; then
+if [[ -z "$USE_EXISTING_ACTIVE_GATE" ]]; then
+  USE_EXISTING_ACTIVE_GATE="true"
+elif [[ "$USE_EXISTING_ACTIVE_GATE" != "true" ]] && [[ "$USE_EXISTING_ACTIVE_GATE" != "false" ]]; then
   echo "Not correct --use-existing-active-gate. Provide 'true' or 'false'";
   exit 1;
 fi
