@@ -34,6 +34,7 @@ arguments:
     --deployment-name DEPLOYMENT_NAME
                             e.g. \"dynatracelogs\", use lowercase only
     --use-existing-active-gate {true|false}
+                          Optional, 'true' by default.
                           If you choose new ActiveGate deployment, put 'false'. In such case, ActiveGate will be deployed as container in Azure Container Instances.
                           If you choose to use direct ingest through the Cluster API or existing ActiveGate, put 'true'.
     --target-url TARGET_URL
@@ -56,7 +57,7 @@ arguments:
     --enable-self-monitoring {true|false}
                             Self monitoring allows to diagnose quickly your function by Azure custom metrics. By default (if this option is not provided) custom metrics won't be sent to Azure.
     --filter-config FILTER_CONFIG
-                            Apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
+                            Optional. Apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
     --repository-release-url REPOSITORY_RELEASE_URL
                             Change repository url to custom. Do not change without specific reason
     "
