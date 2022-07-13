@@ -100,8 +100,10 @@ check_arg() {
 }
 
 check_activegate_state() {
+  RUNNING_RESPONSE_ON_NORMAL_CLUSTERS="RUNNING"
+  RUNNING_RESPONSE_ON_DOK_CLUSTERS="\"RUNNING\"" #APM-379036 different responses returned - to be fixed in bug APM-380143
   if ACTIVE_GATE_STATE=$(curl -ksS "${TARGET_URL}/rest/health" --connect-timeout 20); then
-    if [[ "$ACTIVE_GATE_STATE" != "\"RUNNING\"" ]]; then
+    if [[ "$ACTIVE_GATE_STATE" != "$RUNNING_RESPONSE_ON_NORMAL_CLUSTERS" ]] && [[ "$ACTIVE_GATE_STATE" != "$RUNNING_RESPONSE_ON_DOK_CLUSTERS"  ]]; then
       echo -e ""
       echo -e "\e[91mERROR: \e[37mActiveGate endpoint is not reporting RUNNING state. Please verify provided values for parameters: --target-url (${TARGET_URL})."
       exit 1
