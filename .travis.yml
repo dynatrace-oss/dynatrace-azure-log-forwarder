@@ -89,8 +89,8 @@ jobs:
         - "3.8"
       env:
         - RESOURCE_GROUP_NAME="logs-forwarding-e2e-upgrade-test-rg-${TRAVIS_BUILD_ID}"
-        - RESOURCE_GROUP_STATIC_RESOURCES="logs-forwarding-e2e-upgrade-test-static-resources"
-        - LOGIC_APP_NAME="logs-forwarding-e2e-upgrade-test-logicapp"
+        - RESOURCE_GROUP_STATIC_RESOURCES="logs-forwarding-e2e-static-resources"
+        - LOGIC_APP_NAME="logs-forwarding-e2e-logicapp"
         - LOGIC_APP_RESOURCE_TYPE="Microsoft.Logic/workflows"
         - secure: m5BnOt9xH87aAARQNnfagFQj4qvvQls08WdfITRwvjanyr5Ii8qIu7P0PqqwVC/jFDVMQZgGQhKrmUWDcPtBwyrW5Y7UH1S070Ny7JeRWtr4DD3pMGTiGLCSRls3c7sgEhQRO8gsn55SGnDB/TLW8QZNdn0U6szDEDIAQ43axeJ5OjdPo5KBzP3mNkVktl6HVnNBNH4X2FC7MlGswLiUJV0IfvnSY1bCqdTD+JhntbfSd9DqDSNgLQJJywYcccRa3jAbbS7nArBfxCksXm4i8bh6egS5TuykHbZvXk/XRdYmyKrQ4cWazfZfkzkOJADsuZPIG8bVlqcsvbVIoYFPPfA1GA5XlR6rgageckHqeHY8zLFCtdpQ8xhlfPqqx5czBWUj/u5x0LCVOHGhHOrDDNbZ4c74c0hdMHA3XKu5HWx8BgOhEZ7zlVQyUrN4FNtPL0V5JGA6aM4MLYkIkMQMSeIi8YqTQbIFOcJ+fnHMmP6xJDJ3bZdq2+HmKVKSQJUjPoG5dvOZUSEqZ4OgadCXork2pa8TF2qZSbGZKmW7xQbu5UDf1/+I5oipEMxg/kZuuNpWu4/uflkLiZ86FUVMRnQkbpSgyIAqA0I3bID3J05BNQF91zfshpg8y+IxtdI1FJElM4+hfQZUeWD3Alq+C5Tx1dTs57Cp8fQsiqvfEoc=
         - secure: 3v3dYByQgolntXPt3OoHarZI/OUwN+KPJMDhPLnCbiZKlcvrh5tFVMylaBwXcVfWiuCByvcblFr0uR7RrteilIZ+Rv6sAgLSjfILfpzkHeBHxCpKxIYSg7LHu+QCVKZ9wRLfB+qjlRh005x5N/X9Lt1xW+VlxgKH15Cd5VbH5AdUHG19c+AjH0IrcgJRNo0ORaZ7YScyXIAnxFITeyud4atd+RjSP8PVVYR5jqUYBjfLJCSBUM+KvzsbPaPRouAZLTzJHPrWlUbDabjyqfCdxF0JVaMDzCbC1gB1942y3QND+1oz0nkJkirj0a9kw+2Ah5vtxzJxuYh1a/DYvhTxoHqhfC040q+yeGaVY3VCpjOfMha2NULAsvVS95jY6Isj6griUyABvZBdKcjPl/xSyUjUImstOBPvpnymYjhBuZ8XbbYSJTFBznuUAsByrCnHdUsNUZPBXghCUGbP7MhB3HMGwQO35bXhlcj0s2xPrDOiqnXRjjnPWO1JKB6qolwZ5Lwhzr3ubg6KjYm9KH9kudanY7XchjXouIK+U5jGyqT/U9MmbULIsjQwNIc3obt3tuMP1R60J2YEfZeES6qvrP0+afirU4o6BzBBtlheOZz+2lkvff8VC2ZKg1m9nC/pkqZSCwATJpSApfcRgNNRDRYiIwAJeKgWON5TFAoItt0=
