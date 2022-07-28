@@ -362,7 +362,7 @@ echo
 echo "- downloading function code zip [${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE}]"
 wget -q ${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE} -O ${FUNCTION_ZIP_PACKAGE}
 
-FUNCTIONAPP_NAME="${DEPLOYMENT_NAME}-az-log-fwd-function"
+FUNCTIONAPP_NAME="${DEPLOYMENT_NAME}-function"
 echo
 echo "- deploying function zip code into ${FUNCTIONAPP_NAME}..."
 
