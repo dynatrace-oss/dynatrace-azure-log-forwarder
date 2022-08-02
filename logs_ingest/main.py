@@ -60,8 +60,11 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         for event in events:
             timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
             if not is_too_old(timestamp, self_monitoring, "event"):
-                event_body = event.get_body()
-                event_json = json.loads(event_body.decode('utf-8'))
+                event_body = event.get_body().decode('utf-8')
+                try:
+                    event_json = json.loads(event_body)
+                except Exception:
+                    event_json = json.loads(event_body.replace("\'","\""))
                 records = event_json.get("records", [])
                 for record in records:
                     try:
