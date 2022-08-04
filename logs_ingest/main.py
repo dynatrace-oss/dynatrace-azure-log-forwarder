@@ -104,7 +104,7 @@ def process_record(dt_payload: List[Dict], record: Dict, self_monitoring: SelfMo
 def is_too_old(timestamp: str, self_monitoring: SelfMonitoring, log_part: str):
     if timestamp:
         try:
-            date = parser.parse(timestamp)
+            date = parser.parse(timestamp).replace(tzinfo=timezone.utc)
             # LINT won't accept any log line older than one day, 60 seconds of margin to send
             if (datetime.now(timezone.utc) - date).total_seconds() > (record_age_limit - 60):
                 logging.info(f"Skipping too old {log_part} with timestamp '{timestamp}'")
@@ -121,7 +121,10 @@ def deserialize_properties(record: Dict):
     properties_name = next((properties for properties in azure_properties_names if properties in record.keys()), "")
     properties = record.get(properties_name, {})
     if properties and isinstance(properties, str):
-        record["properties"] = json.loads(properties)
+        try:
+            record["properties"] = json.loads(properties)
+        except Exception:
+            record["properties"] = json.loads(properties.replace("\'","\""))
 
 
 def parse_record(record: Dict, self_monitoring: SelfMonitoring):
