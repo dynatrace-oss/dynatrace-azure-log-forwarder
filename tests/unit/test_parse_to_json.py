@@ -12,9 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
-import json
-import logs_ingest.main
 from logs_ingest.main import parse_to_json
 
 def test_linux_log():
