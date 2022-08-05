@@ -61,10 +61,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
             timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
             if not is_too_old(timestamp, self_monitoring, "event"):
                 event_body = event.get_body().decode('utf-8')
-                try:
-                    event_json = json.loads(event_body)
-                except Exception:
-                    event_json = json.loads(event_body.replace("\'","\""))
+                event_json = parse_to_json(event_body)
                 records = event_json.get("records", [])
                 for record in records:
                     try:
@@ -121,10 +118,7 @@ def deserialize_properties(record: Dict):
     properties_name = next((properties for properties in azure_properties_names if properties in record.keys()), "")
     properties = record.get(properties_name, {})
     if properties and isinstance(properties, str):
-        try:
-            record["properties"] = json.loads(properties)
-        except Exception:
-            record["properties"] = json.loads(properties.replace("\'","\""))
+        record["properties"] = parse_to_json(properties)
 
 
 def parse_record(record: Dict, self_monitoring: SelfMonitoring):
@@ -166,3 +160,11 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
 def extract_cloud_log_forwarder(parsed_record):
     if cloud_log_forwarder:
         parsed_record["cloud.log_forwarder"] = cloud_log_forwarder
+
+
+def parse_to_json(text):
+    try:
+        event_json = json.loads(text)
+    except Exception:
+        event_json = json.loads(text.replace("\'", "\""))
+    return event_json
