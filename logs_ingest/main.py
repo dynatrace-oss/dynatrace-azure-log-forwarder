@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timezone
 from json import JSONDecodeError
 from typing import List, Dict
+import re
 
 import azure.functions as func
 from dateutil import parser
@@ -53,7 +54,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
     try:
         if DYNATRACE_URL not in os.environ.keys() or DYNATRACE_ACCESS_KEY not in os.environ.keys():
             raise Exception(f"Please set {DYNATRACE_URL} and {DYNATRACE_ACCESS_KEY} in application settings")
-
+        
         logging.log_call_count = dict()
         dt_payload = []
         start_time = time.perf_counter()
@@ -89,6 +90,8 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
 
 
 def process_record(dt_payload: List[Dict], record: Dict, self_monitoring: SelfMonitoring):
+    if re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', record["time"]):
+        record["time"] = str(datetime.strptime(record["time"], '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
     deserialize_properties(record)
     parsed_record = parse_record(record, self_monitoring)
     if parsed_record:
