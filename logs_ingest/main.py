@@ -54,7 +54,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
     try:
         if DYNATRACE_URL not in os.environ.keys() or DYNATRACE_ACCESS_KEY not in os.environ.keys():
             raise Exception(f"Please set {DYNATRACE_URL} and {DYNATRACE_ACCESS_KEY} in application settings")
-        
+
         logging.log_call_count = dict()
         dt_payload = []
         start_time = time.perf_counter()
