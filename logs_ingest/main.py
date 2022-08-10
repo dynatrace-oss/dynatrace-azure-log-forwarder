@@ -173,5 +173,6 @@ def parse_to_json(text):
 
 
 def convert_date_format(record):
-    if re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', record["timestamp"]):
-        record["timestamp"] = str(datetime.strptime(record["timestamp"], '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
+    timestamp = record.get("timestamp", None)
+    if timestamp and re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', timestamp):
+        record["timestamp"] = str(datetime.strptime(timestamp, '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
