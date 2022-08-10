@@ -135,6 +135,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     if log_filter.should_filter_out_record(parsed_record):
         return None
 
+    convert_date_format(record)
     metadata_engine.apply(record, parsed_record)
     convert_date_format(parsed_record)
     category = record.get("category", "").lower()
