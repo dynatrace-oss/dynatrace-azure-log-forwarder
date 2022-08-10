@@ -90,8 +90,6 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
 
 
 def process_record(dt_payload: List[Dict], record: Dict, self_monitoring: SelfMonitoring):
-    if re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', record["time"]):
-        record["time"] = str(datetime.strptime(record["time"], '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
     deserialize_properties(record)
     parsed_record = parse_record(record, self_monitoring)
     if parsed_record:
@@ -150,6 +148,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
 
     content = parsed_record.get("content", None)
     if content:
+        convert_date_format(parsed_record["content"])
         if not isinstance(content, str):
             parsed_record["content"] = json.dumps(parsed_record["content"])
         if len(parsed_record["content"]) > content_length_limit:
@@ -171,3 +170,8 @@ def parse_to_json(text):
     except Exception:
         event_json = json.loads(text.replace("\'", "\""))
     return event_json
+
+
+def convert_date_format(record):
+    if re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', record["time"]):
+        record["time"] = str(datetime.strptime(record["time"], '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
