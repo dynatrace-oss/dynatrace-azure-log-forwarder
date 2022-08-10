@@ -20,7 +20,7 @@ def test_linux_log():
     log_entry = "{\
         \"level\": \"Informational\",\
         \"time\": \"04/05/2022 07:54:00\", \
-        \"properties\": \"{\'appName\':\'ik-log-forwarder-function\',\'message\':\'Pare to json test.\',\'hostVersion\':\'3.5.2.0\',\'level\':\'Information\',\'levelId\':2,\'processId\':24}\"\
+        \"properties\": \"{\'appName\':\'ik-log-forwarder-function\',\'message\':\'Pare to json test.\',\'level\':\'Information\',\'levelId\':2,\'processId\':24}\"\
     }"
 
     # when
@@ -32,7 +32,7 @@ def test_linux_log():
     expected_linux_log = {
         "level": "Informational",
         "time": "04/05/2022 07:54:00",
-        "properties": {"appName":"ik-log-forwarder-function","message":"Pare to json test.","hostVersion":"3.5.2.0","level":"Information","levelId":2,"processId":24}
+        "properties": {"appName":"ik-log-forwarder-function","message":"Pare to json test.","level":"Information","levelId":2,"processId":24}
     }
     assert json_event == expected_linux_log
 
@@ -43,7 +43,7 @@ def test_windows_log():
     log_entry = "{\
         \"level\": \"Informational\",\
         \"time\": \"2022-04-05T10:29:59.9999691Z\", \
-        \"properties\": {\"appName\":\"ik-log-forwarder-function\",\"message\":\"Pare to json test.\",\"hostVersion\":\"3.5.2.0\",\"level\":\"Information\",\"levelId\":2,\"processId\":24}\
+        \"properties\": {\"appName\":\"ik-log-forwarder-function\",\"message\":\"Pare to json test.\",\"level\":\"Information\",\"levelId\":2,\"processId\":24}\
     }"
 
     # when
@@ -55,6 +55,6 @@ def test_windows_log():
     expected_windows_log = {
         "level": "Informational",
         "time": "2022-04-05T10:29:59.9999691Z",
-        "properties": {"appName":"ik-log-forwarder-function","message":"Pare to json test.","hostVersion":"3.5.2.0","level":"Information","levelId":2,"processId":24}
+        "properties": {"appName":"ik-log-forwarder-function","message":"Pare to json test.","level":"Information","levelId":2,"processId":24}
     }
     assert json_event == expected_windows_log
