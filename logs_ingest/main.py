@@ -136,6 +136,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
         return None
 
     metadata_engine.apply(record, parsed_record)
+    convert_date_format(parsed_record)
     category = record.get("category", "").lower()
     infer_monitored_entity_id(category, parsed_record)
 
@@ -148,7 +149,6 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
 
     content = parsed_record.get("content", None)
     if content:
-        convert_date_format(parsed_record["content"])
         if not isinstance(content, str):
             parsed_record["content"] = json.dumps(parsed_record["content"])
         if len(parsed_record["content"]) > content_length_limit:
@@ -173,5 +173,5 @@ def parse_to_json(text):
 
 
 def convert_date_format(record):
-    if re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', record["time"]):
-        record["time"] = str(datetime.strptime(record["time"], '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
+    if re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', record["timestamp"]):
+        record["timestamp"] = str(datetime.strptime(record["timestamp"], '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
