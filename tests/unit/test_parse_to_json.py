@@ -22,6 +22,11 @@ def test_linux_log():
         \"time\": \"04/05/2022 07:54:00\", \
         \"properties\": \"{\'appName\':\'ik-log-forwarder-function\',\'message\':\'Pare to json test.\',\'level\':\'Information\',\'levelId\':2,\'processId\':24}\"\
     }"
+    expected_linux_log = {
+        "level": "Informational",
+        "time": "04/05/2022 07:54:00",
+        "properties": {"appName":"ik-log-forwarder-function","message":"Pare to json test.","level":"Information","levelId":2,"processId":24}
+    }
 
     # when
     json_event = parse_to_json(log_entry)
@@ -29,11 +34,6 @@ def test_linux_log():
         json_event["properties"] = parse_to_json(json_event["properties"])
 
     # then
-    expected_linux_log = {
-        "level": "Informational",
-        "time": "04/05/2022 07:54:00",
-        "properties": {"appName":"ik-log-forwarder-function","message":"Pare to json test.","level":"Information","levelId":2,"processId":24}
-    }
     assert json_event == expected_linux_log
 
 
@@ -45,6 +45,11 @@ def test_windows_log():
         \"time\": \"2022-04-05T10:29:59.9999691Z\", \
         \"properties\": {\"appName\":\"ik-log-forwarder-function\",\"message\":\"Pare to json test.\",\"level\":\"Information\",\"levelId\":2,\"processId\":24}\
     }"
+    expected_windows_log = {
+        "level": "Informational",
+        "time": "2022-04-05T10:29:59.9999691Z",
+        "properties": {"appName":"ik-log-forwarder-function","message":"Pare to json test.","level":"Information","levelId":2,"processId":24}
+    }
 
     # when
     json_event = parse_to_json(log_entry)
@@ -52,9 +57,4 @@ def test_windows_log():
         json_event["properties"] = parse_to_json(json_event["properties"])
 
     # then
-    expected_windows_log = {
-        "level": "Informational",
-        "time": "2022-04-05T10:29:59.9999691Z",
-        "properties": {"appName":"ik-log-forwarder-function","message":"Pare to json test.","level":"Information","levelId":2,"processId":24}
-    }
     assert json_event == expected_windows_log
