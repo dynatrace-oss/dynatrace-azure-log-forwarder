@@ -62,5 +62,18 @@
     "EventPrimaryStampName": "waws-prod-am2-369",
     "EventStampName": "waws-prod-am2-369",
     "Host": "lw1sdlwk00000V"
-  }
+  },
+  {
+    "level": "Informational",
+    "resourceId": "/SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/IK-LOG-FORWARDER-FUNCTION",
+    "operationName": "Microsoft.Web/sites/functions/log",
+    "category": "FunctionAppLogs",
+    "time": "04/02/2021 07:45:00",
+    "properties": "{'appName':'ik-log-forwarder-function','roleInstance':'2b261bc217ca563c1dbab7acbf33b1bfe0d40640c43abfd5946eaec8d2ce0295','message':'Initializing Warmup Extension.','category':'Host.Triggers.Warmup','hostVersion':'3.5.2.0','hostInstanceId':'03ba95ed-a256-4181-888b-84b266c52f2a','level':'Information','levelId':2,'processId':24}",
+    "EventStampType": "Stamp",
+    "EventPrimaryStampName": "waws-prod-am2-373",
+    "EventStampName": "waws-prod-am2-373",
+    "Host": "lw1sdlwk0007DK",
+    "EventIpAddress": "10.51.0.105"
+ }
 ]

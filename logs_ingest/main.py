@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timezone
 from json import JSONDecodeError
 from typing import List, Dict
+import re
 
 import azure.functions as func
 from dateutil import parser
@@ -60,8 +61,8 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         for event in events:
             timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
             if not is_too_old(timestamp, self_monitoring, "event"):
-                event_body = event.get_body()
-                event_json = json.loads(event_body.decode('utf-8'))
+                event_body = event.get_body().decode('utf-8')
+                event_json = parse_to_json(event_body)
                 records = event_json.get("records", [])
                 for record in records:
                     try:
@@ -118,7 +119,7 @@ def deserialize_properties(record: Dict):
     properties_name = next((properties for properties in azure_properties_names if properties in record.keys()), "")
     properties = record.get(properties_name, {})
     if properties and isinstance(properties, str):
-        record["properties"] = json.loads(properties)
+        record["properties"] = parse_to_json(properties)
 
 
 def parse_record(record: Dict, self_monitoring: SelfMonitoring):
@@ -135,6 +136,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
         return None
 
     metadata_engine.apply(record, parsed_record)
+    convert_date_format(parsed_record)
     category = record.get("category", "").lower()
     infer_monitored_entity_id(category, parsed_record)
 
@@ -160,3 +162,17 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
 def extract_cloud_log_forwarder(parsed_record):
     if cloud_log_forwarder:
         parsed_record["cloud.log_forwarder"] = cloud_log_forwarder
+
+
+def parse_to_json(text):
+    try:
+        event_json = json.loads(text)
+    except Exception:
+        event_json = json.loads(text.replace("\'", "\""))
+    return event_json
+
+
+def convert_date_format(record):
+    timestamp = record.get("timestamp", None)
+    if timestamp and re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', timestamp):
+        record["timestamp"] = str(datetime.strptime(timestamp, '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
