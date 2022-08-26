@@ -41,3 +41,4 @@ Then retry removing the VNet from Azure Portal
 # License
 
 `dynatrace-azure-log-forwarder` is under Apache 2.0 license. See [LICENSE](LICENSE.md) for details.
+
