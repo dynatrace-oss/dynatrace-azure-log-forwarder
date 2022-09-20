@@ -42,7 +42,7 @@ arguments:
                               - for direct ingest through the Cluster API: https://<your_environment_ID>.live.dynatrace.com
                               - for Environment ActiveGate: https://<active_gate_address>:9999/e/<environment_id> (e.g. https://22.111.98.222:9999/e/abc12345)
     --target-api-token TARGET_API_TOKEN
-                            Dynatrace API token. Integration requires API v1 Log import Token permission.
+                            Dynatrace API token. Integration requires API v2 Ingest logs Token permission.
     --target-paas-token TARGET_PAAS_TOKEN
                             Dynatrace PaaS token, only when deploy ActiveGate is chosen
     --resource-group RESOURCE_GROUP
