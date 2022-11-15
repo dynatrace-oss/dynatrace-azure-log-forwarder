@@ -74,7 +74,7 @@ jobs:
         - az group create --name "$RESOURCE_GROUP_NAME" --location westeurope
         - az resource invoke-action --action enable  --name "$LOGIC_APP_NAME" -g "$RESOURCE_GROUP_STATIC_RESOURCES" --resource-type "$LOGIC_APP_RESOURCE_TYPE"
       script:
-        - ./deployment/dynatrace-azure-logs.sh --deployment-name "e2e-${TRAVIS_BUILD_ID}" --resource-group "$RESOURCE_GROUP_NAME" --target-url "$TARGET_URL" --target-api-token "$TARGET_API_TOKEN" --target-paas-token "$TARGET_PAAS_TOKEN" --use-existing-active-gate false --event-hub-connection-string "$EH_CONNECTION_STRING" --repository-release-url "https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${STORAGE_ACCOUNT_DIR_NAME}/"
+        - ./deployment/dynatrace-azure-logs.sh --deployment-name "e2e-${TRAVIS_BUILD_ID}" --resource-group "$RESOURCE_GROUP_NAME" --target-url "$TARGET_URL" --target-api-token "$TARGET_API_TOKEN" --target-paas-token "$TARGET_PAAS_TOKEN" --use-existing-active-gate true --event-hub-connection-string "$EH_CONNECTION_STRING" --repository-release-url "https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${STORAGE_ACCOUNT_DIR_NAME}/"
         - pytest tests/e2e -v
       after_script:
         - az group delete --name "$RESOURCE_GROUP_NAME" --yes
