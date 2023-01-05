@@ -98,12 +98,12 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
             except JSONDecodeError as json_e:
                 self_monitoring.parsing_errors += 1
                 logging.exception(
-                    f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(record)}. Exception: {json_e}",
+                    f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
                     "log-record-parsing-jsondecode-exception")
             except Exception as e:
                 self_monitoring.parsing_errors += 1
                 logging.exception(
-                    f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(record)}. Exception: {e}",
+                    f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
                     "log-record-parsing-exception")
     return logs_to_be_sent_to_dt
 
