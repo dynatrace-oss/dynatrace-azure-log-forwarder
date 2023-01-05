@@ -23,7 +23,7 @@ from urllib.parse import urlparse
 from urllib.request import Request
 
 from logs_ingest.self_monitoring import SelfMonitoring, DynatraceConnectivity
-from logs_ingest.utils import get_int_environment_value
+from .util.util_misc import get_int_environment_value
 from . import logging
 
 should_verify_ssl_certificate = os.environ.get("REQUIRE_VALID_CERTIFICATE", "True") in ["True", "true"]
