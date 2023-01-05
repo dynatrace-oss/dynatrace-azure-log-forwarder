@@ -113,11 +113,11 @@ def extract_dt_record(record: Dict, self_monitoring: SelfMonitoring) -> Optional
 
     parsed_record = parse_record(record, self_monitoring)
     if not parsed_record:
-        return
+        return None
 
     timestamp = parsed_record.get("timestamp", None)
     if is_too_old(timestamp, self_monitoring, "record"):
-        return
+        return None
 
     return parsed_record
 
