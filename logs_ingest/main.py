@@ -59,7 +59,9 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         dt_payload = []
         start_time = time.perf_counter()
         for event in events:
+            print(f"enqueued_time before processing: {event.enqueued_time}")
             timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
+            print(f"enqueued_time after processing: {timestamp}")
             if not is_too_old(timestamp, self_monitoring, "event"):
                 event_body = event.get_body().decode('utf-8')
                 event_json = parse_to_json(event_body)
@@ -94,6 +96,7 @@ def process_record(dt_payload: List[Dict], record: Dict, self_monitoring: SelfMo
     parsed_record = parse_record(record, self_monitoring)
     if parsed_record:
         timestamp = parsed_record.get("timestamp", None)
+        print(f"Timestamp inside process_record: {timestamp}")
         if is_too_old(timestamp, self_monitoring, "record"):
             return
         dt_payload.append(parsed_record)
