@@ -61,7 +61,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         for event in events:
             print(f"enqueued_time before processing: {event.enqueued_time}")
             timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
-            print(f"enqueued_time after processing: {timestamp}")
+            print(f"enqueued_time after processing: {event.enqueued_time}")
             if not is_too_old(timestamp, self_monitoring, "event"):
                 event_body = event.get_body().decode('utf-8')
                 event_json = parse_to_json(event_body)
@@ -177,5 +177,6 @@ def parse_to_json(text):
 
 def convert_date_format(record):
     timestamp = record.get("timestamp", None)
+    print(f"timestamp inside record, before conversion: {timestamp}")
     if timestamp and re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', timestamp):
         record["timestamp"] = str(datetime.strptime(timestamp, '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
