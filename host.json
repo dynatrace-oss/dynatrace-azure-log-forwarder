@@ -14,6 +14,11 @@
   },
   "extensions": {
         "eventHubs": {
+          "batchCheckpointFrequency": 10,
+          "eventProcessorOptions": {
+                "maxBatchSize": 150,
+                "prefetchCount": 600
+            },
             "initialOffsetOptions": {
                 "type": "fromEnd",
                 "enqueuedTimeUtc": ""
