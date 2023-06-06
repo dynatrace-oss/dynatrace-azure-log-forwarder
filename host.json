@@ -17,7 +17,7 @@
           "batchCheckpointFrequency": 10,
           "eventProcessorOptions": {
                 "maxBatchSize": 150,
-                "prefetchCount": 600
+                "prefetchCount": 4500
             },
             "initialOffsetOptions": {
                 "type": "fromEnd",
