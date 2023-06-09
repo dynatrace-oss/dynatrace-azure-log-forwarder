@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import asyncio
 import json
 import os
 import ssl
@@ -32,8 +33,10 @@ if not should_verify_ssl_certificate:
     ssl_context.check_hostname = False
     ssl_context.verify_mode = ssl.CERT_NONE
 
-
-def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
+async_call_count = 10
+sent_batch_counter = 0
+tasks_to_send = []
+async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
     # pylint: disable=R0912
     start_time = time.perf_counter()
     log_ingest_url = urlparse(dynatrace_url.rstrip("/") + "/api/v2/logs/ingest").geturl()
@@ -48,24 +51,18 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
         logging.info(f'Log ingest payload size: {display_payload_size} kB')
         sent = False
         try:
-            sent = _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent)
+            tasks_to_send.append(_send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent))
         except HTTPError as e:
             raise e
-        except Exception as e:
-            logging.exception("Failed to ingest logs", "ingesting-logs-exception")
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
-            number_of_http_errors += 1
-            # all http requests failed and this is the last batch, raise this exception to trigger retry
-            if number_of_http_errors == len(batches):
-                raise e
         finally:
             self_monitoring.sending_time = time.perf_counter() - start_time
             if sent:
                 self_monitoring.log_ingest_payload_size += display_payload_size
                 self_monitoring.sent_log_entries += number_of_logs_in_batch
+    await asyncio.gather(*tasks_to_send, return_exceptions=True)
 
 
-def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
+async def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
     self_monitoring.all_requests += 1
     status, reason, response = _perform_http_request(
         method="POST",
