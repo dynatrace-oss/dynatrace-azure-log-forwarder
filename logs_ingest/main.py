@@ -80,10 +80,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         logs_to_be_sent_to_dt = extract_logs(events, self_monitoring)
 
         self_monitoring.processing_time = time.perf_counter() - start_time
-        logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
-
-        if logs_to_be_sent_to_dt:
-            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
+        logging.info(f"Successfully parsed {logs_to_be_sent_to_dt} log records")
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
@@ -101,6 +98,7 @@ def verify_dt_access_params_provided():
 
 def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     logs_to_be_sent_to_dt = []
+    extracted_log_counter = 0
     for event in events:
         timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
         if is_too_old(timestamp, self_monitoring, "event"):
@@ -114,6 +112,7 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
                 extracted_record = extract_dt_record(record, self_monitoring)
                 if extracted_record:
                     logs_to_be_sent_to_dt.append(extracted_record)
+                    extracted_log_counter += 1
             except JSONDecodeError as json_e:
                 self_monitoring.parsing_errors += 1
                 logging.exception(
@@ -124,7 +123,10 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
                 logging.exception(
                     f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
                     "log-record-parsing-exception")
-    return logs_to_be_sent_to_dt
+    if logs_to_be_sent_to_dt:
+            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
+            logs_to_be_sent_to_dt = []
+    return extracted_log_counter
 
 
 def extract_dt_record(record: Dict, self_monitoring: SelfMonitoring) -> Optional[Dict]:
