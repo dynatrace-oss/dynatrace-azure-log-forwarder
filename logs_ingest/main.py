@@ -49,26 +49,27 @@ log_filter = LogFilter()
 
 def main(events: List[func.EventHubEvent]):
     self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
-    events_length = len(events)
-    event_per_thread = events_length//4
-    end_of_first_pack = event_per_thread
-    end_of_second_pack = event_per_thread * 2
-    end_of_third_pack = event_per_thread * 3
+    process_logs(events, self_monitoring)
+    # events_length = len(events)
+    # event_per_thread = events_length//4
+    # end_of_first_pack = event_per_thread
+    # end_of_second_pack = event_per_thread * 2
+    # end_of_third_pack = event_per_thread * 3
 
-    first_thread = threading.Thread(target=process_logs, args=(events[:end_of_first_pack],self_monitoring,))
-    second_thread = threading.Thread(target=process_logs, args=(events[end_of_first_pack:end_of_second_pack],self_monitoring,))
-    third_thread = threading.Thread(target=process_logs, args=(events[end_of_second_pack:end_of_third_pack],self_monitoring,))
-    fourth_thread = threading.Thread(target=process_logs, args=(events[:events_length],self_monitoring,))
+    # first_thread = threading.Thread(target=process_logs, args=(events[:end_of_first_pack],self_monitoring,))
+    # second_thread = threading.Thread(target=process_logs, args=(events[end_of_first_pack:end_of_second_pack],self_monitoring,))
+    # third_thread = threading.Thread(target=process_logs, args=(events[end_of_second_pack:end_of_third_pack],self_monitoring,))
+    # fourth_thread = threading.Thread(target=process_logs, args=(events[:events_length],self_monitoring,))
 
-    first_thread.start()
-    second_thread.start()
-    third_thread.start()
-    fourth_thread.start()
+    # first_thread.start()
+    # second_thread.start()
+    # third_thread.start()
+    # fourth_thread.start()
 
-    first_thread.join()
-    second_thread.join()
-    third_thread.join()
-    fourth_thread.join()
+    # first_thread.join()
+    # second_thread.join()
+    # third_thread.join()
+    # fourth_thread.join()
 
 def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     try:
