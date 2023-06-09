@@ -11,5 +11,18 @@
   "extensionBundle": {
     "id": "Microsoft.Azure.Functions.ExtensionBundle",
     "version": "[1.*, 3.0.0)"
-  }
+  },
+   "extensions": {
+        "eventHubs": {
+          "batchCheckpointFrequency": 10,
+          "eventProcessorOptions": {
+                "maxBatchSize": 20,
+                "prefetchCount": 600
+            },
+            "initialOffsetOptions": {
+                "type": "fromEnd",
+                "enqueuedTimeUtc": ""
+            }
+        }
+    }
 }
