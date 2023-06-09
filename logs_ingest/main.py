@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import asyncio
 import json
 import os
 import time
@@ -20,6 +19,7 @@ from datetime import datetime, timezone
 from json import JSONDecodeError
 from typing import List, Dict, Optional
 import re
+import threading
 
 import azure.functions as func
 from dateutil import parser
@@ -49,8 +49,26 @@ log_filter = LogFilter()
 
 def main(events: List[func.EventHubEvent]):
     self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
-    process_logs(events, self_monitoring)
+    events_length = len(events)
+    event_per_thread = events_length//4
+    end_of_first_pack = event_per_thread
+    end_of_second_pack = event_per_thread * 2
+    end_of_third_pack = event_per_thread * 3
 
+    first_thread = threading.Thread(target=process_logs, args=(events[:end_of_first_pack],self_monitoring,))
+    second_thread = threading.Thread(target=process_logs, args=(events[end_of_first_pack:end_of_second_pack],self_monitoring,))
+    third_thread = threading.Thread(target=process_logs, args=(events[end_of_second_pack:end_of_third_pack],self_monitoring,))
+    fourth_thread = threading.Thread(target=process_logs, args=(events[:events_length],self_monitoring,))
+
+    first_thread.start()
+    second_thread.start()
+    third_thread.start()
+    fourth_thread.start()
+
+    first_thread.join()
+    second_thread.join()
+    third_thread.join()
+    fourth_thread.join()
 
 def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     try:
@@ -65,7 +83,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
 
         if logs_to_be_sent_to_dt:
-            asyncio.run(send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring))
+            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
