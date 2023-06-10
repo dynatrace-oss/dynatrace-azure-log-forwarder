@@ -1,4 +1,19 @@
+#   Copyright 2021 Dynatrace LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 import time
@@ -6,7 +21,6 @@ from datetime import datetime, timezone
 from json import JSONDecodeError
 from typing import List, Dict, Optional
 import re
-import multiprocessing
 
 import azure.functions as func
 from dateutil import parser
@@ -45,10 +59,21 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         logging.throttling_counter.reset_throttling_counter()
 
         start_time = time.perf_counter()
-
-        asyncio.run(extract_and_send_logs(events, self_monitoring))
+        
+        with ThreadPoolExecutor() as executor:
+            loop = asyncio.get_event_loop()
+            tasks = [
+                loop.run_in_executor(executor, extract_logs, event, self_monitoring)
+                for event in events
+            ]
+            parsed_logs = loop.run_until_complete(asyncio.gather(*tasks))
+            logs_to_be_sent_to_dt = [log for log_list in parsed_logs for log in log_list]
 
         self_monitoring.processing_time = time.perf_counter() - start_time
+        logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
+
+        if logs_to_be_sent_to_dt:
+            asyncio.run(send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring))
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
@@ -59,37 +84,37 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
             self_monitoring.push_time_series_to_azure()
 
 
-async def extract_and_send_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
-    logs_to_be_sent_to_dt = []
-
-    async with multiprocessing.Pool() as pool:
-        extracted_logs = await asyncio.gather(
-            *[extract_log(event, self_monitoring, pool) for event in events]
-        )
-        logs_to_be_sent_to_dt = [log for log in extracted_logs if log is not None]
-
-    logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
-
-    if logs_to_be_sent_to_dt:
-        await send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
-
-
-def extract_log(event: func.EventHubEvent, self_monitoring: SelfMonitoring, pool: multiprocessing.Pool):
-    event_body = event.get_body().decode('utf-8')
-    event_json = parse_to_json(event_body)
-    records = event_json.get("records", [])
-
-    extracted_logs = pool.map(
-        lambda record: extract_dt_record(record, self_monitoring),
-        records
-    )
-
-    return next((log for log in extracted_logs if log is not None), None)
-
-
 def verify_dt_access_params_provided():
     if DYNATRACE_URL not in os.environ.keys() or DYNATRACE_ACCESS_KEY not in os.environ.keys():
         raise Exception(f"Please set {DYNATRACE_URL} and {DYNATRACE_ACCESS_KEY} in application settings")
+
+
+def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
+    logs_to_be_sent_to_dt = []
+    for event in events:
+        timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
+        if is_too_old(timestamp, self_monitoring, "event"):
+            continue
+
+        event_body = event.get_body().decode('utf-8')
+        event_json = parse_to_json(event_body)
+        records = event_json.get("records", [])
+        for record in records:
+            try:
+                extracted_record = extract_dt_record(record, self_monitoring)
+                if extracted_record:
+                    logs_to_be_sent_to_dt.append(extracted_record)
+            except JSONDecodeError as json_e:
+                self_monitoring.parsing_errors += 1
+                logging.exception(
+                    f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
+                    "log-record-parsing-jsondecode-exception")
+            except Exception as e:
+                self_monitoring.parsing_errors += 1
+                logging.exception(
+                    f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
+                    "log-record-parsing-exception")
+    return logs_to_be_sent_to_dt
 
 
 def extract_dt_record(record: Dict, self_monitoring: SelfMonitoring) -> Optional[Dict]:
@@ -130,55 +155,56 @@ def deserialize_properties(record: Dict):
 
 
 def parse_record(record: Dict, self_monitoring: SelfMonitoring):
-    record["cloud.provider"] = "Azure"
-    extract_severity(record, record)
-    extract_cloud_log_forwarder(record)
+    parsed_record = {
+        "cloud.provider": "Azure"
+    }
+    extract_severity(record, parsed_record)
+    extract_cloud_log_forwarder(parsed_record)
 
     if "resourceId" in record:
-        extract_resource_id_attributes(record, record["resourceId"])
+        extract_resource_id_attributes(parsed_record, record["resourceId"])
 
-    if log_filter.should_filter_out_record(record):
+    if log_filter.should_filter_out_record(parsed_record):
         return None
 
-    metadata_engine.apply(record, record)
-    convert_date_format(record)
+    metadata_engine.apply(record, parsed_record)
+    convert_date_format(parsed_record)
     category = record.get("category", "").lower()
-    infer_monitored_entity_id(category, record)
+    infer_monitored_entity_id(category, parsed_record)
 
-    for attribute_key, attribute_value in record.items():
+    for attribute_key, attribute_value in parsed_record.items():
         if attribute_key not in ["content", "severity", "timestamp"] and attribute_value:
             string_attribute_value = attribute_value
             if not isinstance(attribute_value, str):
                 string_attribute_value = str(attribute_value)
-            record[attribute_key] = string_attribute_value[: attribute_value_length_limit]
+            parsed_record[attribute_key] = string_attribute_value[: attribute_value_length_limit]
 
-    content = record.get("content", "")
-    if len(content) > content_length_limit:
-        record["content"] = f"{content[: content_length_limit - len(DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED)]}{DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED}"
-
-    return record
-
-
-def extract_cloud_log_forwarder(record: Dict):
-    if not record.get("cloud.log.forwarder"):
-        record["cloud.log.forwarder"] = cloud_log_forwarder
-
-
-def convert_date_format(record: Dict):
-    timestamp = record.get("timestamp", "")
-    if isinstance(timestamp, str):
-        try:
-            parsed_timestamp = parser.parse(timestamp)
-            formatted_timestamp = parsed_timestamp.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
-            record["timestamp"] = formatted_timestamp
-        except Exception:
-            logging.exception(f"Failed to parse timestamp {timestamp}", "timestamp-parsing-exception")
-            record["timestamp"] = timestamp
+    content = parsed_record.get("content", None)
+    if content:
+        if not isinstance(content, str):
+            parsed_record["content"] = json.dumps(parsed_record["content"])
+        if len(parsed_record["content"]) > content_length_limit:
+            self_monitoring.too_long_content_size.append(len(parsed_record["content"]))
+            trimmed_len = content_length_limit - len(DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED)
+            parsed_record["content"] = parsed_record["content"][
+                                       :trimmed_len] + DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED
+    return parsed_record
 
 
-def parse_to_json(json_str: str) -> Optional[Dict]:
+def extract_cloud_log_forwarder(parsed_record):
+    if cloud_log_forwarder:
+        parsed_record["cloud.log_forwarder"] = cloud_log_forwarder
+
+
+def parse_to_json(text):
     try:
-        return json.loads(json_str)
-    except JSONDecodeError:
-        logging.exception("Failed to parse JSON string", "json-parsing-exception")
-        return None
+        event_json = json.loads(text)
+    except Exception:
+        event_json = json.loads(text.replace("\'", "\""))
+    return event_json
+
+
+def convert_date_format(record):
+    timestamp = record.get("timestamp", None)
+    if timestamp and re.findall('[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}', timestamp):
+        record["timestamp"] = str(datetime.strptime(timestamp, '%m/%d/%Y %H:%M:%S').isoformat()) + "Z"
