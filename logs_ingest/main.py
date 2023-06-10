@@ -47,10 +47,23 @@ DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED = "[TRUNCATED]"
 metadata_engine = MetadataEngine()
 log_filter = LogFilter()
 
+def divide_into_blocks(events, num_blocks):
+    # Divide events into equal blocks
+    block_size = len(events) // num_blocks
+    blocks = [events[i:i+block_size] for i in range(0, len(events), block_size)]
+    return blocks
 
 def main(events: List[func.EventHubEvent]):
     self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
-    process_logs(events, self_monitoring)
+    blocks = divide_into_blocks(events, 4)
+    # Create a ThreadPoolExecutor with maximum four threads
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        # Submit each block for processing
+        futures = [executor.submit(process_logs, block, self_monitoring) for block in blocks]
+
+        # Wait for all tasks to complete
+        for future in futures:
+            future.result()
 
 
 def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
@@ -82,77 +95,32 @@ def verify_dt_access_params_provided():
         raise Exception(f"Please set {DYNATRACE_URL} and {DYNATRACE_ACCESS_KEY} in application settings")
 
 
-# def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
-#     logs_to_be_sent_to_dt = []
-#     for event in events:
-#         timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
-#         if is_too_old(timestamp, self_monitoring, "event"):
-#             continue
-
-#         event_body = event.get_body().decode('utf-8')
-#         event_json = parse_to_json(event_body)
-#         records = event_json.get("records", [])
-#         for record in records:
-#             try:
-#                 extracted_record = extract_dt_record(record, self_monitoring)
-#                 if extracted_record:
-#                     logs_to_be_sent_to_dt.append(extracted_record)
-#             except JSONDecodeError as json_e:
-#                 self_monitoring.parsing_errors += 1
-#                 logging.exception(
-#                     f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
-#                     "log-record-parsing-jsondecode-exception")
-#             except Exception as e:
-#                 self_monitoring.parsing_errors += 1
-#                 logging.exception(
-#                     f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
-#                     "log-record-parsing-exception")
-#     return logs_to_be_sent_to_dt
-
-
 def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     logs_to_be_sent_to_dt = []
-    
-    # Create a ThreadPoolExecutor with a suitable number of worker threads
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        # Submit each event processing task to the executor
-        future_tasks = [executor.submit(process_event, event, self_monitoring) for event in events]
+    for event in events:
+        timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
+        if is_too_old(timestamp, self_monitoring, "event"):
+            continue
 
-        # Iterate over the completed tasks and collect the extracted records
-        for future in future_tasks:
-            extracted_record = future.result()
-            if extracted_record:
-                logs_to_be_sent_to_dt.append(extracted_record)
-
+        event_body = event.get_body().decode('utf-8')
+        event_json = parse_to_json(event_body)
+        records = event_json.get("records", [])
+        for record in records:
+            try:
+                extracted_record = extract_dt_record(record, self_monitoring)
+                if extracted_record:
+                    logs_to_be_sent_to_dt.append(extracted_record)
+            except JSONDecodeError as json_e:
+                self_monitoring.parsing_errors += 1
+                logging.exception(
+                    f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
+                    "log-record-parsing-jsondecode-exception")
+            except Exception as e:
+                self_monitoring.parsing_errors += 1
+                logging.exception(
+                    f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
+                    "log-record-parsing-exception")
     return logs_to_be_sent_to_dt
-
-
-def process_event(event: func.EventHubEvent, self_monitoring: SelfMonitoring):
-    timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
-    if is_too_old(timestamp, self_monitoring, "event"):
-        return None
-
-    event_body = event.get_body().decode('utf-8')
-    event_json = parse_to_json(event_body)
-    records = event_json.get("records", [])
-    extracted_records = []
-    for record in records:
-        try:
-            extracted_record = extract_dt_record(record, self_monitoring)
-            if extracted_record:
-                extracted_records.append(extracted_record)
-        except JSONDecodeError as json_e:
-            self_monitoring.parsing_errors += 1
-            logging.exception(
-                f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
-                "log-record-parsing-jsondecode-exception")
-        except Exception as e:
-            self_monitoring.parsing_errors += 1
-            logging.exception(
-                f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
-                "log-record-parsing-exception")
-
-    return extracted_records
 
 
 def extract_dt_record(record: Dict, self_monitoring: SelfMonitoring) -> Optional[Dict]:
