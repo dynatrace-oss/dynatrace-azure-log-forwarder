@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from json import JSONDecodeError
 from typing import List, Dict, Optional
 import re
+import multiprocessing
 
 import azure.functions as func
 from dateutil import parser
@@ -83,31 +84,33 @@ def verify_dt_access_params_provided():
 
 def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     logs_to_be_sent_to_dt = []
-    for event in events:
-        timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
-        if is_too_old(timestamp, self_monitoring, "event"):
-            continue
-
-        event_body = event.get_body().decode('utf-8')
-        event_json = parse_to_json(event_body)
-        records = event_json.get("records", [])
-        for record in records:
-            try:
-                extracted_record = extract_dt_record(record, self_monitoring)
-                if extracted_record:
-                    logs_to_be_sent_to_dt.append(extracted_record)
-            except JSONDecodeError as json_e:
-                self_monitoring.parsing_errors += 1
-                logging.exception(
-                    f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
-                    "log-record-parsing-jsondecode-exception")
-            except Exception as e:
-                self_monitoring.parsing_errors += 1
-                logging.exception(
-                    f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
-                    "log-record-parsing-exception")
+    with multiprocessing.Pool() as pool:
+        logs_to_be_sent_to_dt = pool.map(extract_log,  [(event, self_monitoring) for event in events])
     return logs_to_be_sent_to_dt
 
+def extract_log(event: func.EventHubEvent, self_monitoring: SelfMonitoring):
+    # timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
+    # if is_too_old(timestamp, self_monitoring, "event"):
+    #     continue
+
+    event_body = event.get_body().decode('utf-8')
+    event_json = parse_to_json(event_body)
+    records = event_json.get("records", [])
+    for record in records:
+        try:
+            extracted_record = extract_dt_record(record, self_monitoring)
+            if extracted_record:
+                return extracted_record
+        except JSONDecodeError as json_e:
+            self_monitoring.parsing_errors += 1
+            logging.exception(
+                f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
+                "log-record-parsing-jsondecode-exception")
+        except Exception as e:
+            self_monitoring.parsing_errors += 1
+            logging.exception(
+                f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
+                "log-record-parsing-exception")
 
 def extract_dt_record(record: Dict, self_monitoring: SelfMonitoring) -> Optional[Dict]:
     deserialize_properties(record)
