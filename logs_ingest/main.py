@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from json import JSONDecodeError
 from typing import List, Dict, Optional
 import re
-from multiprocessing import Process
+
 import azure.functions as func
 from dateutil import parser
 
@@ -49,32 +49,6 @@ log_filter = LogFilter()
 
 def main(events: List[func.EventHubEvent]):
     self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
-    events_length = len(events)
-    event_per_thread = events_length//4
-    end_of_first_pack = event_per_thread
-    end_of_second_pack = event_per_thread * 2
-    end_of_third_pack = event_per_thread * 3
-    
-    first_thread = Process(target=process_logs, args=(events[:end_of_first_pack],self_monitoring,))
-    second_thread = Process(target=process_logs, args=(events[end_of_first_pack:end_of_second_pack],self_monitoring,))
-    third_thread = Process(target=process_logs, args=(events[end_of_second_pack:end_of_third_pack],self_monitoring,))
-    fourth_thread = Process(target=process_logs, args=(events[:events_length],self_monitoring,))
-
-    first_thread.start()
-    second_thread.start()
-    third_thread.start()
-    fourth_thread.start()
-
-    first_thread.join()
-    second_thread.join()
-    third_thread.join()
-    fourth_thread.join()
-
-
-
-
-
-
     process_logs(events, self_monitoring)
 
 
