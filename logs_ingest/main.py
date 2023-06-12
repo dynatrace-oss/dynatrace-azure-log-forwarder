@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from concurrent.futures import ThreadPoolExecutor
+import asyncio
 import json
 import os
 import time
@@ -47,25 +47,9 @@ metadata_engine = MetadataEngine()
 log_filter = LogFilter()
 
 
-def divide_into_blocks(events, num_blocks):
-    # Divide events into equal blocks
-    block_size = len(events) // num_blocks
-    blocks = [events[i:i+block_size] for i in range(0, len(events), block_size)]
-    return blocks
-
 def main(events: List[func.EventHubEvent]):
     self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
-    blocks = divide_into_blocks(events, 4)
-    # Create a ThreadPoolExecutor with maximum four threads
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        # Submit each block for processing
-        futures = [executor.submit(process_logs, block, self_monitoring) for block in blocks]
-
-        # Wait for all tasks to complete
-        for future in futures:
-            future.result()
-
-
+    process_logs(events, self_monitoring)
 
 
 def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
@@ -81,7 +65,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
 
         if logs_to_be_sent_to_dt:
-            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
+            asyncio.run(send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring))
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
