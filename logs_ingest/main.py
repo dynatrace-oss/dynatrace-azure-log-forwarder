@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import json
 import os
@@ -47,6 +46,7 @@ DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED = "[TRUNCATED]"
 metadata_engine = MetadataEngine()
 log_filter = LogFilter()
 
+
 def divide_into_blocks(events, num_blocks):
     # Divide events into equal blocks
     block_size = len(events) // num_blocks
@@ -66,6 +66,8 @@ def main(events: List[func.EventHubEvent]):
             future.result()
 
 
+
+
 def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     try:
         verify_dt_access_params_provided()
@@ -79,7 +81,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
 
         if logs_to_be_sent_to_dt:
-            asyncio.run(send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring))
+            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
