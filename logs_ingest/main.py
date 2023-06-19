@@ -89,6 +89,7 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
             continue
 
         event_body = event.get_body().decode('utf-8')
+        print(f"eventBody: {event_body}")
         event_json = parse_to_json(event_body)
         records = event_json.get("records", [])
         for record in records:
