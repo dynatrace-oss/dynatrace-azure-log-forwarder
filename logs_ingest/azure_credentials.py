@@ -14,11 +14,11 @@
 
 from . import logging
 
-from azure.identity import ChainedTokenCredential, ManagedIdentityCredential, AzureCliCredential
+from azure.identity import ChainedTokenCredential, DefaultAzureCredential, AzureCliCredential
 
 
 def get_azure_token():
-    credential_chain = ChainedTokenCredential(ManagedIdentityCredential(), AzureCliCredential())
+    credential_chain = ChainedTokenCredential(DefaultAzureCredential(), AzureCliCredential())
     try:
         token = credential_chain.get_token("https://monitoring.azure.com//.default")
         return token.token
