@@ -193,7 +193,7 @@ def parse_to_json(text):
     try:
         event_json = json.loads(text)
     except Exception:
-        event_json = json.loads(text.replace("\'", "\""))
+        event_json = json.loads(text.replace("\'", "\""), strict=False)
     return event_json
 
 
