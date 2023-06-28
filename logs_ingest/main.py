@@ -190,6 +190,7 @@ def extract_cloud_log_forwarder(parsed_record):
 
 def parse_to_json(text):
     try:
+        print(f"Text to be parse ======== {text} *********")
         event_json = json.loads(text)
     except Exception:
         try:
