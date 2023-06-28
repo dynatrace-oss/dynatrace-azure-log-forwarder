@@ -194,6 +194,7 @@ def parse_to_json(text):
     except Exception:
         try:
             event_json = json.loads(text.replace("\'", "\""), strict=False)
+            print(f"Parsed event with strict mode off: {text}")
         except Exception:
             print(f"Failed to parse event: {text}")
     return event_json
