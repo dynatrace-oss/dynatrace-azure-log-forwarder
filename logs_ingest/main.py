@@ -187,22 +187,12 @@ def extract_cloud_log_forwarder(parsed_record):
     if cloud_log_forwarder:
         parsed_record["cloud.log_forwarder"] = cloud_log_forwarder
 
-
-# def parse_to_json(text):
-#     try:
-#         event_json = json.loads(text)
-#     except Exception:
-#         event_json = json.loads(text.replace("\'", "\""), strict=False)
-#     return event_json
-
 def parse_to_json(text):
     try:
-        # logging.info(f"Text to be parse ======== {text} *********")
         event_json = json.loads(text)
     except Exception:
         try:
-            event_json = json.loads(r"{}".format(text.replace("\'", "\"")), strict=False)
-            # logging.info(f"Parsed event with strict mode off: {text}")
+            event_json = json.loads(text.replace("\n", ""), strict=False)
         except Exception:
             logging.info(f"Failed to parse event: {text}")
             raise Exception
