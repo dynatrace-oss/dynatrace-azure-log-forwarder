@@ -192,6 +192,7 @@ def parse_to_json(text):
         event_json = json.loads(text)
     except Exception:
         try:
+            logging.info("exception-happened and being handled")
             event_json = json.loads(text.replace("\n", ""), strict=False)
         except Exception:
             logging.info(f"Failed to parse event: {text}")
