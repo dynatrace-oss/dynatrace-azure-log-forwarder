@@ -201,18 +201,11 @@ def extract_cloud_log_forwarder(parsed_record):
 
 def parse_to_json(text):
     try:
-        # logging.info(f"Text to be parse ======== {text} *********")
-        event_json = json.loads(text)
-    except Exception:
-        try:
-            logging.info("exception-happened and being handled")
-            event_json = json.loads(text.replace("\n", ""), strict=False)
-            raise Exception
-            # logging.info(f"Parsed event with strict mode off: {text}")
-        except Exception:
-            logging.info(f"Failed to parse event: {text}")
-            raise Exception
-    return event_json
+        event_json = json.loads(text.replace("\n", ""), strict=False)
+     except Exception:
+        logging.info(f"Failed to parse event: {text}")
+        raise Exception
+    #return event_json
 
 
 def convert_date_format(record):
