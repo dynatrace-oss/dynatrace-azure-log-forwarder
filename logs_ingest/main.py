@@ -205,7 +205,7 @@ def parse_to_json(text):
     except Exception:
         logging.info(f"Failed to parse event: {text}")
         raise Exception
-    #return event_json
+    return event_json
 
 
 def convert_date_format(record):
