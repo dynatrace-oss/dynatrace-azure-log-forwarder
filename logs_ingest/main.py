@@ -203,9 +203,9 @@ def extract_cloud_log_forwarder(parsed_record):
 def parse_to_json(text):
     try:
         event_json = json.loads(text.replace("\n", ""), strict=False)
+        raise Exception
     except Exception:
         logging.info(f"Failed to parse event: {text}")
-        raise Exception
     return event_json
 
 
