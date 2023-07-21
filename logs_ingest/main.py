@@ -212,6 +212,20 @@ def parse_to_json(text):
             raise Exception
     return event_json
 
+def parse_to_json(text):
+    try:
+        event_json = json.loads(text)
+    except Exception:
+        try:
+            event_json = json.loads(text.replace("\n", ""), strict=False)
+        except Exception:
+            try:
+                event_json = json.loads(text.replace("\'", "\""))
+            except Exception:
+                logging.info(f"Failed to parse event: {text}")
+                raise Exception
+    return event_json
+
 
 def convert_date_format(record):
     timestamp = record.get("timestamp", None)
