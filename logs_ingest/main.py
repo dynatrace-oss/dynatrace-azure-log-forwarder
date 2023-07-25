@@ -104,7 +104,7 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         event_body = event.get_body().decode('utf-8')
         event_json = parse_to_json(event_body)
         records = event_json.get("records", [])
-         print(f"recordListLength: {len(records)}")
+        print(f"recordListLength: {len(records)}")
         for record in records:
             try:
                 extracted_record = extract_dt_record(record, self_monitoring)
