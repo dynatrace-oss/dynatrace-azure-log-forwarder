@@ -53,7 +53,7 @@ def main(events: List[func.EventHubEvent]):
 
 
 def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
-    print(f"eventLength: {events.length}")
+    print(f"eventLength: {len(events)}")
     try:
         verify_dt_access_params_provided()
         logging.throttling_counter.reset_throttling_counter()
