@@ -63,10 +63,10 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
 
         start_time = time.perf_counter()
 
-        start1 = time.time()
+        # start1 = time.time()
         logs_to_be_sent_to_dt = extract_logs(events, self_monitoring)
-        end = time.time()
-        print(f"Time spent for extract_logs: {end - start1}")
+        # end = time.time()
+        # print(f"Time spent for extract_logs: {end - start1}")
 
         self_monitoring.processing_time = time.perf_counter() - start_time
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
@@ -110,7 +110,7 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         event_body = event.get_body().decode('utf-8')
         event_json = parse_to_json(event_body)
         records = event_json.get("records", [])
-        print(f"recordListLength: {len(records)}")
+        # print(f"recordListLength: {len(records)}")
 
         num_processes = multiprocessing.cpu_count()
         pool = multiprocessing.Pool(processes=num_processes)
