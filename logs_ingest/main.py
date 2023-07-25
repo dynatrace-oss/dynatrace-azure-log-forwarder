@@ -114,9 +114,10 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         num_processes = multiprocessing.cpu_count()
         pool = multiprocessing.Pool(processes=num_processes)
 
-        argument_tuples = [(record, self_monitoring) for record in records]
-
-        logs_to_be_sent_to_dt = pool.map(extract_dt_record, argument_tuples)
+        # Create a partial function with 'self_monitoring' bound to a specific value
+        extract_dt_partial = partial(extract_dt_record, self_monitoring=self_monitoring)
+    
+        logs_to_be_sent_to_dt = pool.map(extract_dt_partial, records)
         logs_to_be_sent_to_dt = [data for data in logs_to_be_sent_to_dt if data]
         
         # for record in records:
