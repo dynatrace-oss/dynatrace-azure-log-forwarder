@@ -62,10 +62,10 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
 
         start_time = time.perf_counter()
 
-        start = time.time()
+        start1 = time.time()
         logs_to_be_sent_to_dt = extract_logs(events, self_monitoring)
         end = time.time()
-        print(f"Time spent for extract_logs: {end - start}")
+        print(f"Time spent for extract_logs: {end - start1}")
 
         self_monitoring.processing_time = time.perf_counter() - start_time
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
