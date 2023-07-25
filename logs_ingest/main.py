@@ -113,7 +113,7 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         # print(f"recordListLength: {len(records)}")
 
         num_processes = multiprocessing.cpu_count()
-        pool = multiprocessing.Pool(processes=num_processes)
+        pool = multiprocessing.Pool(processes=8)
 
         # Create a partial function with 'self_monitoring' bound to a specific value
         extract_dt_partial = partial(extract_dt_record, self_monitoring=self_monitoring)
