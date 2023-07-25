@@ -34,6 +34,7 @@ from .monitored_entity_id import infer_monitored_entity_id
 from .self_monitoring import SelfMonitoring
 from .util import util_misc
 from .util.util_misc import get_int_environment_value
+from functools import partial
 
 record_age_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_MAX_RECORD_AGE", 3600 * 24)
 attribute_value_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_ATTRIBUTE_VALUE_MAX_LENGTH", 250)
