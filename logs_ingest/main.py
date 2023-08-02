@@ -99,30 +99,30 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         records = event_json.get("records", [])
         # print(f"recordListLength: {len(records)}")
 
-        # num_processes = multiprocessing.cpu_count()
-        # pool = multiprocessing.Pool(processes=num_processes)
+        num_processes = multiprocessing.cpu_count()
+        pool = multiprocessing.Pool(processes=num_processes)
 
         # Create a partial function with 'self_monitoring' bound to a specific value
-        # extract_dt_partial = partial(extract_dt_record, self_monitoring=self_monitoring)
+        extract_dt_partial = partial(extract_dt_record, self_monitoring=self_monitoring)
     
-        # logs_to_be_sent_to_dt = pool.map(extract_dt_partial, records)
-        # logs_to_be_sent_to_dt = [data for data in logs_to_be_sent_to_dt if data]
+        logs_to_be_sent_to_dt = pool.map(extract_dt_partial, records)
+        logs_to_be_sent_to_dt = [data for data in logs_to_be_sent_to_dt if data]
         
-        for record in records:
-            try:
-                extracted_record = extract_dt_record(record, self_monitoring)
-                if extracted_record:
-                    logs_to_be_sent_to_dt.append(extracted_record)
-            except JSONDecodeError as json_e:
-                self_monitoring.parsing_errors += 1
-                logging.exception(
-                    f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
-                    "log-record-parsing-jsondecode-exception")
-            except Exception as e:
-                self_monitoring.parsing_errors += 1
-                logging.exception(
-                    f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
-                    "log-record-parsing-exception")
+        # for record in records:
+        #     try:
+        #         extracted_record = extract_dt_record(record, self_monitoring)
+        #         if extracted_record:
+        #             logs_to_be_sent_to_dt.append(extracted_record)
+        #     except JSONDecodeError as json_e:
+        #         self_monitoring.parsing_errors += 1
+        #         logging.exception(
+        #             f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
+        #             "log-record-parsing-jsondecode-exception")
+        #     except Exception as e:
+        #         self_monitoring.parsing_errors += 1
+        #         logging.exception(
+        #             f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
+        #             "log-record-parsing-exception")
     return logs_to_be_sent_to_dt
 
 
