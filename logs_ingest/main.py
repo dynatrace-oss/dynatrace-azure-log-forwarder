@@ -46,12 +46,12 @@ metadata_engine = MetadataEngine()
 log_filter = LogFilter()
 
 
-def main(events: List[func.EventHubEvent]):
+async def main(events: List[func.EventHubEvent]):
     self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
     process_logs(events, self_monitoring)
 
 
-async def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
+def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     try:
         verify_dt_access_params_provided()
         logging.throttling_counter.reset_throttling_counter()
