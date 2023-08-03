@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import asyncio
 import json
 import os
 import time
@@ -47,12 +46,12 @@ metadata_engine = MetadataEngine()
 log_filter = LogFilter()
 
 
-async def main(events: List[func.EventHubEvent]):
+def main(events: List[func.EventHubEvent]):
     self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
     process_logs(events, self_monitoring)
 
 
-def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
+async def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     try:
         verify_dt_access_params_provided()
         logging.throttling_counter.reset_throttling_counter()
@@ -65,7 +64,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
 
         if logs_to_be_sent_to_dt:
-            asyncio.run(send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring))
+            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
@@ -187,18 +186,12 @@ def extract_cloud_log_forwarder(parsed_record):
     if cloud_log_forwarder:
         parsed_record["cloud.log_forwarder"] = cloud_log_forwarder
 
+
 def parse_to_json(text):
     try:
         event_json = json.loads(text)
     except Exception:
-        try:
-            event_json = json.loads(text.replace("\n", ""), strict=False)
-        except Exception:
-            try:
-                event_json = json.loads(text.replace("\'", "\""))
-            except Exception:
-                logging.info(f"Failed to parse event: {text}")
-                raise Exception
+        event_json = json.loads(text.replace("\'", "\""))
     return event_json
 
 
