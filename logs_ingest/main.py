@@ -105,7 +105,7 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
     # for event in events:
         
 
-def process_event(event, self_monitoring: SelfMonitoring):
+def process_event(event: func.EventHubEvent, self_monitoring: SelfMonitoring):
     logs_to_be_sent_to_dt = []
     timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
     if is_too_old(timestamp, self_monitoring, "event"):
