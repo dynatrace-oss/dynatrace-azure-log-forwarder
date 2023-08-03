@@ -90,41 +90,47 @@ def verify_dt_access_params_provided():
 
 def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     logs_to_be_sent_to_dt = []
-    for event in events:
-        timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
-        if is_too_old(timestamp, self_monitoring, "event"):
-            continue
-        event_body = event.get_body().decode('utf-8')
-        event_json = parse_to_json(event_body)
-        records = event_json.get("records", [])
-        # print(f"recordListLength: {len(records)}")
-
-        num_processes = multiprocessing.cpu_count()
-        pool = multiprocessing.Pool(processes=num_processes)
-
-        # Create a partial function with 'self_monitoring' bound to a specific value
-        extract_dt_partial = partial(extract_dt_record, self_monitoring=self_monitoring)
+    # print(f"recordListLength: {len(records)}")
     
-        logs_to_be_sent_to_dt = pool.map(extract_dt_partial, records)
-        logs_to_be_sent_to_dt = [data for data in logs_to_be_sent_to_dt if data]
-        
-        # for record in records:
-        #     try:
-        #         extracted_record = extract_dt_record(record, self_monitoring)
-        #         if extracted_record:
-        #             logs_to_be_sent_to_dt.append(extracted_record)
-        #     except JSONDecodeError as json_e:
-        #         self_monitoring.parsing_errors += 1
-        #         logging.exception(
-        #             f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
-        #             "log-record-parsing-jsondecode-exception")
-        #     except Exception as e:
-        #         self_monitoring.parsing_errors += 1
-        #         logging.exception(
-        #             f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
-        #             "log-record-parsing-exception")
-    return logs_to_be_sent_to_dt
+    num_processes = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=num_processes)
+    
+    # Create a partial function with 'self_monitoring' bound to a specific value
+    extract_dt_partial = partial(process_event, self_monitoring=self_monitoring)
+    
+    logs_to_be_sent_to_dt = pool.map(extract_dt_partial, events)
 
+    return logs_to_be_sent_to_dt
+    
+    # for event in events:
+        
+
+def process_event(event, self_monitoring: SelfMonitoring):
+    logs_to_be_sent_to_dt = []
+    timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
+    if is_too_old(timestamp, self_monitoring, "event"):
+        return
+    event_body = event.get_body().decode('utf-8')
+    event_json = parse_to_json(event_body)
+    records = event_json.get("records", [])
+    
+    for record in records:
+        try:
+            extracted_record = extract_dt_record(record, self_monitoring)
+            if extracted_record:
+                logs_to_be_sent_to_dt.append(extracted_record)
+        except JSONDecodeError as json_e:
+            self_monitoring.parsing_errors += 1
+            logging.exception(
+                f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
+                "log-record-parsing-jsondecode-exception")
+        except Exception as e:
+            self_monitoring.parsing_errors += 1
+            logging.exception(
+                f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
+                "log-record-parsing-exception")
+    return logs_to_be_sent_to_dt
+    
 
 def extract_dt_record(record: Dict, self_monitoring: SelfMonitoring) -> Optional[Dict]:
     deserialize_properties(record)
