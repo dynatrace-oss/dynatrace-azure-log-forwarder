@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import asyncio
 import json
 import os
 import time
@@ -19,6 +20,7 @@ from datetime import datetime, timezone
 from json import JSONDecodeError
 from typing import List, Dict, Optional
 import re
+import multiprocessing
 
 import azure.functions as func
 from dateutil import parser
@@ -32,6 +34,7 @@ from .monitored_entity_id import infer_monitored_entity_id
 from .self_monitoring import SelfMonitoring
 from .util import util_misc
 from .util.util_misc import get_int_environment_value
+from functools import partial
 
 record_age_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_MAX_RECORD_AGE", 3600 * 24)
 attribute_value_length_limit = get_int_environment_value("DYNATRACE_LOG_INGEST_ATTRIBUTE_VALUE_MAX_LENGTH", 250)
@@ -46,25 +49,30 @@ metadata_engine = MetadataEngine()
 log_filter = LogFilter()
 
 
-async def main(events: List[func.EventHubEvent]):
+def main(events: List[func.EventHubEvent]):
     self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
     process_logs(events, self_monitoring)
 
 
 def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
+    # print(f"eventLength: {len(events)}")
+    # print(f"cpuCount: {multiprocessing.cpu_count()}")
     try:
         verify_dt_access_params_provided()
         logging.throttling_counter.reset_throttling_counter()
 
         start_time = time.perf_counter()
 
+        # start1 = time.time()
         logs_to_be_sent_to_dt = extract_logs(events, self_monitoring)
+        # end = time.time()
+        # print(f"Time spent for extract_logs: {end - start1}")
 
         self_monitoring.processing_time = time.perf_counter() - start_time
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
 
         if logs_to_be_sent_to_dt:
-            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
+            asyncio.run(send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring))
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
@@ -82,29 +90,38 @@ def verify_dt_access_params_provided():
 
 def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     logs_to_be_sent_to_dt = []
+    num_processes = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=num_processes)
+
+    # Create a partial function with 'self_monitoring' bound to a specific value
+    extract_dt_partial = partial(extract_dt_record, self_monitoring=self_monitoring)
     for event in events:
         timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
         if is_too_old(timestamp, self_monitoring, "event"):
             continue
-
         event_body = event.get_body().decode('utf-8')
         event_json = parse_to_json(event_body)
         records = event_json.get("records", [])
-        for record in records:
-            try:
-                extracted_record = extract_dt_record(record, self_monitoring)
-                if extracted_record:
-                    logs_to_be_sent_to_dt.append(extracted_record)
-            except JSONDecodeError as json_e:
-                self_monitoring.parsing_errors += 1
-                logging.exception(
-                    f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
-                    "log-record-parsing-jsondecode-exception")
-            except Exception as e:
-                self_monitoring.parsing_errors += 1
-                logging.exception(
-                    f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
-                    "log-record-parsing-exception")
+        # print(f"recordListLength: {len(records)}")
+
+        logs_to_be_sent_to_dt = pool.map(extract_dt_partial, records)
+        logs_to_be_sent_to_dt = [data for data in logs_to_be_sent_to_dt if data]
+        
+        # for record in records:
+        #     try:
+        #         extracted_record = extract_dt_record(record, self_monitoring)
+        #         if extracted_record:
+        #             logs_to_be_sent_to_dt.append(extracted_record)
+        #     except JSONDecodeError as json_e:
+        #         self_monitoring.parsing_errors += 1
+        #         logging.exception(
+        #             f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
+        #             "log-record-parsing-jsondecode-exception")
+        #     except Exception as e:
+        #         self_monitoring.parsing_errors += 1
+        #         logging.exception(
+        #             f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
+        #             "log-record-parsing-exception")
     return logs_to_be_sent_to_dt
 
 
@@ -189,9 +206,28 @@ def extract_cloud_log_forwarder(parsed_record):
 
 def parse_to_json(text):
     try:
+        event_json = json.loads(text.replace("\n", ""), strict=False)
+    except Exception:
+        try:
+            event_json = json.loads(text.replace("\'", "\""))
+            logging.info("Happened but being handled")
+        except Exception:
+            logging.info(f"Failed to parse event: {text}")
+            raise Exception
+    return event_json
+
+def parse_to_json(text):
+    try:
         event_json = json.loads(text)
     except Exception:
-        event_json = json.loads(text.replace("\'", "\""))
+        try:
+            event_json = json.loads(text.replace("\n", ""), strict=False)
+        except Exception:
+            try:
+                event_json = json.loads(text.replace("\'", "\""))
+            except Exception:
+                logging.info(f"Failed to parse event: {text}")
+                raise Exception
     return event_json
 
 
