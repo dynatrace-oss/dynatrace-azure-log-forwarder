@@ -39,9 +39,33 @@ class SelfMonitoring:
         self.sent_log_entries: int = 0
         self.log_ingest_payload_size: float = 0
 
-    def all_requests_add(self, value):
+    def increase_too_old_records(self, value):
+        self.too_old_records += value
+        
+    def increase_parsing_errors(self, value):
+        self.parsing_errors += value
+        
+    def increase_all_requests(self, value):
         self.all_requests += value
-
+        
+    def append_too_long_content_size(self, value):
+        self.too_long_content_size.append(value)
+        
+    def append_dynatrace_connectivities(self, value):
+        self.dynatrace_connectivities.append(value)
+        
+    def set_processing_time(self, value):
+        self.processing_time = value
+        
+    def set_sending_time(self, value):
+        self.sending_time = value
+    
+    def increase_sent_log_entries(self, value):
+        self.sent_log_entries.append(value)
+        
+    def increase_log_ingest_payload_size(self, value):
+        self.log_ingest_payload_size += value
+        
     def log_self_monitoring_data(self):
         dynatrace_connectivity = Counter(self.dynatrace_connectivities)
         dynatrace_connectivity = [f"{connectivity.name}:{count}" for connectivity, count in
