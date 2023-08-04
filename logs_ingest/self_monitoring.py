@@ -39,6 +39,9 @@ class SelfMonitoring:
         self.sent_log_entries: int = 0
         self.log_ingest_payload_size: float = 0
 
+    def all_requests_add(self, value):
+        self.all_requests += value
+
     def log_self_monitoring_data(self):
         dynatrace_connectivity = Counter(self.dynatrace_connectivities)
         dynatrace_connectivity = [f"{connectivity.name}:{count}" for connectivity, count in
