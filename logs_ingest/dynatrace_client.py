@@ -62,8 +62,8 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
 
 
 async def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
-    logging.info('hello from _send_logs')
     self_monitoring.all_requests += 1
+    logging.info('hello from _send_logs')
     status, reason, response = _perform_http_request(
         method="POST",
         url=log_ingest_url,
