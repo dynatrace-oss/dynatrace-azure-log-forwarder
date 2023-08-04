@@ -73,6 +73,7 @@ async def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_m
             "Content-Type": "application/json; charset=utf-8"
         }
     )
+    logging.info(status)
     if status > 299:
         logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"',
                       "log-ingest-error")
