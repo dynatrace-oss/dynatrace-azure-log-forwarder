@@ -108,7 +108,7 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         event_json = parse_to_json(event_body)
         records = event_json.get("records", [])
         # print(f"recordListLength: {len(records)}")
-
+        results = []
         results = pool.map(extract_dt_partial, records)
         logs_to_be_sent_to_dt.extend([data for data in result if data])
         
