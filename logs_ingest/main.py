@@ -54,10 +54,11 @@ def main(events: List[func.EventHubEvent]):
     BaseManager.register('SelfMonitoring', SelfMonitoring)
     manager = BaseManager()
     manager.start()
-
-    self_monitoring = manager.SelfMonitoring(execution_time=datetime.utcnow())
-    process_logs(events, self_monitoring)
-
+    try:
+        self_monitoring = manager.SelfMonitoring(execution_time=datetime.utcnow())
+        process_logs(events, self_monitoring)
+    finally:
+        manager.shutdown()
 
 def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     # print(f"eventLength: {len(events)}")
