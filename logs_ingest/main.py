@@ -84,9 +84,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         raise e
     finally:
         self_monitoring_enabled = os.environ.get("SELF_MONITORING_ENABLED", "False") in ["True", "true"]
-        logging.info('before logging self-monitoring data')
         self_monitoring.log_self_monitoring_data()
-        logging.info('after logging self-monitoring data')
         if self_monitoring_enabled:
             self_monitoring.push_time_series_to_azure()
 
