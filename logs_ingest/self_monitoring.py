@@ -72,7 +72,7 @@ class SelfMonitoring:
         #                           dynatrace_connectivity.items()]
         # dynatrace_connectivity = ", ".join(dynatrace_connectivity)
         logging.info(f"SFM Number of all log ingest requests sent to Dynatrace: {self.all_requests}")
-        logging.info(f"SFM Dynatrace connectivity: {dynatrace_connectivity}")
+        logging.info(f"SFM Dynatrace connectivity")
         logging.info(f"SFM Number of invalid log records due to too old timestamp: {self.too_old_records}")
         logging.info(f"SFM Number of errors occurred during parsing logs: {self.parsing_errors}")
         logging.info(f"SFM Number of records with too long content: {len(self.too_long_content_size)}")
