@@ -67,10 +67,10 @@ class SelfMonitoring:
         self.log_ingest_payload_size += value
         
     def log_self_monitoring_data(self):
-        dynatrace_connectivity = Counter(self.dynatrace_connectivities)
-        dynatrace_connectivity = [f"{connectivity.name}:{count}" for connectivity, count in
-                                  dynatrace_connectivity.items()]
-        dynatrace_connectivity = ", ".join(dynatrace_connectivity)
+        # dynatrace_connectivity = Counter(self.dynatrace_connectivities)
+        # dynatrace_connectivity = [f"{connectivity.name}:{count}" for connectivity, count in
+        #                           dynatrace_connectivity.items()]
+        # dynatrace_connectivity = ", ".join(dynatrace_connectivity)
         logging.info(f"SFM Number of all log ingest requests sent to Dynatrace: {self.all_requests}")
         logging.info(f"SFM Dynatrace connectivity: {dynatrace_connectivity}")
         logging.info(f"SFM Number of invalid log records due to too old timestamp: {self.too_old_records}")
