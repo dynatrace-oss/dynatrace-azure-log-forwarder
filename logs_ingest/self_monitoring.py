@@ -67,21 +67,19 @@ class SelfMonitoring:
         self.log_ingest_payload_size += value
         
     def log_self_monitoring_data(self):
-        # dynatrace_connectivity = Counter(self.dynatrace_connectivities)
-        # dynatrace_connectivity = [f"{connectivity.name}:{count}" for connectivity, count in
-        #                           dynatrace_connectivity.items()]
-        # dynatrace_connectivity = ", ".join(dynatrace_connectivity)
-        print("hello from log_self_monitoring_data")
-        logging.warning('Another hello from log_self_monitoring_data', "test-warning")
-        logging.info(f"SFM Number of all log ingest requests sent to Dynatrace: {self.all_requests}")
-        logging.info(f"SFM Dynatrace connectivity")
-        logging.info(f"SFM Number of invalid log records due to too old timestamp: {self.too_old_records}")
-        logging.info(f"SFM Number of errors occurred during parsing logs: {self.parsing_errors}")
-        logging.info(f"SFM Number of records with too long content: {len(self.too_long_content_size)}")
-        logging.info(f"SFM Number of sent logs entries: {self.sent_log_entries}")
-        logging.info(f"SFM Log ingest payload size [kB]: {self.log_ingest_payload_size}")
-        logging.info(f"SFM Total logs processing time [s]: {self.processing_time}")
-        logging.info(f"SFM Total logs sending time [s]: {self.sending_time}")
+        dynatrace_connectivity = Counter(self.dynatrace_connectivities)
+        dynatrace_connectivity = [f"{connectivity.name}:{count}" for connectivity, count in
+                                  dynatrace_connectivity.items()]
+        dynatrace_connectivity = ", ".join(dynatrace_connectivity)
+        print(f"SFM Number of all log ingest requests sent to Dynatrace: {self.all_requests}")
+        print(f"SFM Dynatrace connectivity")
+        print(f"SFM Number of invalid log records due to too old timestamp: {self.too_old_records}")
+        print(f"SFM Number of errors occurred during parsing logs: {self.parsing_errors}")
+        print(f"SFM Number of records with too long content: {len(self.too_long_content_size)}")
+        print(f"SFM Number of sent logs entries: {self.sent_log_entries}")
+        print(f"SFM Log ingest payload size [kB]: {self.log_ingest_payload_size}")
+        print(f"SFM Total logs processing time [s]: {self.processing_time}")
+        print(f"SFM Total logs sending time [s]: {self.sending_time}")
 
     def push_time_series_to_azure(self):
         azure_token = get_azure_token()
