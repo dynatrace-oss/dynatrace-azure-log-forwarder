@@ -61,7 +61,7 @@ class SelfMonitoring:
         self.sending_time = value
     
     def increase_sent_log_entries(self, value):
-        self.sent_log_entries.append(value)
+        self.sent_log_entries += value
         
     def increase_log_ingest_payload_size(self, value):
         self.log_ingest_payload_size += value
