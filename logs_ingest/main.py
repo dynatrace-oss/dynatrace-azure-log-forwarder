@@ -21,6 +21,7 @@ from json import JSONDecodeError
 from typing import List, Dict, Optional
 import re
 import multiprocessing
+from multiprocessing.managers import BaseManager
 
 import azure.functions as func
 from dateutil import parser
@@ -50,7 +51,11 @@ log_filter = LogFilter()
 
 
 def main(events: List[func.EventHubEvent]):
-    self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
+    BaseManager.register('SelfMonitoring', SelfMonitoring)
+    manager = BaseManager()
+    manager.start()
+
+    self_monitoring = manager.SelfMonitoring(execution_time=datetime.utcnow())
     process_logs(events, self_monitoring)
 
 
