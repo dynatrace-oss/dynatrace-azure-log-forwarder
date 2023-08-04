@@ -73,7 +73,7 @@ async def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_m
             "Content-Type": "application/json; charset=utf-8"
         }
     )
-    logging.info(status)
+    logging.info(response)
     if status > 299:
         logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"',
                       "log-ingest-error")
@@ -92,6 +92,7 @@ async def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_m
             self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.Other)
             raise HTTPError(log_ingest_url, 500, "Dynatrace server error", "", "")
     else:
+        logging.info('else block')
         self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.Ok)
         logging.info("Log ingest payload pushed successfully")
         sent = True
