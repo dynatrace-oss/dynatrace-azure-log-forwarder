@@ -127,6 +127,8 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         #         logging.exception(
         #             f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
         #             "log-record-parsing-exception")
+    pool.close()
+    pool.join()
     return logs_to_be_sent_to_dt
 
 
