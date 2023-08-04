@@ -53,6 +53,7 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
         except HTTPError as e:
             raise e
         finally:
+            logging.info('Hello from finally')
             self_monitoring.sending_time = time.perf_counter() - start_time
             if sent:
                 self_monitoring.log_ingest_payload_size += display_payload_size
@@ -61,6 +62,7 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
 
 
 async def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
+    logging.info('hello from _send_logs')
     self_monitoring.all_requests += 1
     status, reason, response = _perform_http_request(
         method="POST",
