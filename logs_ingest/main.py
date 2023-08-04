@@ -110,7 +110,7 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         # print(f"recordListLength: {len(records)}")
         results = []
         results = pool.map(extract_dt_partial, records)
-        logs_to_be_sent_to_dt.extend([data for data in result if data])
+        logs_to_be_sent_to_dt.extend([data for data in results if data])
         
         # for record in records:
         #     try:
