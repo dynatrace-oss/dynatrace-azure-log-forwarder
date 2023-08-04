@@ -74,7 +74,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         # end = time.time()
         # print(f"Time spent for extract_logs: {end - start1}")
 
-        self_monitoring.processing_time = time.perf_counter() - start_time
+        self_monitoring.set_processing_time(time.perf_counter() - start_time)
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
 
         if logs_to_be_sent_to_dt:
@@ -154,12 +154,12 @@ def is_too_old(timestamp: str, self_monitoring: SelfMonitoring, log_part: str):
             # LINT won't accept any log line older than one day, 60 seconds of margin to send
             if (datetime.now(timezone.utc) - date).total_seconds() > (record_age_limit - 60):
                 logging.info(f"Skipping too old {log_part} with timestamp '{timestamp}'")
-                self_monitoring.too_old_records += 1
+                self_monitoring.increase_too_old_records(1)
                 return True
         except Exception:
             # Not much we can do when we can't parse the timestamp
             logging.exception(f"Failed to parse timestamp {timestamp}", "timestamp-parsing-exception")
-            self_monitoring.parsing_errors += 1
+            self_monitoring.increase_parsing_errors(1)
     return False
 
 
@@ -200,7 +200,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
         if not isinstance(content, str):
             parsed_record["content"] = json.dumps(parsed_record["content"])
         if len(parsed_record["content"]) > content_length_limit:
-            self_monitoring.too_long_content_size.append(len(parsed_record["content"]))
+            self_monitoring.append_too_long_content_size(len(parsed_record["content"]))
             trimmed_len = content_length_limit - len(DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED)
             parsed_record["content"] = parsed_record["content"][
                                        :trimmed_len] + DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED
@@ -210,19 +210,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
 def extract_cloud_log_forwarder(parsed_record):
     if cloud_log_forwarder:
         parsed_record["cloud.log_forwarder"] = cloud_log_forwarder
-
-
-def parse_to_json(text):
-    try:
-        event_json = json.loads(text.replace("\n", ""), strict=False)
-    except Exception:
-        try:
-            event_json = json.loads(text.replace("\'", "\""))
-            logging.info("Happened but being handled")
-        except Exception:
-            logging.info(f"Failed to parse event: {text}")
-            raise Exception
-    return event_json
+        
 
 def parse_to_json(text):
     try:
