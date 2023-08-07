@@ -53,20 +53,20 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
             raise e
         except Exception as e:
             logging.exception("Failed to ingest logs", "ingesting-logs-exception")
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
+            self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.Other)
             number_of_http_errors += 1
             # all http requests failed and this is the last batch, raise this exception to trigger retry
             if number_of_http_errors == len(batches):
                 raise e
         finally:
-            self_monitoring.sending_time = time.perf_counter() - start_time
+            self_monitoring.set_sending_time(time.perf_counter() - start_time)
             if sent:
-                self_monitoring.log_ingest_payload_size += display_payload_size
-                self_monitoring.sent_log_entries += number_of_logs_in_batch
+                self_monitoring.increase_log_ingest_payload_size(display_payload_size)
+                self_monitoring.increase_sent_log_entries(number_of_logs_in_batch)
 
 
 def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
-    self_monitoring.all_requests += 1
+    self_monitoring.increase_all_requests(1)
     status, reason, response = _perform_http_request(
         method="POST",
         url=log_ingest_url,
@@ -80,21 +80,21 @@ def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitor
         logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"',
                       "log-ingest-error")
         if status == 400:
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.InvalidInput)
+            self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.InvalidInput)
         elif status == 401:
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.ExpiredToken)
+            self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.ExpiredToken)
         elif status == 403:
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongToken)
+            self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.WrongToken)
         elif status in (404, 405):
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.WrongURL)
+            self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.WrongURL)
         elif status in (413, 429):
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.TooManyRequests)
+            self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.TooManyRequests)
             raise HTTPError(log_ingest_url, 429, "Dynatrace throttling response", "", "")
         elif status == 500:
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
+            self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.Other)
             raise HTTPError(log_ingest_url, 500, "Dynatrace server error", "", "")
     else:
-        self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
+        self_monitoring.append_dynatrace_connectivities(DynatraceConnectivity.Ok)
         logging.info("Log ingest payload pushed successfully")
         sent = True
     return sent
