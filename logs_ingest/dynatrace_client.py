@@ -78,7 +78,7 @@ def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitor
         }
     )
     end = time.time()
-    print(f"Time spent for single_batch: {end - start1}")
+    print(f"Time spent for single_batch in streaming: {end - start1}")
     if status > 299:
         logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"',
                       "log-ingest-error")
