@@ -78,7 +78,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
 
         if logs_to_be_sent_to_dt:
             start1 = time.time()
-            asyncio.run(send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring))
+            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
             end = time.time()
             print(f"Time spent for send_logs: {end - start1}")
     except Exception as e:
