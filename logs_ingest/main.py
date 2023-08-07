@@ -76,11 +76,11 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         self_monitoring.set_processing_time(time.perf_counter() - start_time)
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
 
-        if logs_to_be_sent_to_dt:
-            start1 = time.time()
-            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
-            end = time.time()
-            print(f"Time spent for send_logs: {end - start1}")
+        # if logs_to_be_sent_to_dt:
+        #     start1 = time.time()
+        #     send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
+        #     end = time.time()
+        #     print(f"Time spent for send_logs: {end - start1}")
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
@@ -146,6 +146,7 @@ def extract_dt_record(record: Dict, self_monitoring: SelfMonitoring) -> Optional
     if is_too_old(timestamp, self_monitoring, "record"):
         return None
 
+    send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], [parsed_record], self_monitoring)
     return parsed_record
 
 
