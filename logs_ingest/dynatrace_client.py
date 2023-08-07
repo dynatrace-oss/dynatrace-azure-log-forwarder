@@ -67,6 +67,7 @@ def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_m
 
 def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
     self_monitoring.increase_all_requests(1)
+    start1 = time.time()
     status, reason, response = _perform_http_request(
         method="POST",
         url=log_ingest_url,
@@ -76,6 +77,8 @@ def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitor
             "Content-Type": "application/json; charset=utf-8"
         }
     )
+    end = time.time()
+    print(f"Time spent for single_batch: {end - start1}")
     if status > 299:
         logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"',
                       "log-ingest-error")
