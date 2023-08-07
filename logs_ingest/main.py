@@ -97,7 +97,7 @@ def verify_dt_access_params_provided():
 def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
     logs_to_be_sent_to_dt = []
     num_processes = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(processes=num_processes*2)
+    pool = multiprocessing.Pool(processes=num_processes)
 
     # Create a partial function with 'self_monitoring' bound to a specific value
     extract_dt_partial = partial(extract_dt_record, self_monitoring=self_monitoring)
