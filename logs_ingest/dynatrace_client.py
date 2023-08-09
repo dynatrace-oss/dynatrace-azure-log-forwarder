@@ -17,6 +17,7 @@ import os
 import ssl
 import time
 import urllib
+import concurrent.futures
 from typing import List, Dict, Tuple
 from urllib.error import HTTPError
 from urllib.parse import urlparse
@@ -34,38 +35,44 @@ if not should_verify_ssl_certificate:
 
 
 def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
-    # pylint: disable=R0912
     start_time = time.perf_counter()
     log_ingest_url = urlparse(dynatrace_url.rstrip("/") + "/api/v2/logs/ingest").geturl()
     batches = prepare_serialized_batches(logs)
 
-    number_of_http_errors = 0
-    for batch in batches:
-        batch_logs = batch[0]
-        number_of_logs_in_batch = batch[1]
-        encoded_body_bytes = batch_logs.encode("UTF-8")
-        display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
-        logging.info(f'Log ingest payload size: {display_payload_size} kB')
-        sent = False
-        try:
-            sent = _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent)
-        except HTTPError as e:
-            raise e
-        except Exception as e:
-            logging.exception("Failed to ingest logs", "ingesting-logs-exception")
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
-            number_of_http_errors += 1
-            # all http requests failed and this is the last batch, raise this exception to trigger retry
-            if number_of_http_errors == len(batches):
-                raise e
-        finally:
-            self_monitoring.sending_time = time.perf_counter() - start_time
-            if sent:
-                self_monitoring.log_ingest_payload_size += display_payload_size
-                self_monitoring.sent_log_entries += number_of_logs_in_batch
+    # number_of_http_errors = 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+        futures = []
+        for batch in batches:
+            batch_logs = batch[0]
+            # number_of_logs_in_batch = batch[1]
+            encoded_body_bytes = batch_logs.encode("UTF-8")
+
+            future = executor.submit(
+                _send_logs_worker,
+                dynatrace_token,
+                encoded_body_bytes,
+                log_ingest_url,
+                self_monitoring
+            )
+            futures.append(future)
+        for future in concurrent.futures.as_completed(futures):
+            # Process any result or handle exceptions if needed
+            pass
+    self_monitoring.sending_time = time.perf_counter() - start_time
 
 
-def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
+def _send_logs_worker(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring):
+    try:
+        _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring)
+    except HTTPError as e:
+        raise e
+    except Exception as e:
+        logging.exception("Failed to ingest logs", "ingesting-logs-exception")
+        self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
+        # all http requests failed and this is the last batch, raise this exception to trigger retry
+
+
+def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring):
     self_monitoring.all_requests += 1
     status, reason, response = _perform_http_request(
         method="POST",
@@ -95,9 +102,11 @@ def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitor
             raise HTTPError(log_ingest_url, 500, "Dynatrace server error", "", "")
     else:
         self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
+
         logging.info("Log ingest payload pushed successfully")
-        sent = True
-    return sent
+        display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
+        logging.info(f'Log ingest payload size: {display_payload_size} kB')
+        self_monitoring.log_ingest_payload_size += display_payload_size
 
 
 def _perform_http_request(
