@@ -30,6 +30,7 @@ from .util.util_misc import get_int_environment_value
 from . import logging
 
 should_verify_ssl_certificate = os.environ.get("REQUIRE_VALID_CERTIFICATE", "True") in ["True", "true"]
+number_of_concurrent_send_calls = os.environ.get("NUMBER_OF_CONCURRENT_SEND_CALLS", 10)
 ssl_context = ssl.create_default_context()
 if not should_verify_ssl_certificate:
     ssl_context.check_hostname = False
@@ -83,7 +84,7 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
     log_ingest_url = urlparse(dynatrace_url.rstrip("/") + "/api/v2/logs/ingest").geturl()
     batches = prepare_serialized_batches(logs)
 
-    concurrent_requests = 10  # Adjust this number as needed
+    concurrent_requests = number_of_concurrent_send_calls  # Adjust this number as needed
     semaphore = asyncio.Semaphore(concurrent_requests)
 
     async with aiohttp.ClientSession() as session:  # Create the session once
