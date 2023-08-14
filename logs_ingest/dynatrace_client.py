@@ -17,6 +17,9 @@ import os
 import ssl
 import time
 import urllib
+import concurrent.futures
+import aiohttp
+
 from typing import List, Dict, Tuple
 from urllib.error import HTTPError
 from urllib.parse import urlparse
@@ -33,41 +36,10 @@ if not should_verify_ssl_certificate:
     ssl_context.verify_mode = ssl.CERT_NONE
 
 
-def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
-    # pylint: disable=R0912
-    start_time = time.perf_counter()
-    log_ingest_url = urlparse(dynatrace_url.rstrip("/") + "/api/v2/logs/ingest").geturl()
-    batches = prepare_serialized_batches(logs)
-
-    number_of_http_errors = 0
-    for batch in batches:
-        batch_logs = batch[0]
-        number_of_logs_in_batch = batch[1]
-        encoded_body_bytes = batch_logs.encode("UTF-8")
-        display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
-        logging.info(f'Log ingest payload size: {display_payload_size} kB')
-        sent = False
-        try:
-            sent = _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent)
-        except HTTPError as e:
-            raise e
-        except Exception as e:
-            logging.exception("Failed to ingest logs", "ingesting-logs-exception")
-            self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
-            number_of_http_errors += 1
-            # all http requests failed and this is the last batch, raise this exception to trigger retry
-            if number_of_http_errors == len(batches):
-                raise e
-        finally:
-            self_monitoring.sending_time = time.perf_counter() - start_time
-            if sent:
-                self_monitoring.log_ingest_payload_size += display_payload_size
-                self_monitoring.sent_log_entries += number_of_logs_in_batch
-
-
-def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
+async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
     self_monitoring.all_requests += 1
-    status, reason, response = _perform_http_request(
+    status, reason, response = await _perform_http_request(
+        session,
         method="POST",
         url=log_ingest_url,
         encoded_body_bytes=encoded_body_bytes,
@@ -100,29 +72,54 @@ def _send_logs(dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitor
     return sent
 
 
-def _perform_http_request(
-        method: str,
-        url: str,
-        encoded_body_bytes: bytes,
-        headers: Dict
-) -> Tuple[int, str, str]:
-    req = Request(
-        url,
-        encoded_body_bytes,
-        headers,
-        method=method
-    )
-    try:
-        response = urllib.request.urlopen(req, context=ssl_context)
-        return response.code, response.reason, response.read().decode("utf-8")
-    except HTTPError as e:
-        response_body = e.read().decode("utf-8")
-        return e.code, e.reason, response_body
+async def _perform_http_request(session, method, url, encoded_body_bytes, headers) -> Tuple[int, str, str]:
+    async with session.request(method, url, headers=headers, data=encoded_body_bytes) as response:
+        response_text = await response.text()
+        return response.status, response.reason, response_text
+
+import asyncio
+async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
+    start_time = time.perf_counter()
+    log_ingest_url = urlparse(dynatrace_url.rstrip("/") + "/api/v2/logs/ingest").geturl()
+    batches = prepare_serialized_batches(logs)
+
+    concurrent_requests = 10  # Adjust this number as needed
+    semaphore = asyncio.Semaphore(concurrent_requests)
+
+    async with aiohttp.ClientSession() as session:  # Create the session once
+        async def process_batch(batch):
+            async with semaphore:
+                batch_logs = batch[0]
+                number_of_logs_in_batch = batch[1]
+                encoded_body_bytes = batch_logs.encode("UTF-8")
+                display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
+                logging.info(f'Log ingest payload size: {display_payload_size} kB')
+                sent = False
+                try:
+                    sent = await _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url,
+                                            self_monitoring, sent)
+                except HTTPError as e:
+                    raise e
+                except Exception as e:
+                    logging.exception("Failed to ingest logs", "ingesting-logs-exception")
+                    self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
+                    # number_of_http_errors += 1
+                    # # all http requests failed and this is the last batch, raise this exception to trigger retry
+                    # if number_of_http_errors == len(batches):
+                    #     raise e
+                finally:
+                    self_monitoring.sending_time = time.perf_counter() - start_time
+                    if sent:
+                        self_monitoring.log_ingest_payload_size += display_payload_size
+                        self_monitoring.sent_log_entries += number_of_logs_in_batch
+
+        # number_of_http_errors = 0
+        await asyncio.gather(*[process_batch(batch) for batch in batches])        
 
 
 # Heavily based on AWS log forwarder batching implementation
 def prepare_serialized_batches(logs: List[Dict]) -> List[Tuple[str, int]]:
-    request_body_max_size = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE", 1048576)
+    request_body_max_size = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE", 4718592)
     request_max_events = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_EVENTS", 5000)
     log_entry_max_size = request_body_max_size - 2  # account for braces
 
