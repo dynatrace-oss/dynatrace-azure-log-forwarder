@@ -200,7 +200,7 @@ def parse_to_json(text):
             except Exception:
                 try:
                     event_json = json.loads(text.replace('\\\'', '').replace("\'", "\""), strict=False)
-                except:
+                except Exception:
                     logging.exception(
                         f"Failed to decode JSON for the event (base64 applied for safety!): {util_misc.to_base64_text(str(text))}.",
                         "log-record-parsing-jsondecode-exception")
