@@ -44,10 +44,8 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
     semaphore = asyncio.Semaphore(number_of_concurrent_send_calls)
     async with aiohttp.ClientSession() as session:  # Create the session once
         number_of_http_errors = 0
-        async def process_batch(batch):
+        async def process_batch(batch_logs: str, number_of_logs_in_batch: int ):
             async with semaphore:
-                batch_logs = batch[0]
-                number_of_logs_in_batch = batch[1]
                 encoded_body_bytes = batch_logs.encode("UTF-8")
                 display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
                 logging.info(f'Log ingest payload size: {display_payload_size} kB')
@@ -70,7 +68,7 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
                         self_monitoring.log_ingest_payload_size += display_payload_size
                         self_monitoring.sent_log_entries += number_of_logs_in_batch
 
-        await asyncio.gather(*[process_batch(batch) for batch in batches])    
+        await asyncio.gather(*[process_batch(batch_logs, number_of_logs_in_batch) for [batch_logs,number_of_logs_in_batch]  in batches])    
 
 
 async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
