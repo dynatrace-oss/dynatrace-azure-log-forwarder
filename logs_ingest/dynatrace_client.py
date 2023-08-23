@@ -29,7 +29,7 @@ from .util.util_misc import get_int_environment_value
 from . import logging
 
 should_verify_ssl_certificate = os.environ.get("REQUIRE_VALID_CERTIFICATE", "True") in ["True", "true"]
-number_of_concurrent_send_calls = os.environ.get("NUMBER_OF_CONCURRENT_SEND_CALLS", 2)
+number_of_concurrent_send_calls = get_int_environment_value("NUMBER_OF_CONCURRENT_SEND_CALLS", 2)
 ssl_context = ssl.create_default_context()
 if not should_verify_ssl_certificate:
     ssl_context.check_hostname = False
