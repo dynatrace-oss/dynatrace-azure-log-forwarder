@@ -22,7 +22,6 @@ import asyncio
 from typing import List, Dict, Tuple
 from urllib.error import HTTPError
 from urllib.parse import urlparse
-from urllib.request import Request
 
 from logs_ingest.self_monitoring import SelfMonitoring, DynatraceConnectivity
 from .util.util_misc import get_int_environment_value
@@ -109,7 +108,8 @@ async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_ur
 
 
 async def _perform_http_request(session, method, url, encoded_body_bytes, headers) -> Tuple[int, str, str]:
-    async with session.request(method, url, headers=headers, data=encoded_body_bytes, ssl=ssl_context) as response:
+    timeout = aiohttp.ClientTimeout(total=10)
+    async with session.request(method, url, headers=headers, data=encoded_body_bytes, ssl=ssl_context, timeout=timeout) as response:
         response_text = await response.text()
         return response.status, response.reason, response_text
 
