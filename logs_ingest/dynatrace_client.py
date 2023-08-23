@@ -39,11 +39,11 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
     start_time = time.perf_counter()
     log_ingest_url = urlparse(dynatrace_url.rstrip("/") + "/api/v2/logs/ingest").geturl()
     batches = prepare_serialized_batches(logs)
+    number_of_http_errors = 0
 
     semaphore = asyncio.Semaphore(number_of_concurrent_send_calls)
     async with aiohttp.ClientSession() as session:  # Create the session once
-        number_of_http_errors = 0
-        async def process_batch(batch_logs: str, number_of_logs_in_batch: int ):
+        async def process_batch(batch_logs: str, number_of_logs_in_batch: int, num_http_errors: int):
             async with semaphore:
                 encoded_body_bytes = batch_logs.encode("UTF-8")
                 display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
@@ -56,11 +56,10 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
                     raise e
                 except Exception as e:
                     self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
-                    nonlocal number_of_http_errors
-                    number_of_http_errors += 1
+                    num_http_errors += 1
                     logging.exception("Failed to ingest logs", "ingesting-logs-exception")
                     # # all http requests failed and this is the last batch, raise this exception to trigger retry
-                    if number_of_http_errors == len(batches):
+                    if num_http_errors == len(batches):
                         raise e
                 finally:
                     self_monitoring.sending_time = time.perf_counter() - start_time
@@ -68,7 +67,8 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
                         self_monitoring.log_ingest_payload_size += display_payload_size
                         self_monitoring.sent_log_entries += number_of_logs_in_batch
 
-        await asyncio.gather(*[process_batch(batch_logs, number_of_logs_in_batch) for batch_logs, number_of_logs_in_batch in batches])
+        await asyncio.gather(*[process_batch(batch_logs, number_of_logs_in_batch, number_of_http_errors) for batch_logs, number_of_logs_in_batch in batches],
+                             return_exceptions=True)
 
 
 async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring):
