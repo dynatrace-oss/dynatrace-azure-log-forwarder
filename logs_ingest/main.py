@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 from json import JSONDecodeError
 from typing import List, Dict, Optional
 import re
+import asyncio
 
 import azure.functions as func
 from dateutil import parser
@@ -64,7 +65,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
 
         if logs_to_be_sent_to_dt:
-            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
+            asyncio.run(send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring))
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
