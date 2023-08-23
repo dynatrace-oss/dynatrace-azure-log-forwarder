@@ -110,7 +110,7 @@ async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_ur
 
 
 async def _perform_http_request(session, method, url, encoded_body_bytes, headers) -> Tuple[int, str, str]:
-    async with session.request(method, url, headers=headers, data=encoded_body_bytes, ssl=should_verify_ssl_certificate) as response:
+    async with session.request(method, url, headers=headers, data=encoded_body_bytes, ssl=ssl_context) as response:
         response_text = await response.text()
         return response.status, response.reason, response_text
 
