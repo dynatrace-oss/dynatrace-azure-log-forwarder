@@ -16,8 +16,6 @@ import json
 import os
 import ssl
 import time
-import urllib
-import concurrent.futures
 import aiohttp
 import asyncio
 
