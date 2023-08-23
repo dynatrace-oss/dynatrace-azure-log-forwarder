@@ -56,6 +56,7 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
                     raise e
                 except Exception as e:
                     self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
+                    nonlocal number_of_http_errors
                     number_of_http_errors += 1
                     logging.exception("Failed to ingest logs", "ingesting-logs-exception")
                     # # all http requests failed and this is the last batch, raise this exception to trigger retry
@@ -67,7 +68,7 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
                         self_monitoring.log_ingest_payload_size += display_payload_size
                         self_monitoring.sent_log_entries += number_of_logs_in_batch
 
-        await asyncio.gather(*[process_batch(batch_logs, number_of_logs_in_batch) for batch_logs, number_of_logs_in_batch in batches])    
+        await asyncio.gather(*[process_batch(batch_logs, number_of_logs_in_batch) for batch_logs, number_of_logs_in_batch in batches])
 
 
 async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring):
