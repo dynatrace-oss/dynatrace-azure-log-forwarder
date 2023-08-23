@@ -49,30 +49,31 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
                 encoded_body_bytes = batch_logs.encode("UTF-8")
                 display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
                 logging.info(f'Log ingest payload size: {display_payload_size} kB')
-                sent = False
+                sent_logs_successfully = False
                 try:
-                    sent = await _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url,
-                                            self_monitoring, sent)
+                    sent_logs_successfully = await _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url,
+                                            self_monitoring)
                 except HTTPError as e:
                     raise e
                 except Exception as e:
-                    logging.exception("Failed to ingest logs", "ingesting-logs-exception")
                     self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
                     number_of_http_errors += 1
+                    logging.exception("Failed to ingest logs", "ingesting-logs-exception")
                     # # all http requests failed and this is the last batch, raise this exception to trigger retry
                     if number_of_http_errors == len(batches):
                         raise e
                 finally:
                     self_monitoring.sending_time = time.perf_counter() - start_time
-                    if sent:
+                    if sent_logs_successfully:
                         self_monitoring.log_ingest_payload_size += display_payload_size
                         self_monitoring.sent_log_entries += number_of_logs_in_batch
 
-        await asyncio.gather(*[process_batch(batch_logs, number_of_logs_in_batch) for [batch_logs,number_of_logs_in_batch]  in batches])    
+        await asyncio.gather(*[process_batch(batch_logs, number_of_logs_in_batch) for batch_logs, number_of_logs_in_batch in batches])    
 
 
-async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring, sent):
+async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring):
     self_monitoring.all_requests += 1
+    is_request_successful = False
     status, reason, response = await _perform_http_request(
         session,
         method="POST",
@@ -101,10 +102,10 @@ async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_ur
             self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Other)
             raise HTTPError(log_ingest_url, 500, "Dynatrace server error", "", "")
     else:
+        is_request_successful = True
         self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
         logging.info("Log ingest payload pushed successfully")
-        sent = True
-    return sent
+    return is_request_successful
 
 
 async def _perform_http_request(session, method, url, encoded_body_bytes, headers) -> Tuple[int, str, str]:
