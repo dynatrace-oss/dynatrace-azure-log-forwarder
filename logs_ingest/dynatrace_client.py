@@ -35,6 +35,11 @@ if not should_verify_ssl_certificate:
     ssl_context.verify_mode = ssl.CERT_NONE
 
 
+class LogBatch(NamedTuple):
+    serialized_batch: str
+    number_of_logs_in_batch: int
+
+
 async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
     start_time = time.perf_counter()
     log_ingest_url = urlparse(dynatrace_url.rstrip("/") + "/api/v2/logs/ingest").geturl()
@@ -43,10 +48,10 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
 
     semaphore = asyncio.Semaphore(number_of_concurrent_send_calls)
     async with aiohttp.ClientSession() as session:  # Create the session once
-        async def process_batch(batch_logs: str, number_of_logs_in_batch: int):
+        async def process_batch(batch: LogBatch):
             nonlocal number_of_http_errors
             async with semaphore:
-                encoded_body_bytes = batch_logs.encode("UTF-8")
+                encoded_body_bytes = batch.serialized_batch.encode("UTF-8")
                 display_payload_size = round((len(encoded_body_bytes) / 1024), 3)
                 logging.info(f'Log ingest payload size: {display_payload_size} kB')
                 sent_logs_successfully = False
@@ -66,9 +71,9 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
                     self_monitoring.sending_time = time.perf_counter() - start_time
                     if sent_logs_successfully:
                         self_monitoring.log_ingest_payload_size += display_payload_size
-                        self_monitoring.sent_log_entries += number_of_logs_in_batch
+                        self_monitoring.sent_log_entries += batch.number_of_logs_in_batch
 
-        await asyncio.gather(*[process_batch(serialized_batch, number_of_logs_in_batch) for serialized_batch, number_of_logs_in_batch in batches])
+        await asyncio.gather(*[process_batch(batch) for batch in batches])
 
 
 async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring):
@@ -116,11 +121,6 @@ async def _perform_http_request(session, method, url, encoded_body_bytes, header
 
 
 # Heavily based on AWS log forwarder batching implementation
-class LogBatch(NamedTuple):
-    serialized_batch: str
-    number_of_logs_in_batch: int
-
-
 def prepare_serialized_batches(logs: List[Dict]) -> List[LogBatch]:
     request_body_max_size = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE", 4718592)
     request_max_events = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_EVENTS", 5000)
