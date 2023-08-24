@@ -19,7 +19,7 @@ import time
 import aiohttp
 import asyncio
 
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, NamedTuple
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 
@@ -51,8 +51,8 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
                 logging.info(f'Log ingest payload size: {display_payload_size} kB')
                 sent_logs_successfully = False
                 try:
-                    sent_logs_successfully = await _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url,
-                                            self_monitoring)
+                    sent_logs_successfully = await _send_logs(session, dynatrace_token, encoded_body_bytes,
+                                                              log_ingest_url, self_monitoring)
                 except HTTPError as e:
                     raise e
                 except Exception as e:
@@ -68,7 +68,7 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
                         self_monitoring.log_ingest_payload_size += display_payload_size
                         self_monitoring.sent_log_entries += number_of_logs_in_batch
 
-        await asyncio.gather(*[process_batch(batch_logs, number_of_logs_in_batch) for batch_logs, number_of_logs_in_batch in batches])
+        await asyncio.gather(*[process_batch(serialized_batch, number_of_logs_in_batch) for serialized_batch, number_of_logs_in_batch in batches])
 
 
 async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring):
@@ -116,12 +116,17 @@ async def _perform_http_request(session, method, url, encoded_body_bytes, header
 
 
 # Heavily based on AWS log forwarder batching implementation
-def prepare_serialized_batches(logs: List[Dict]) -> List[Tuple[str, int]]:
+class LogBatch(NamedTuple):
+    serialized_batch: str
+    number_of_logs_in_batch: int
+
+
+def prepare_serialized_batches(logs: List[Dict]) -> List[LogBatch]:
     request_body_max_size = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_SIZE", 4718592)
     request_max_events = get_int_environment_value("DYNATRACE_LOG_INGEST_REQUEST_MAX_EVENTS", 5000)
     log_entry_max_size = request_body_max_size - 2  # account for braces
 
-    batches: List[Tuple[str, int]] = []
+    batches: List[LogBatch] = []
 
     logs_for_next_batch: List[str] = []
     logs_for_next_batch_total_len = 0
@@ -129,20 +134,20 @@ def prepare_serialized_batches(logs: List[Dict]) -> List[Tuple[str, int]]:
 
     log_entries = 0
     for log_entry in logs:
-        new_batch_len = logs_for_next_batch_total_len + 2 + len(logs_for_next_batch) - 1 # add bracket length (2) and commas for each entry but last one.
+        new_batch_len = logs_for_next_batch_total_len + 2 + len(logs_for_next_batch) - 1  # add bracket length (2) and commas for each entry but last one.
 
         next_entry_serialized = json.dumps(log_entry)
 
         next_entry_size = len(next_entry_serialized.encode("UTF-8"))
         if next_entry_size > log_entry_max_size:
             # shouldn't happen as we are already truncating the content field, but just for safety
-            logging.info(f"Dropping entry, as it's size is {next_entry_size}, bigger than max entry size: {log_entry_max_size}")
+            logging.info(f"Dropping entry, as its size is {next_entry_size}, bigger than max entry size: {log_entry_max_size}")
 
         batch_length_if_added_entry = new_batch_len + 1 + len(next_entry_serialized)  # +1 is for comma
 
         if batch_length_if_added_entry > request_body_max_size or logs_for_next_batch_events_count >= request_max_events:
             # would overflow limit, close batch and prepare new
-            batch = ("[" + ",".join(logs_for_next_batch) + "]", log_entries)
+            batch = LogBatch("[" + ",".join(logs_for_next_batch) + "]", log_entries)
             batches.append(batch)
             log_entries = 0
 
@@ -156,8 +161,8 @@ def prepare_serialized_batches(logs: List[Dict]) -> List[Tuple[str, int]]:
         logs_for_next_batch_events_count += 1
 
     if len(logs_for_next_batch) >= 1:
-        # finalize last batch
-        batch = ("[" + ",".join(logs_for_next_batch) + "]", log_entries)
+        # finalize the last batch
+        batch = LogBatch("[" + ",".join(logs_for_next_batch) + "]", log_entries)
         batches.append(batch)
 
     return batches
