@@ -78,7 +78,7 @@ class SelfMonitoring:
                 metric_name = self_monitoring_metric.get("data", "").get("baseData", "").get("metric", "")
                 try:
                     with urllib.request.urlopen(req) as response:
-                        response.read()  # Read the response data (optional)
+                        response.read()
                     logging.debug(f'Successfully sent self-monitoring metric ({metric_name}) to Azure')
                 except HTTPError as e:
                     logging.exception(
