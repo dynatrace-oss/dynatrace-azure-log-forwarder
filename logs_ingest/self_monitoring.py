@@ -64,7 +64,8 @@ class SelfMonitoring:
                 resource_id = os.environ.get("RESOURCE_ID", None)
                 region = os.environ.get("REGION", None)
                 if not resource_id or not region:
-                    logging.info("Please set RESOURCE_ID and REGION in application settings to send self monitoring metrics to Azure")
+                    logging.info(
+                        "Please set RESOURCE_ID and REGION in application settings to send self-monitoring metrics to Azure")
                     return
                 resource_id = resource_id[1:] if resource_id.startswith('/') else resource_id
                 url = f"https://{region}.monitoring.azure.com/{resource_id}/metrics"
@@ -76,15 +77,17 @@ class SelfMonitoring:
 
                 metric_name = self_monitoring_metric.get("data", "").get("baseData", "").get("metric", "")
                 try:
-                    urllib.request.urlopen(req)
-                    logging.debug(f'Successfully sent self monitoring metric ({metric_name}) to Azure')
+                    with urllib.request.urlopen(req) as response:
+                        response.read()
+                    logging.debug(f'Successfully sent self-monitoring metric ({metric_name}) to Azure')
                 except HTTPError as e:
                     logging.exception(
-                        f'Failed to push self monitoring metric ({metric_name}) to Azure: {e.code}, reason: {e.reason}", url: {url}',
+                        f'Failed to push self-monitoring metric ({metric_name}) to Azure: {e.code}, reason: {e.reason}", url: {url}',
                         "sfm-push-http-exception")
                 except Exception as e:
-                    logging.exception(f"Failed to push self monitoring metric ({metric_name}) to Azure. Reason is {type(e).__name__} {e}",
-                                      "sfm-push-failure-exception")
+                    logging.exception(
+                        f"Failed to push self-monitoring metric ({metric_name}) to Azure. Reason is {type(e).__name__} {e}",
+                        "sfm-push-failure-exception")
 
     def prepare_metric_data(self):
         time = self.execution_time.isoformat() + "Z"
