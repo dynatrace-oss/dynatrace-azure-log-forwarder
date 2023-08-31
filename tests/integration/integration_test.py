@@ -164,7 +164,7 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
     sent_requests = Requests.get_all_received_requests().get_json_data()
     print("Sent requests: {}".format(json.dumps(sent_requests)))
 
-    assert int(sent_requests.get('meta').get('total')) == 1
+    assert int(sent_requests.get('meta').get('total')) == 3
     for request in sent_requests.get('requests'):
         assert_correct_body_structure(request)
         assert request.get('responseDefinition').get('status') == 500
@@ -172,7 +172,7 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
     assert self_monitoring.too_old_records == 5
     assert self_monitoring.parsing_errors == 4
     assert self_monitoring.too_long_content_size == [1317, 1317, 1317, 1317]
-    assert Counter(self_monitoring.dynatrace_connectivities) == {DynatraceConnectivity.Other:1}
+    assert Counter(self_monitoring.dynatrace_connectivities) == {DynatraceConnectivity.Other:3}
     assert self_monitoring.processing_time > 0
     assert self_monitoring.sending_time > 0
     assert self_monitoring.sent_log_entries == 0
