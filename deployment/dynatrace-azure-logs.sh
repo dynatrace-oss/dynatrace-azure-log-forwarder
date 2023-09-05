@@ -24,11 +24,11 @@ readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*EntityPath=[^[:sp
 readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 readonly REQUIRE_VALID_CERTIFICATE_DEFAULT=true
-
+readonly
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-using-user-assigned-managed-identity ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY]
 
 arguments:
     -h, --help              Show this help message and exit
@@ -61,6 +61,13 @@ arguments:
                             Optional. Apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
     --repository-release-url REPOSITORY_RELEASE_URL
                             Change repository url to custom. Do not change without specific reason
+    --enable-using-user-assigned-managed-identity {true|false}
+                            Optional, 'false' by default
+                            if you choose to use user-assigned-managed-identity, you need to change it to 'true' and provide EVENT_HUB_CONNECTION_CLIENT_ID and EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE
+    --eventhub-connection-client-id EVENT_HUB_CONNECTION_CLIENT_ID
+                            The client id of User-Assigned MI
+    --eventhub-connection-fully-qualified-namespace EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE
+                            Event Hubs namespace's host name
     "
 }
 
@@ -76,10 +83,11 @@ ensure_param_value_given() {
 }
 
 print_all_parameters() {
-  PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL"
+  PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL, ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY=$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY"
   if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]]; then PARAMETERS+=", TARGET_PAAS_TOKEN=*****"; fi
   if [ -n "$FILTER_CONFIG" ]; then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG"; fi
   if [ -n "$TAGS" ]; then PARAMETERS+=", TAGS=$TAGS"; fi
+  if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then PARAMETERS+=", EVENT_HUB_CONNECTION_CLIENT_ID=$EVENT_HUB_CONNECTION_CLIENT_ID, EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE=$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE"; fi
   echo
   echo "Deployment script will use following parameters:"
   echo $PARAMETERS
@@ -236,6 +244,24 @@ while (( "$#" )); do
                 shift; shift
             ;;
 
+           "--enable-using-user-assigned-managed-identity")
+                ensure_param_value_given $1 $2
+                ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY=$2
+                shift; shift
+            ;;
+
+            "--eventhub-connection-client-id")
+                ensure_param_value_given $1 $2
+                EVENT_HUB_CONNECTION_CLIENT_ID=$2
+                shift; shift
+            ;;
+
+           "--eventhub-connection-fully-qualified-namespace")
+                ensure_param_value_given $1 $2
+                EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE=$2
+                shift; shift
+            ;;
+
             *)
             echo "Unknown param $1"
             print_help
@@ -289,6 +315,13 @@ elif [[ "$USE_EXISTING_ACTIVE_GATE" != "true" ]] && [[ "$USE_EXISTING_ACTIVE_GAT
   echo "Not correct --use-existing-active-gate. Provide 'true' or 'false'";
   exit 1;
 fi
+if [[ -z "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" ]]; then
+  ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY="false"
+elif [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" != "true" ]] && [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" != "false" ]]; then
+  echo "Not correct --enable-using-user-assigned-managed-identity. Provide 'true' or 'false'";
+  exit 1;
+fi
+
 
 if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
 if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
@@ -312,11 +345,17 @@ if [ -z "$TARGET_API_TOKEN" ]; then echo "No --target-api-token"; exit 1; fi
 if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then echo "No --target-paas-token"; exit 1; fi
 if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
 if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}; fi
+if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
+  EVENT_HUB_CONNECTION_CREDENTIALS="managedidentity";
+  if [ -z "$EVENT_HUB_CONNECTION_CLIENT_ID" ]; then echo "No --eventhub-connection-client-id"; exit 1; fi
+  if [ -z "$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE" ]; then echo "No --eventhub-connection-fully-qualified-namespace"; exit 1; fi
+fi
+
 print_all_parameters
-
+echo $EVENT_HUB_CONNECTION_CREDENTIALS
 TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
-
-echo
+exit 1
+echo $EVENT_HUB_CONNECTION_CLIENT_ID + "client id"
 if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]; then
   check_activegate_state
 fi
@@ -352,7 +391,10 @@ selfMonitoringEnabled="${SFM_ENABLED}" \
 deployActiveGateContainer="${DEPLOY_ACTIVEGATE}" \
 targetPaasToken="${TARGET_PAAS_TOKEN}" \
 filterConfig="${FILTER_CONFIG}" \
-resourceTags="${LOG_FORWARDER_TAGS}"
+resourceTags="${LOG_FORWARDER_TAGS}" \
+eventhubConnectionClientId="${EVENT_HUB_CONNECTION_CLIENT_ID}" \
+eventhubConnectionCredentials="${EVENT_HUB_CONNECTION_CREDENTIALS}" \
+eventhubConnectionFullyQualifiedNamespace= "${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"
 
 if [[ $? != 0 ]]; then
     echo -e "\e[91mFunction deployment failed"
@@ -370,6 +412,10 @@ echo "- deploying function zip code into ${FUNCTIONAPP_NAME}..."
 sleep 60 # wait some time to allow functionapp to warmup
 
 az webapp deployment source config-zip  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src ${FUNCTION_ZIP_PACKAGE}
+
+if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
+  az webapp identity assign  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --identity ${EVENT_HUB_CONNECTION_CLIENT_ID}
+fi
 
 if [[ $? != 0 ]]; then
     echo -e "\e[91mFunction code deployment failed"

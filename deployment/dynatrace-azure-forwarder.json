@@ -428,6 +428,18 @@
                         {
                             "name": "FILTER_CONFIG",
                             "value": "[parameters('filterConfig')]"
+                        },
+                        {
+                            "name": "EventHubConnection_clientId",
+                            "value": "[parameters('eventhubConnectionClientId')]"
+                        },
+                        {
+                            "name": "EventHubConnection_credential",
+                            "value": "[parameters('eventhubConnectionCredentials')]"
+                        },
+                        {
+                            "name": "EventHubConnection_fullyQualifiedNamespace",
+                            "value": "[parameters('eventhubConnectionFullyQualifiedNamespace')]"
                         }
                     ]
 
