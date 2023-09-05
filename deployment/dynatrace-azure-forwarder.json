@@ -76,19 +76,19 @@
                 "description": "Filter config"
             }
         },
-        "EventHubConnection_clientId": {
+        "eventhubConnectionClientId": {
             "type": "string",
             "metadata": {
                 "description": "MI user id"
             }
         },
-        "EventHubConnection_credential": {
+        "eventhubConnectionCredentials": {
             "type": "string",
             "metadata": {
                 "description": "Managed Identity"
             }
         },
-        "EventHubConnection_fullyQualifiedNamespace": {
+        "eventhubConnectionFullyQualifiedNamespace": {
             "type": "string",
             "metadata": {
                 "description": "Eventhub's host name"
