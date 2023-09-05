@@ -24,7 +24,7 @@ readonly EVENT_HUB_CONNECTION_STRING_REGEX="^Endpoint=sb:\/\/.*EntityPath=[^[:sp
 readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 readonly REQUIRE_VALID_CERTIFICATE_DEFAULT=true
-readonly
+
 print_help()
 {
    printf "
@@ -352,10 +352,9 @@ if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
 fi
 
 print_all_parameters
-echo $EVENT_HUB_CONNECTION_CREDENTIALS
+
 TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
-exit 1
-echo $EVENT_HUB_CONNECTION_CLIENT_ID + "client id"
+
 if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]; then
   check_activegate_state
 fi
