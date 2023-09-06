@@ -75,6 +75,27 @@
             "metadata": {
                 "description": "Filter config"
             }
+        },
+        "eventhubConnectionClientId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "MI user id"
+            }
+        },
+        "eventhubConnectionCredentials": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Managed Identity"
+            }
+        },
+        "eventhubConnectionFullyQualifiedNamespace": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Eventhub's host name"
+            }
         }
     },
     "variables": {
@@ -428,6 +449,18 @@
                         {
                             "name": "FILTER_CONFIG",
                             "value": "[parameters('filterConfig')]"
+                        },
+                        {
+                            "name": "EventHubConnection_clientId",
+                            "value": "[parameters('eventhubConnectionClientId')]"
+                        },
+                        {
+                            "name": "EventHubConnection_credential",
+                            "value": "[parameters('eventhubConnectionCredentials')]"
+                        },
+                        {
+                            "name": "EventHubConnection_fullyQualifiedNamespace",
+                            "value": "[parameters('eventhubConnectionFullyQualifiedNamespace')]"
                         }
                     ]
 
