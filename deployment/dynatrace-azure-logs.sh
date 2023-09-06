@@ -393,7 +393,7 @@ if [ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
   resourceTags="${LOG_FORWARDER_TAGS}" \
   eventhubConnectionClientId="${EVENT_HUB_CONNECTION_CLIENT_ID}" \
   eventhubConnectionCredentials="${EVENT_HUB_CONNECTION_CREDENTIALS}" \
-  eventhubConnectionFullyQualifiedNamespace= "${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"
+  eventhubConnectionFullyQualifiedNamespace="${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"
 else
   az deployment group create \
   --resource-group ${RESOURCE_GROUP} \
