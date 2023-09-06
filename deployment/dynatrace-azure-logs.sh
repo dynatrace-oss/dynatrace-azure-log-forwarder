@@ -396,7 +396,7 @@ if [ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
   eventhubConnectionCredentials="${EVENT_HUB_CONNECTION_CREDENTIALS}" \
   eventhubConnectionFullyQualifiedNamespace= "${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"
 else
-    az deployment group create \
+  az deployment group create \
   --resource-group ${RESOURCE_GROUP} \
   --template-uri ${REPOSITORY_RELEASE_URL}${FUNCTION_ARM} \
   --parameters forwarderName="${DEPLOYMENT_NAME}" \
