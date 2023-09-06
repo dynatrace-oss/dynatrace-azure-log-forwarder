@@ -66,6 +66,8 @@ arguments:
                             if you choose to use user-assigned-managed-identity, you need to change it to 'true' and provide EVENT_HUB_CONNECTION_CLIENT_ID and EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE
     --eventhub-connection-client-id EVENT_HUB_CONNECTION_CLIENT_ID
                             The client id of User-Assigned MI
+    --managed-identity-resource-name MANAGED_IDENTITY_RESOURCE_NAME
+                            Name of the Managed Identity resource
     --eventhub-connection-fully-qualified-namespace EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE
                             Event Hubs namespace's host name
     "
@@ -87,7 +89,7 @@ print_all_parameters() {
   if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]]; then PARAMETERS+=", TARGET_PAAS_TOKEN=*****"; fi
   if [ -n "$FILTER_CONFIG" ]; then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG"; fi
   if [ -n "$TAGS" ]; then PARAMETERS+=", TAGS=$TAGS"; fi
-  if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then PARAMETERS+=", EVENT_HUB_CONNECTION_CLIENT_ID=$EVENT_HUB_CONNECTION_CLIENT_ID, EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE=$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE"; fi
+  if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then PARAMETERS+=", EVENT_HUB_CONNECTION_CLIENT_ID=$EVENT_HUB_CONNECTION_CLIENT_ID, MANAGED_IDENTITY_RESOURCE_NAME=$MANAGED_IDENTITY_RESOURCE_NAME, EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE=$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE"; fi
   echo
   echo "Deployment script will use following parameters:"
   echo $PARAMETERS
@@ -256,6 +258,12 @@ while (( "$#" )); do
                 shift; shift
             ;;
 
+          "--managed-identity-resource-name")
+                ensure_param_value_given $1 $2
+                MANAGED_IDENTITY_RESOURCE_NAME=$2
+                shift; shift
+            ;;
+
            "--eventhub-connection-fully-qualified-namespace")
                 ensure_param_value_given $1 $2
                 EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE=$2
@@ -347,6 +355,7 @@ if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPO
 if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   EVENT_HUB_CONNECTION_CREDENTIALS="managedidentity";
   if [ -z "$EVENT_HUB_CONNECTION_CLIENT_ID" ]; then echo "No --eventhub-connection-client-id"; exit 1; fi
+  if [ -z "$MANAGED_IDENTITY_RESOURCE_NAME" ]; then echo "No --managed-identity-resource-name"; exit 1; fi
   if [ -z "$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE" ]; then echo "No --eventhub-connection-fully-qualified-namespace"; exit 1; fi
 fi
 
@@ -429,7 +438,8 @@ sleep 60 # wait some time to allow functionapp to warmup
 az webapp deployment source config-zip  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src ${FUNCTION_ZIP_PACKAGE}
 
 if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
-  az webapp identity assign  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --identities ${EVENT_HUB_CONNECTION_CLIENT_ID}
+  MANAGED_IDENTITY_RESOURCE_ID=$(az identity show --name ${MANAGED_IDENTITY_RESOURCE_NAME} -g ${RESOURCE_GROUP} --query id --output tsv)
+  az webapp identity assign  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --identities ${MANAGED_IDENTITY_RESOURCE_ID}
 fi
 
 if [[ $? != 0 ]]; then
