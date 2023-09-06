@@ -392,7 +392,6 @@ if [ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
   --parameters forwarderName="${DEPLOYMENT_NAME}" \
   targetUrl="${TARGET_URL}" \
   targetAPIToken="${TARGET_API_TOKEN}" \
-  eventHubConnectionString="${EVENT_HUB_CONNECTION_STRING}" \
   eventHubName="${EVENT_HUB_NAME}" \
   requireValidCertificate=${REQUIRE_VALID_CERTIFICATE} \
   selfMonitoringEnabled="${SFM_ENABLED}" \

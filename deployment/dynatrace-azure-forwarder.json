@@ -30,6 +30,7 @@
         },
         "eventHubConnectionString": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Event hub connection string"
             }
@@ -451,15 +452,15 @@
                             "value": "[parameters('filterConfig')]"
                         },
                         {
-                            "name": "EventHubConnection_clientId",
+                            "name": "EVENTHUB_CONNECTION_STRING__clientId",
                             "value": "[parameters('eventhubConnectionClientId')]"
                         },
                         {
-                            "name": "EventHubConnection_credential",
+                            "name": "EVENTHUB_CONNECTION_STRING__credential",
                             "value": "[parameters('eventhubConnectionCredentials')]"
                         },
                         {
-                            "name": "EventHubConnection_fullyQualifiedNamespace",
+                            "name": "EVENTHUB_CONNECTION_STRING__fullyQualifiedNamespace",
                             "value": "[parameters('eventhubConnectionFullyQualifiedNamespace')]"
                         }
                     ]
