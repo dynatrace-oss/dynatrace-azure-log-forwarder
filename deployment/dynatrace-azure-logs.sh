@@ -429,7 +429,7 @@ sleep 60 # wait some time to allow functionapp to warmup
 az webapp deployment source config-zip  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src ${FUNCTION_ZIP_PACKAGE}
 
 if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
-  az webapp identity assign  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --identity ${EVENT_HUB_CONNECTION_CLIENT_ID}
+  az webapp identity assign  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --identities ${EVENT_HUB_CONNECTION_CLIENT_ID}
 fi
 
 if [[ $? != 0 ]]; then
