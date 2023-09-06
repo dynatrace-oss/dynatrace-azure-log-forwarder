@@ -28,7 +28,7 @@ readonly REQUIRE_VALID_CERTIFICATE_DEFAULT=true
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-using-user-assigned-managed-identity ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-user-assigned-managed-identity ENABLE_USER_ASSIGNED_MANAGED_IDENTITY]
 
 arguments:
     -h, --help              Show this help message and exit
@@ -61,7 +61,7 @@ arguments:
                             Optional. Apply filters to reduce number of logs that are sent to Dynatrace e.g. filter out logs with Informational level.
     --repository-release-url REPOSITORY_RELEASE_URL
                             Change repository url to custom. Do not change without specific reason
-    --enable-using-user-assigned-managed-identity {true|false}
+    --enable-user-assigned-managed-identity {true|false}
                             Optional, 'false' by default
                             if you choose to use user-assigned-managed-identity, you need to change it to 'true' and provide EVENT_HUB_CONNECTION_CLIENT_ID and EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE
     --eventhub-connection-client-id EVENT_HUB_CONNECTION_CLIENT_ID
@@ -85,11 +85,11 @@ ensure_param_value_given() {
 }
 
 print_all_parameters() {
-  PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL, ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY=$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY"
+  PARAMETERS="DEPLOYMENT_NAME=$DEPLOYMENT_NAME, USE_EXISTING_ACTIVE_GATE=$USE_EXISTING_ACTIVE_GATE, TARGET_URL=$TARGET_URL, TARGET_API_TOKEN=*****, RESOURCE_GROUP=$RESOURCE_GROUP, EVENT_HUB_CONNECTION_STRING=*****, REQUIRE_VALID_CERTIFICATE=$REQUIRE_VALID_CERTIFICATE, SFM_ENABLED=$SFM_ENABLED, REPOSITORY_RELEASE_URL=$REPOSITORY_RELEASE_URL, ENABLE_USER_ASSIGNED_MANAGED_IDENTITY=$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY"
   if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]]; then PARAMETERS+=", TARGET_PAAS_TOKEN=*****"; fi
   if [ -n "$FILTER_CONFIG" ]; then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG"; fi
   if [ -n "$TAGS" ]; then PARAMETERS+=", TAGS=$TAGS"; fi
-  if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then PARAMETERS+=", EVENT_HUB_CONNECTION_CLIENT_ID=$EVENT_HUB_CONNECTION_CLIENT_ID, MANAGED_IDENTITY_RESOURCE_NAME=$MANAGED_IDENTITY_RESOURCE_NAME, EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE=$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE"; fi
+  if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then PARAMETERS+=", EVENT_HUB_CONNECTION_CLIENT_ID=$EVENT_HUB_CONNECTION_CLIENT_ID, MANAGED_IDENTITY_RESOURCE_NAME=$MANAGED_IDENTITY_RESOURCE_NAME, EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE=$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE"; fi
   echo
   echo "Deployment script will use following parameters:"
   echo $PARAMETERS
@@ -246,9 +246,9 @@ while (( "$#" )); do
                 shift; shift
             ;;
 
-           "--enable-using-user-assigned-managed-identity")
+           "--enable-user-assigned-managed-identity")
                 ensure_param_value_given $1 $2
-                ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY=$2
+                ENABLE_USER_ASSIGNED_MANAGED_IDENTITY=$2
                 shift; shift
             ;;
 
@@ -323,10 +323,10 @@ elif [[ "$USE_EXISTING_ACTIVE_GATE" != "true" ]] && [[ "$USE_EXISTING_ACTIVE_GAT
   echo "Not correct --use-existing-active-gate. Provide 'true' or 'false'";
   exit 1;
 fi
-if [[ -z "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" ]]; then
-  ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY="false"
-elif [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" != "true" ]] && [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" != "false" ]]; then
-  echo "Not correct --enable-using-user-assigned-managed-identity. Provide 'true' or 'false'";
+if [[ -z "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" ]]; then
+  ENABLE_USER_ASSIGNED_MANAGED_IDENTITY="false"
+elif [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" != "true" ]] && [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" != "false" ]]; then
+  echo "Not correct --enable-user-assigned-managed-identity. Provide 'true' or 'false'";
   exit 1;
 fi
 
@@ -352,7 +352,7 @@ if [ -z "$TARGET_API_TOKEN" ]; then echo "No --target-api-token"; exit 1; fi
 if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then echo "No --target-paas-token"; exit 1; fi
 if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
 if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}; fi
-if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
+if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   EVENT_HUB_CONNECTION_CREDENTIALS="managedidentity";
   if [ -z "$EVENT_HUB_CONNECTION_CLIENT_ID" ]; then echo "No --eventhub-connection-client-id"; exit 1; fi
   if [ -z "$MANAGED_IDENTITY_RESOURCE_NAME" ]; then echo "No --managed-identity-resource-name"; exit 1; fi
@@ -385,7 +385,7 @@ for TAG_PAIR in "${TAG_PAIRS[@]}"; do
 done
 LOG_FORWARDER_TAGS="{${LOG_FORWARDER_TAGS}}"
 
-if [ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
+if [ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
   az deployment group create \
   --resource-group ${RESOURCE_GROUP} \
   --template-uri ${REPOSITORY_RELEASE_URL}${FUNCTION_ARM} \
@@ -437,7 +437,7 @@ sleep 60 # wait some time to allow functionapp to warmup
 
 az webapp deployment source config-zip  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src ${FUNCTION_ZIP_PACKAGE}
 
-if [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
+if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   MANAGED_IDENTITY_RESOURCE_ID=$(az identity show --name ${MANAGED_IDENTITY_RESOURCE_NAME} -g ${RESOURCE_GROUP} --query id --output tsv)
   az webapp identity assign  -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --identities ${MANAGED_IDENTITY_RESOURCE_ID}
 fi
