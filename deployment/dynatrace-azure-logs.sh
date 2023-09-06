@@ -63,7 +63,7 @@ arguments:
                             Change repository url to custom. Do not change without specific reason
     --enable-user-assigned-managed-identity {true|false}
                             Optional, 'false' by default
-                            if you choose to use user-assigned-managed-identity, you need to change it to 'true' and provide EVENT_HUB_CONNECTION_CLIENT_ID and EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE
+                            if you choose to use user-assigned-managed-identity, you need to change it to 'true' and provide EVENT_HUB_CONNECTION_CLIENT_ID, MANAGED_IDENTITY_RESOURCE_NAME and EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE
     --eventhub-connection-client-id EVENT_HUB_CONNECTION_CLIENT_ID
                             The client id of User-Assigned MI
     --managed-identity-resource-name MANAGED_IDENTITY_RESOURCE_NAME
