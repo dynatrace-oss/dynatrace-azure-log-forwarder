@@ -78,18 +78,21 @@
         },
         "eventhubConnectionClientId": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "MI user id"
             }
         },
         "eventhubConnectionCredentials": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Managed Identity"
             }
         },
         "eventhubConnectionFullyQualifiedNamespace": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Eventhub's host name"
             }

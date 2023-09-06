@@ -377,23 +377,40 @@ for TAG_PAIR in "${TAG_PAIRS[@]}"; do
 done
 LOG_FORWARDER_TAGS="{${LOG_FORWARDER_TAGS}}"
 
-az deployment group create \
---resource-group ${RESOURCE_GROUP} \
---template-uri ${REPOSITORY_RELEASE_URL}${FUNCTION_ARM} \
---parameters forwarderName="${DEPLOYMENT_NAME}" \
-targetUrl="${TARGET_URL}" \
-targetAPIToken="${TARGET_API_TOKEN}" \
-eventHubConnectionString="${EVENT_HUB_CONNECTION_STRING}" \
-eventHubName="${EVENT_HUB_NAME}" \
-requireValidCertificate=${REQUIRE_VALID_CERTIFICATE} \
-selfMonitoringEnabled="${SFM_ENABLED}" \
-deployActiveGateContainer="${DEPLOY_ACTIVEGATE}" \
-targetPaasToken="${TARGET_PAAS_TOKEN}" \
-filterConfig="${FILTER_CONFIG}" \
-resourceTags="${LOG_FORWARDER_TAGS}" \
-eventhubConnectionClientId="${EVENT_HUB_CONNECTION_CLIENT_ID}" \
-eventhubConnectionCredentials="${EVENT_HUB_CONNECTION_CREDENTIALS}" \
-eventhubConnectionFullyQualifiedNamespace= "${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"
+if [ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
+  az deployment group create \
+  --resource-group ${RESOURCE_GROUP} \
+  --template-uri ${REPOSITORY_RELEASE_URL}${FUNCTION_ARM} \
+  --parameters forwarderName="${DEPLOYMENT_NAME}" \
+  targetUrl="${TARGET_URL}" \
+  targetAPIToken="${TARGET_API_TOKEN}" \
+  eventHubConnectionString="${EVENT_HUB_CONNECTION_STRING}" \
+  eventHubName="${EVENT_HUB_NAME}" \
+  requireValidCertificate=${REQUIRE_VALID_CERTIFICATE} \
+  selfMonitoringEnabled="${SFM_ENABLED}" \
+  deployActiveGateContainer="${DEPLOY_ACTIVEGATE}" \
+  targetPaasToken="${TARGET_PAAS_TOKEN}" \
+  filterConfig="${FILTER_CONFIG}" \
+  resourceTags="${LOG_FORWARDER_TAGS}" \
+  eventhubConnectionClientId="${EVENT_HUB_CONNECTION_CLIENT_ID}" \
+  eventhubConnectionCredentials="${EVENT_HUB_CONNECTION_CREDENTIALS}" \
+  eventhubConnectionFullyQualifiedNamespace= "${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"
+else
+    az deployment group create \
+  --resource-group ${RESOURCE_GROUP} \
+  --template-uri ${REPOSITORY_RELEASE_URL}${FUNCTION_ARM} \
+  --parameters forwarderName="${DEPLOYMENT_NAME}" \
+  targetUrl="${TARGET_URL}" \
+  targetAPIToken="${TARGET_API_TOKEN}" \
+  eventHubConnectionString="${EVENT_HUB_CONNECTION_STRING}" \
+  eventHubName="${EVENT_HUB_NAME}" \
+  requireValidCertificate=${REQUIRE_VALID_CERTIFICATE} \
+  selfMonitoringEnabled="${SFM_ENABLED}" \
+  deployActiveGateContainer="${DEPLOY_ACTIVEGATE}" \
+  targetPaasToken="${TARGET_PAAS_TOKEN}" \
+  filterConfig="${FILTER_CONFIG}" \
+  resourceTags="${LOG_FORWARDER_TAGS}"
+fi
 
 if [[ $? != 0 ]]; then
     echo -e "\e[91mFunction deployment failed"
