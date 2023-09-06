@@ -322,7 +322,6 @@ elif [[ "$ENABLE_USING_USER_ASSIGNED_MANAGED_IDENTITY" != "true" ]] && [[ "$ENAB
   exit 1;
 fi
 
-
 if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FILTER_CONFIG_REGEX";fi
 if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
 
