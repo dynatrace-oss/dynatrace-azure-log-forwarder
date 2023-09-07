@@ -384,7 +384,7 @@ if [[ "${DEPLOY_ACTIVEGATE}" == "false" ]]; then
   check_dynatrace_log_ingest_url
 fi
 
-if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "false" ]] || [[  ]]; then
+if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "false" ]]; then
   EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
 fi
 
