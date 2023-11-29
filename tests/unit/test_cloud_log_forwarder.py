@@ -25,7 +25,6 @@ def test_log_forwarder_setup():
     # given
     test_record = {
         "cloud.provider": "Azure",
-        "severity": "INFO",
         "content": '{"content": "WALTHAM, Mass.--(BUSINESS WIRE)-- Software intelligence company Dynatrace (NYSE: DT)"}'
     }
 

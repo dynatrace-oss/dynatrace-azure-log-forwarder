@@ -89,6 +89,14 @@ def test_filter_global_incorrect_min_log_level():
     assert not log_filter.should_filter_out_record(parsed_record)
 
 
+
+def test_nagel():
+    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=Informational"
+    log_filter = LogFilter()
+    assert not log_filter.should_filter_out_record(parsed_record)
+
+
+
 def test_filter_global_incorrect_min_log_level_digit():
     os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=20"
     log_filter = LogFilter()

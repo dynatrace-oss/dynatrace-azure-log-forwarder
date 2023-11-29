@@ -249,6 +249,7 @@ def self_monitoring():
 
 def test_alert_log(self_monitoring):
     actual_output = parse_record(alert_record, self_monitoring)
+    print(actual_output)
     assert actual_output == alert_expected_output
 
 

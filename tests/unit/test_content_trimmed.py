@@ -66,7 +66,6 @@ def test_content_with_exact_len_not_trimmed():
     # then
     expected_output = {
         "cloud.provider": "Azure",
-        "severity": "INFO",
         "content": '{"content": "WALTHAM, Mass.--(BUSINESS WIRE)-- Software intelligence company Dynatrace (NYSE: DT)"}'
     }
     assert actual_output == expected_output

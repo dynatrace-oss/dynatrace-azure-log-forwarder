@@ -109,7 +109,6 @@ query_store_runtime_statistics_log_expected_output = {
     "db.system": "postgresql",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-837D1B039FD2DC6A',
     'dt.source_entity': 'CUSTOM_DEVICE-837D1B039FD2DC6A',
-    'severity': 'INFO'
 }
 
 query_store_wait_statistics_log = {
@@ -145,7 +144,6 @@ query_store_wait_statistics_log_expected_output = {
     "db.system": "postgresql",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-837D1B039FD2DC6A',
     'dt.source_entity': 'CUSTOM_DEVICE-837D1B039FD2DC6A',
-    'severity': 'INFO'
 }
 
 

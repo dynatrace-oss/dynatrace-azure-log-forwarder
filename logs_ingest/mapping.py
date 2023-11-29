@@ -18,7 +18,7 @@ from typing import Dict
 
 from . import logging
 
-DEFAULT_SEVERITY_INFO = "INFO"
+DEFAULT_SEVERITY_INFO = "Default"
 
 RESOURCE_ID_ATTRIBUTE = "azure.resource.id"
 SUBSCRIPTION_ATTRIBUTE = "azure.subscription"
@@ -30,7 +30,8 @@ log_level_to_severity_dict = {
     1: 'Critical',
     2: 'Error',
     3: 'Warning',
-    4: 'Informational'
+    4: 'Informational',
+    5: 'Default'
 }
 
 severity_to_log_level_dict = {v: k for k, v in log_level_to_severity_dict.items()}
@@ -91,12 +92,12 @@ def extract_severity(record: Dict, parsed_record: Dict):
     level_property = next((level for level in azure_level_properties if level in record.keys()), None)
     if level_property:
         map_to_severity(record, parsed_record, level_property)
-    else:
-        parsed_record["severity"] = DEFAULT_SEVERITY_INFO
 
 
 def map_to_severity(record: Dict, parsed_record: Dict, level_property: str):
     if isinstance(record[level_property], int):
-        parsed_record["severity"] = log_level_to_severity_dict.get(record[level_property], DEFAULT_SEVERITY_INFO)
+        severity = log_level_to_severity_dict.get(record[level_property])
+        if severity:
+            parsed_record["severity"] = severity
     else:
         parsed_record["severity"] = record[level_property]

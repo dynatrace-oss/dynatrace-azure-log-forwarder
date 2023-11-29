@@ -91,7 +91,7 @@ class LogFilter:
         if not self.filters_dict:
             return False
 
-        severity = parsed_record.get("severity", "")
+        severity = parsed_record.get("severity", "Default")
         resource_id = parsed_record.get(RESOURCE_ID_ATTRIBUTE, "").casefold()
         resource_type = parsed_record.get(RESOURCE_TYPE_ATTRIBUTE, "").casefold()
         content = parsed_record.get("content", "")

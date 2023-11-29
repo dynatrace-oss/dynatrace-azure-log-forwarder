@@ -33,7 +33,6 @@ def create_log_entry_with_random_len_msg():
     return {
         'content': random_len_str,
         'cloud.provider': 'AWS',
-        'severity': 'INFO'
     }
 
 
