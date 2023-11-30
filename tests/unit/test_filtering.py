@@ -84,7 +84,7 @@ def test_filter_global_min_log_level_warning_digit():
 
 
 def test_filter_global_incorrect_min_log_level():
-    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=Info"
+    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=Default"
     log_filter = LogFilter()
     assert not log_filter.should_filter_out_record(parsed_record)
 
@@ -139,7 +139,7 @@ def test_filter_global_and_resource_type_min_log_level():
 
 
 def test_filter_global_and_resource_type_incorrect_min_log_level():
-    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=2;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.MICROSOFT.WEB/SITES=Info"
+    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=2;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.MICROSOFT.WEB/SITES=IncorectInfo"
     log_filter = LogFilter()
     assert log_filter.should_filter_out_record(parsed_record)
 
