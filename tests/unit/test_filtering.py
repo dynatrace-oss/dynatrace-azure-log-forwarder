@@ -84,7 +84,7 @@ def test_filter_global_min_log_level_warning_digit():
 
 
 def test_filter_global_incorrect_min_log_level():
-    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=Default"
+    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=IncorectType"
     log_filter = LogFilter()
     assert not log_filter.should_filter_out_record(parsed_record)
 
