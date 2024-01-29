@@ -108,6 +108,7 @@ async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_ur
         session,
         method="POST",
         url=log_ingest_url,
+        headers=headers
         encoded_body_bytes=encoded_body_bytes,
     )
     if status > 299:
