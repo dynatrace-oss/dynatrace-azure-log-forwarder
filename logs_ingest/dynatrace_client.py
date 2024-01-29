@@ -101,14 +101,11 @@ async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_ur
         logging.info(f"NAG_LOG: [{current_time}] Compressed: {compressed_size_kb:.3f} KB")
      
     
-    
-
-
     status, reason, response = await _perform_http_request(
         session,
         method="POST",
         url=log_ingest_url,
-        headers=headers
+        headers=headers,
         encoded_body_bytes=encoded_body_bytes,
     )
     if status > 299:
