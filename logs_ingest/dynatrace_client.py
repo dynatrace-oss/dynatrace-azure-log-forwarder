@@ -83,24 +83,21 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
 async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring):
     self_monitoring.all_requests += 1
     is_request_successful = False
-    headers={
-            "Authorization": f"Api-Token {dynatrace_token}",
-            "Content-Type": "application/json; charset=utf-8"
-        }
-    
+    headers = {
+        "Authorization": f"Api-Token {dynatrace_token}",
+        "Content-Type": "application/json; charset=utf-8",
+    }
     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     original_size_kb = len(encoded_body_bytes) / 1024.0
 
     logging.info(f"NAG_LOG: [{current_time}] Orginal: {original_size_kb:.3f} KB")
 
-
     if add_compression:
         encoded_body_bytes = gzip.compress(encoded_body_bytes, compresslevel=6)
-        headers['Content-Encoding'] = 'gzip'
+        headers["Content-Encoding"] = "gzip"
         compressed_size_kb = len(encoded_body_bytes) / 1024.0
         logging.info(f"NAG_LOG: [{current_time}] Compressed: {compressed_size_kb:.3f} KB")
-     
-    
+
     status, reason, response = await _perform_http_request(
         session,
         method="POST",
@@ -109,8 +106,10 @@ async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_ur
         encoded_body_bytes=encoded_body_bytes,
     )
     if status > 299:
-        logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"',
-                      "log-ingest-error")
+        logging.error(
+            f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"',
+            "log-ingest-error",
+        )
         if status == 400:
             self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.InvalidInput)
         elif status == 401:
@@ -130,6 +129,7 @@ async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_ur
         self_monitoring.dynatrace_connectivities.append(DynatraceConnectivity.Ok)
         logging.info("Log ingest payload pushed successfully")
     return is_request_successful
+
 
 
 async def _perform_http_request(session, method, url, encoded_body_bytes, headers) -> Tuple[int, str, str]:
