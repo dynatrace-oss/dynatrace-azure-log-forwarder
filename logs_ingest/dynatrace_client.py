@@ -12,6 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import datetime
+import gzip
 import json
 import os
 import ssl
@@ -28,6 +30,8 @@ from .util.util_misc import get_int_environment_value
 from . import logging
 
 should_verify_ssl_certificate = os.environ.get("REQUIRE_VALID_CERTIFICATE", "True") in ["True", "true"]
+add_compression = os.environ.get("COMPRESS_LOGS_BEFORE_SENDING", "False") in ["True", "true", "T", "Y", "Yes", "yes"]
+
 number_of_concurrent_send_calls = get_int_environment_value("NUMBER_OF_CONCURRENT_SEND_CALLS", 2)
 ssl_context = ssl.create_default_context()
 if not should_verify_ssl_certificate:
@@ -79,15 +83,32 @@ async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], 
 async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_url, self_monitoring):
     self_monitoring.all_requests += 1
     is_request_successful = False
+    headers={
+            "Authorization": f"Api-Token {dynatrace_token}",
+            "Content-Type": "application/json; charset=utf-8"
+        }
+    
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    original_size_kb = len(encoded_body_bytes) / 1024.0
+
+    logging.info(f"NAG_LOG: [{current_time}] Orginal: {original_size_kb:.3f} KB")
+
+
+    if add_compression:
+        encoded_body_bytes = gzip.compress(encoded_body_bytes, compresslevel=6)
+        headers['Content-Encoding'] = 'gzip'
+        compressed_size_kb = len(encoded_body_bytes) / 1024.0
+        logging.info(f"NAG_LOG: [{current_time}] Compressed: {compressed_size_kb:.3f} KB")
+     
+    
+    
+
+
     status, reason, response = await _perform_http_request(
         session,
         method="POST",
         url=log_ingest_url,
         encoded_body_bytes=encoded_body_bytes,
-        headers={
-            "Authorization": f"Api-Token {dynatrace_token}",
-            "Content-Type": "application/json; charset=utf-8"
-        }
     )
     if status > 299:
         logging.error(f'Log ingest error: {status}, reason: {reason}, url: {log_ingest_url}, body: "{response}"',
