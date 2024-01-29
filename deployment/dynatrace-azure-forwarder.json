@@ -516,7 +516,7 @@
                         "alwaysOn": true,
                         "managedPipelineMode": "Integrated",
                         "swiftSupported": true,
-                        "linuxFxVersion": "Python|3.8"
+                        "linuxFxVersion": "Python|3.9"
                     }
                 },
                 {
