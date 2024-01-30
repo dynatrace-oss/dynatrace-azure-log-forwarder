@@ -21,7 +21,7 @@ jobs:
       name: Tests & Linting
       language: python
       python:
-        - "3.8"
+        - "3.9"
       install:
         - pip install -r requirements.txt
         - pip install -r tests/requirements.txt
@@ -51,7 +51,7 @@ jobs:
       sudo: required
       language: python
       python:
-        - "3.8"
+        - "3.9"
       env:
         - RESOURCE_GROUP_NAME="logs-forwarding-e2e-rg-${TRAVIS_BUILD_ID}"
         - RESOURCE_GROUP_STATIC_RESOURCES="logs-forwarding-e2e-static-resources"
