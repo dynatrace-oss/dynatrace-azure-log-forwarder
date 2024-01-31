@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import datetime
 import gzip
 import json
 import os
@@ -88,7 +87,6 @@ async def _send_logs(session, dynatrace_token, encoded_body_bytes, log_ingest_ur
         "Content-Type": "application/json; charset=utf-8",
     }
 
-    
     if apply_compression:
         encoded_body_bytes = gzip.compress(encoded_body_bytes, compresslevel=6)
         headers["Content-Encoding"] = "gzip"
