@@ -93,7 +93,7 @@ class LogFilter:
 
     @staticmethod
     def _create_only_metrics_filter(only_metrics: str):
-        return lambda severity, isMetric, record: (logging.info(f"_create_only_metrics_filter() :: isMetric: {isMetric} ({type(isMetric)}), only_metrics: {only_metrics} ({type(only_metrics)}), result = {isMetric == only_metrics}"), isMetric == only_metrics)[1]
+        return lambda severity, isMetric, record: isMetric == only_metrics
 
     def should_filter_out_record(self, parsed_record: Dict) -> bool:
         if not self.filters_dict:
