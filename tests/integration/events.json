@@ -75,5 +75,16 @@
     "EventStampName": "waws-prod-am2-373",
     "Host": "lw1sdlwk0007DK",
     "EventIpAddress": "10.51.0.105"
- }
+ },
+ {
+    "count": 2,
+    "total": 19,
+    "minimum": 9,
+    "maximum": 10,
+    "average": 9.5,
+    "resourceId": "/SUBSCRIPTIONS/C85913AE-8C54-47FA-84E0-FF171B8D3579/RESOURCEGROUPS/DYNATRACERG/PROVIDERS/MICROSOFT.WEB/SITES/DYNATRACELOGFW-FUNCTION",
+    "time": "2024-02-03T08:29:00.0000000Z",
+    "metricName": "Requests",
+    "timeGrain": "PT1M"
+}
 ]

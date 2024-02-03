@@ -21,8 +21,8 @@ from logs_ingest.mapping import severity_to_log_level_dict, log_level_to_severit
     RESOURCE_ID_ATTRIBUTE
 
 GLOBAL = "global"
-FILTER_NAMES_PREFIXES = ["filter.resource_type.min_log_level.", "filter.resource_type.contains_pattern.",
-                         "filter.resource_id.min_log_level.","filter.resource_id.contains_pattern."]
+FILTER_NAMES_PREFIXES = ["filter.resource_type.min_log_level.", "filter.resource_type.contains_pattern.", "filter.resource_type.only_metrics.",
+                         "filter.resource_id.min_log_level.","filter.resource_id.contains_pattern.", "filter.resource_id.only_metrics."]
 
 
 class LogFilter:
@@ -68,6 +68,10 @@ class LogFilter:
                     contains_pattern_filter = self._create_contains_pattern_filter(filter_value)
                     filters_to_apply.append(contains_pattern_filter)
                     parsed_filters_to_log.append(filter_name)
+                if "only_metrics" in filter_name:
+                    only_metrics_filter = self._create_only_metrics_filter(filter_value)
+                    filters_to_apply.append(only_metrics_filter)
+                    parsed_filters_to_log.append(filter_name)
             if filters_to_apply:
                 filters_to_apply_dict[k] = filters_to_apply
         logging.info(f"Successfully parsed filters: {parsed_filters_to_log}")
@@ -81,11 +85,15 @@ class LogFilter:
 
     @staticmethod
     def _create_log_level_filter(log_levels: Set):
-        return lambda severity, record: severity in log_levels
+        return lambda severity, isMetric, record: severity in log_levels
 
     @staticmethod
     def _create_contains_pattern_filter(pattern: str):
-        return lambda severity, record: fnmatch.fnmatch(record, pattern)
+        return lambda severity, isMetric, record: fnmatch.fnmatch(record, pattern)
+
+    @staticmethod
+    def _create_only_metrics_filter(only_metrics: str):
+        return lambda severity, isMetric, record: (logging.info(f"_create_only_metrics_filter() :: isMetric: {isMetric} ({type(isMetric)}), only_metrics: {only_metrics} ({type(only_metrics)}), result = {isMetric == only_metrics}"), isMetric == only_metrics)[1]
 
     def should_filter_out_record(self, parsed_record: Dict) -> bool:
         if not self.filters_dict:
@@ -95,9 +103,11 @@ class LogFilter:
         resource_id = parsed_record.get(RESOURCE_ID_ATTRIBUTE, "").casefold()
         resource_type = parsed_record.get(RESOURCE_TYPE_ATTRIBUTE, "").casefold()
         content = parsed_record.get("content", "")
-
+        is_metric = parsed_record.get("isMetric", 'False')
+        
         log_filters = self._get_filters(resource_id, resource_type)
-        return not all(log_filter(severity, content) for log_filter in log_filters)
+
+        return not all(log_filter(severity, is_metric, content) for log_filter in log_filters)
 
     def _get_filters(self, resource_id, resource_type):
         filters = self.filters_dict.get(resource_id, [])

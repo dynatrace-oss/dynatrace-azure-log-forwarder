@@ -157,6 +157,9 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     if "resourceId" in record:
         extract_resource_id_attributes(parsed_record, record["resourceId"])
 
+    if "metricName" in record:
+        parsed_record['isMetric'] = "True"
+
     if log_filter.should_filter_out_record(parsed_record):
         return None
 

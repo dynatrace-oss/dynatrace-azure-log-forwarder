@@ -116,7 +116,7 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
     assert Counter(self_monitoring.dynatrace_connectivities) == {DynatraceConnectivity.Ok: 3}
     assert self_monitoring.processing_time > 0
     assert self_monitoring.sending_time > 0
-    assert self_monitoring.sent_log_entries == 16
+    assert self_monitoring.sent_log_entries == 20
 
 
 def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_monitoring):
