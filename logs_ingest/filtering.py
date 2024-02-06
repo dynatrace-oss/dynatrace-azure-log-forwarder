@@ -17,22 +17,34 @@ import re
 from typing import Dict, Set
 
 from logs_ingest import logging
-from logs_ingest.mapping import severity_to_log_level_dict, log_level_to_severity_dict, RESOURCE_TYPE_ATTRIBUTE, \
-    RESOURCE_ID_ATTRIBUTE
+from logs_ingest.mapping import (
+    severity_to_log_level_dict,
+    log_level_to_severity_dict,
+    RESOURCE_TYPE_ATTRIBUTE,
+    RESOURCE_ID_ATTRIBUTE,
+)
 
 GLOBAL = "global"
-FILTER_NAMES_PREFIXES = ["filter.resource_type.min_log_level.", "filter.resource_type.contains_pattern.",
-                         "filter.resource_id.min_log_level.","filter.resource_id.contains_pattern."]
+FILTER_NAMES_PREFIXES = [
+    "filter.resource_type.min_log_level.",
+    "filter.resource_type.contains_pattern.",
+    "filter.resource_id.min_log_level.",
+    "filter.resource_id.contains_pattern.",
+]
 
 
 class LogFilter:
     def __init__(self):
         self._filter_config: str = os.environ.get("FILTER_CONFIG", "")
         logging.info(f"Filter_config: {self._filter_config}")
-        filter_config_pattern = re.compile(r'([^;\s].+?)=([^;]*)')
+        filter_config_pattern = re.compile(r"([^;\s].+?)=([^;]*)")
         self._filters_tuples = filter_config_pattern.findall(self._filter_config)
-        self._filters_tuples = [modified_filter_tuple for filter_tuple in self._filters_tuples
-                                if (modified_filter_tuple := self._prepare_filters_tuples(filter_tuple)) is not None]
+        self._filters_tuples = [
+            modified_filter_tuple
+            for filter_tuple in self._filters_tuples
+            if (modified_filter_tuple := self._prepare_filters_tuples(filter_tuple))
+            is not None
+        ]
         self.filters_dict = self._prepare_filters_dict()
 
     @staticmethod
@@ -64,10 +76,21 @@ class LogFilter:
                         log_level_filter = self._create_log_level_filter(log_levels)
                         filters_to_apply.append(log_level_filter)
                         parsed_filters_to_log.append(filter_name)
+
                 if "contains_pattern" in filter_name:
-                    contains_pattern_filter = self._create_contains_pattern_filter(filter_value)
-                    filters_to_apply.append(contains_pattern_filter)
-                    parsed_filters_to_log.append(filter_name)
+                    if isinstance(filter_value, list):
+                        for filter_pattern in filter_value:
+                            contains_pattern_filter = (
+                                self._create_contains_pattern_filter(filter_pattern)
+                            )
+                            filters_to_apply.append(contains_pattern_filter)
+                            parsed_filters_to_log.append(filter_name)
+                    if not isinstance(filter_value, list):
+                        contains_pattern_filter = self._create_contains_pattern_filter(
+                            filter_value
+                        )
+                        filters_to_apply.append(contains_pattern_filter)
+                        parsed_filters_to_log.append(filter_name)
             if filters_to_apply:
                 filters_to_apply_dict[k] = filters_to_apply
         logging.info(f"Successfully parsed filters: {parsed_filters_to_log}")
@@ -76,7 +99,23 @@ class LogFilter:
     def _group_filters(self) -> Dict:
         filters_dict = {}
         for key, filter_name_value in self._filters_tuples:
-            filters_dict.setdefault(key, {}).update({filter_name_value[0]: filter_name_value[1]})
+            if " | " in filter_name_value[1]:
+                matches = re.search(r"\*(.*?)\*", filter_name_value[1])
+                if matches:
+                    content_between_stars = matches.group(1)
+                    filter_patterns = [
+                        f"*{pattern.strip()}*"
+                        for pattern in content_between_stars.split(" | ")
+                    ]
+                    filters_dict.setdefault(key, {}).update(
+                        {filter_name_value[0]: filter_patterns}
+                    )
+                    continue
+
+            filters_dict.setdefault(key, {}).update(
+                {filter_name_value[0]: filter_name_value[1]}
+            )
+
         return filters_dict
 
     @staticmethod
@@ -112,18 +151,23 @@ class LogFilter:
         log_level_set = set()
         if min_log_level.isdigit():
             min_log_level = int(min_log_level)
-            log_level_set = {severity for log_level_digit, severity in log_level_to_severity_dict.items()
-                             if log_level_digit <= min_log_level}
+            log_level_set = {
+                severity
+                for log_level_digit, severity in log_level_to_severity_dict.items()
+                if log_level_digit <= min_log_level
+            }
         else:
             min_log_level = min_log_level.capitalize()
             min_log_level_digit = severity_to_log_level_dict.get(min_log_level, None)
             if min_log_level_digit:
-                log_level_set = {severity for log_level_digit, severity in log_level_to_severity_dict.items()
-                                 if log_level_digit <= min_log_level_digit}
+                log_level_set = {
+                    severity
+                    for log_level_digit, severity in log_level_to_severity_dict.items()
+                    if log_level_digit <= min_log_level_digit
+                }
             else:
-                logging.warning(f"Incorrect log level in FILTER_CONFIG: {min_log_level}.",
-                                "incorrect-log-level-warning")
+                logging.warning(
+                    f"Incorrect log level in FILTER_CONFIG: {min_log_level}.",
+                    "incorrect-log-level-warning",
+                )
         return log_level_set
-
-
-
