@@ -179,5 +179,5 @@ def test_filter_global_with_or_conditions():
         "FILTER.GLOBAL.MIN_LOG_LEVEL=4;FILTER.GLOBAL.CONTAINS_PATTERN=*pattern | pattern2*;"
     )
     log_filter = LogFilter()
-
+    #checking
     assert log_filter.should_filter_out_record(parsed_record)
