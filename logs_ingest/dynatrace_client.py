@@ -18,6 +18,8 @@ import ssl
 import time
 import aiohttp
 import asyncio
+import urllib.parse
+import requests
 
 from typing import List, Dict, Tuple, NamedTuple
 from urllib.error import HTTPError
@@ -39,6 +41,39 @@ class LogBatch(NamedTuple):
     serialized_batch: str
     number_of_logs_in_batch: int
 
+async def get_entity_id_by_name(dynatrace_url: str, dynatrace_token: str, entity_name: str):
+    # API endpoint for querying entities
+    
+    headers = {
+        'Authorization': f'Api-Token {dynatrace_token}',
+        'Content-Type': 'application/json'
+    }
+    params = {
+        # Modify the entitySelector as needed for your use case
+        'entitySelector': f'type("CUSTOM_DEVICE"),caseSensitive(entityName.equals("{entity_name}"))',
+        'fields': '+properties'  # Adjust based on the required fields
+    }
+
+    entities_url = urlparse(dynatrace_url.rstrip("/") + "/api/v2/entities").geturl()
+    # logging.info("get_entity_id_by_name() :: EntityName = " + entity_name + ", Url = " + entities_url )
+    
+    response = requests.get(entities_url, headers=headers, params=params, verify=False)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        data = response.json()
+        entities = data.get('entities', [])
+        if entities:
+            # Assuming the first entity is the one we're looking for
+            entity_id = entities[0].get('entityId')
+            logging.info(f"Entity ID for '{entity_name}' is {entity_id}")
+            return entity_id
+        else:
+            logging.warning(f"No entity found with name '{entity_name}'", "entity_not_found-level-warning")
+            return None
+    else:
+        logging.error(f"Failed to retrieve entity. Status code: {response.status_code}", "entity_not_found-level-error")
+        return None
 
 async def send_logs(dynatrace_url: str, dynatrace_token: str, logs: List[Dict], self_monitoring: SelfMonitoring):
     start_time = time.perf_counter()
