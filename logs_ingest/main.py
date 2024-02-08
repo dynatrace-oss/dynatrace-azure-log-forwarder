@@ -167,7 +167,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     if source_entity is not None:
         parsed_record['dynatrace_source_entity'] = source_entity
     else: 
-        logging.warning(f"No dt.source_entity found for " + parsed_record["azure.resource.name"], "source_entity_found-level-warning" )
+        logging.warning(f"No dynatrace_source_entity found for " + parsed_record["azure.resource.name"], "source_entity_found-level-warning" )
 
     metadata_engine.apply(record, parsed_record)
     convert_date_format(parsed_record)
