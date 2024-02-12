@@ -100,12 +100,11 @@ class LogFilter:
         filters_dict = {}
         for key, filter_name_value in self._filters_tuples:
             if " | " in filter_name_value[1]:
-                matches = re.search(r"\*(.*?)\*", filter_name_value[1])
-                if matches:
-                    content_between_stars = matches.group(1)
+                filter_patterns = filter_name_value[1].split("|")
+                if filter_patterns:
                     filter_patterns = [
-                        f"*{pattern.strip()}*"
-                        for pattern in content_between_stars.split(" | ")
+                        f"{pattern.strip()}"
+                        for pattern in filter_patterns
                     ]
                     filters_dict.setdefault(key, {}).update(
                         {filter_name_value[0]: filter_patterns}

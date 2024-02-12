@@ -176,8 +176,8 @@ def test_all_filters_filter_out():
 
 def test_filter_global_with_or_conditions():
     os.environ["FILTER_CONFIG"] = (
-        "FILTER.GLOBAL.MIN_LOG_LEVEL=4;FILTER.GLOBAL.CONTAINS_PATTERN=*pattern | pattern2*;"
+        "FILTER.GLOBAL.MIN_LOG_LEVEL=4;FILTER.GLOBAL.CONTAINS_PATTERN=a* | *b | *c*;"
     )
     log_filter = LogFilter()
-    #checking
+
     assert log_filter.should_filter_out_record(parsed_record)
