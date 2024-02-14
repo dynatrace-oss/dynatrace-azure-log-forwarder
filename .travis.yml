@@ -1,3 +1,5 @@
+os: linux
+dist: focal
 language: shell
 if: fork = false
 notifications:
