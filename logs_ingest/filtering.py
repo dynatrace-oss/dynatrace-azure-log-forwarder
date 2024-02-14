@@ -99,12 +99,11 @@ class LogFilter:
     def _group_filters(self) -> Dict:
         filters_dict = {}
         for key, filter_name_value in self._filters_tuples:
-            if " | " in filter_name_value[1]:
+            if "|" in filter_name_value[1]:
                 filter_patterns = filter_name_value[1].split("|")
                 if filter_patterns:
                     filter_patterns = [
-                        f"{pattern.strip()}"
-                        for pattern in filter_patterns
+                        f"{pattern.strip()}" for pattern in filter_patterns
                     ]
                     filters_dict.setdefault(key, {}).update(
                         {filter_name_value[0]: filter_patterns}
