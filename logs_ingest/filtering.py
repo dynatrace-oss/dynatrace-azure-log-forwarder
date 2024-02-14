@@ -134,6 +134,16 @@ class LogFilter:
         content = parsed_record.get("content", "")
 
         log_filters = self._get_filters(resource_id, resource_type)
+
+        filter_patterns = []
+        for log_filter in log_filters:
+            if 'contains_pattern' in str(log_filter):
+                filter_patterns.append(log_filter)
+
+        if len(filter_patterns) > 1:
+            log_filters = set(log_filters) - set(filter_patterns)
+            return any(log_filter(severity, content) for log_filter in filter_patterns)
+
         return not all(log_filter(severity, content) for log_filter in log_filters)
 
     def _get_filters(self, resource_id, resource_type):
