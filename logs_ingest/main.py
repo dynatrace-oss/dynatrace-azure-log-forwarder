@@ -162,7 +162,6 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
         return None
 
     metadata_engine.apply(record, parsed_record)
-    print(f"After metada_engine applied: {parsed_record["content"]}")
     convert_date_format(parsed_record)
     category = record.get("category", "").lower()
     infer_monitored_entity_id(category, parsed_record)
@@ -175,6 +174,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
             parsed_record[attribute_key] = string_attribute_value[: attribute_value_length_limit]
 
     content = parsed_record.get("content", None)
+    print(f"After applied: {content}")
     if content:
         if not isinstance(content, str):
             parsed_record["content"] = json.dumps(parsed_record["content"])
