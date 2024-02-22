@@ -182,6 +182,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
             trimmed_len = content_length_limit - len(DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED)
             parsed_record["content"] = parsed_record["content"][
                                        :trimmed_len] + DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED
+    print(f"Last version of parsed_record: {parsed_record}")
     return parsed_record
 
 
