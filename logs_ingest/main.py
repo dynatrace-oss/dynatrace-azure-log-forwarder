@@ -148,7 +148,7 @@ def deserialize_properties(record: Dict):
 
 
 def parse_record(record: Dict, self_monitoring: SelfMonitoring):
-    print(f"Actual record: {record}")
+    # print(f"Actual record: {record}")
     parsed_record = {
         "cloud.provider": "Azure"
     }
