@@ -174,7 +174,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
             parsed_record[attribute_key] = string_attribute_value[: attribute_value_length_limit]
 
     content = parsed_record.get("content", None)
-    print(f"After applied: {content}")
+    # print(f"After applied: {content}")
     if content:
         if not isinstance(content, str):
             parsed_record["content"] = json.dumps(parsed_record["content"])
@@ -183,7 +183,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
             trimmed_len = content_length_limit - len(DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED)
             parsed_record["content"] = parsed_record["content"][
                                        :trimmed_len] + DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED
-    print(f"Last version of parsed_record: {parsed_record["content"]}")
+    # print(f"Last version of parsed_record: {parsed_record["content"]}")
     return parsed_record
 
 
