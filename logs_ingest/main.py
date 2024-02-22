@@ -162,6 +162,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
         return None
 
     metadata_engine.apply(record, parsed_record)
+    print(f"After metada_engine applied: {parsed_record["content"]}")
     convert_date_format(parsed_record)
     category = record.get("category", "").lower()
     infer_monitored_entity_id(category, parsed_record)
@@ -182,7 +183,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
             trimmed_len = content_length_limit - len(DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED)
             parsed_record["content"] = parsed_record["content"][
                                        :trimmed_len] + DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED
-    print(f"Last version of parsed_record: {parsed_record}")
+    print(f"Last version of parsed_record: {parsed_record["content"]}")
     return parsed_record
 
 
