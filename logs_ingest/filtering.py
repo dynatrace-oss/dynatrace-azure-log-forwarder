@@ -132,7 +132,7 @@ class LogFilter:
         resource_id = parsed_record.get(RESOURCE_ID_ATTRIBUTE, "").casefold()
         resource_type = parsed_record.get(RESOURCE_TYPE_ATTRIBUTE, "").casefold()
         content = parsed_record.get("content", "")
-        print(f"Content: {content}")
+        print(f"Parsed_record: {parsed_record}")
         log_filters = self._get_filters(resource_id, resource_type)
 
         filter_patterns = []
