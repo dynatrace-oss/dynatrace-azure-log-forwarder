@@ -132,7 +132,7 @@ class LogFilter:
         resource_id = parsed_record.get(RESOURCE_ID_ATTRIBUTE, "").casefold()
         resource_type = parsed_record.get(RESOURCE_TYPE_ATTRIBUTE, "").casefold()
         content = parsed_record.get("content", "")
-        print(f"Parsed_record: {parsed_record}")
+        # print(f"Parsed_record: {parsed_record}")
         log_filters = self._get_filters(resource_id, resource_type)
 
         filter_patterns = []
@@ -140,7 +140,7 @@ class LogFilter:
             if 'contains_pattern' in str(log_filter):
                 filter_patterns.append(log_filter)
 
-        print(f"filter_patterns after contains check: {', '.join(str(filter_pattern) for filter_pattern in filter_patterns)}")
+        # print(f"filter_patterns after contains check: {', '.join(str(filter_pattern) for filter_pattern in filter_patterns)}")
 
         if len(filter_patterns) > 1:
             log_filters = set(log_filters) - set(filter_patterns)
