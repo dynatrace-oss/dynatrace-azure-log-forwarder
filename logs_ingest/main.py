@@ -158,8 +158,7 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     if "resourceId" in record:
         extract_resource_id_attributes(parsed_record, record["resourceId"])
 
-    if log_filter.should_filter_out_record(parsed_record):
-        return None
+    
 
     metadata_engine.apply(record, parsed_record)
     convert_date_format(parsed_record)
@@ -174,6 +173,8 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
             parsed_record[attribute_key] = string_attribute_value[: attribute_value_length_limit]
 
     content = parsed_record.get("content", None)
+    if log_filter.should_filter_out_record(parsed_record):
+        return None
     # print(f"After applied: {content}")
     if content:
         if not isinstance(content, str):
