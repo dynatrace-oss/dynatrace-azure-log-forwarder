@@ -149,7 +149,7 @@ class LogFilter:
             print("Result {}".format(log_filter_result))
             return log_filter_result
 
-        return not (all(log_filter(severity, str(content)) for log_filter in log_filters) and log_filter_result)
+        return not all(log_filter(severity, str(content)) for log_filter in log_filters) and not log_filter_result
 
     def _get_filters(self, resource_id, resource_type):
         filters = self.filters_dict.get(resource_id, [])
