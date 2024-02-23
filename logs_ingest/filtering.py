@@ -143,6 +143,7 @@ class LogFilter:
         # print(f"filter_patterns after contains check: {', '.join(str(filter_pattern) for filter_pattern in filter_patterns)}")
 
         if len(filter_patterns) > 1:
+            print("executed")
             log_filters = set(log_filters) - set(filter_patterns)
             return any(log_filter(severity, str(content)) for log_filter in filter_patterns)
 
