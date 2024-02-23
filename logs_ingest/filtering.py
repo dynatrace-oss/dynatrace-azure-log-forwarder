@@ -122,7 +122,7 @@ class LogFilter:
 
     @staticmethod
     def _create_contains_pattern_filter(pattern: str):
-        return lambda severity, record: fnmatch.fnmatch(record, pattern)
+        return lambda severity, record: print(f"Record: {record}, \n Pattern: {pattern}")  fnmatch.fnmatch(record, pattern)
 
     def should_filter_out_record(self, parsed_record: Dict) -> bool:
         if not self.filters_dict:
