@@ -144,9 +144,9 @@ class LogFilter:
 
         if len(filter_patterns) > 1:
             log_filters = set(log_filters) - set(filter_patterns)
-            return any(log_filter(severity, content) for log_filter in filter_patterns)
+            return any(log_filter(severity, str(content)) for log_filter in filter_patterns)
 
-        return not all(log_filter(severity, content) for log_filter in log_filters)
+        return not all(log_filter(severity, str(content)) for log_filter in log_filters)
 
     def _get_filters(self, resource_id, resource_type):
         filters = self.filters_dict.get(resource_id, [])
