@@ -141,7 +141,7 @@ class LogFilter:
                 filter_patterns.append(log_filter)
 
         # print(f"filter_patterns after contains check: {', '.join(str(filter_pattern) for filter_pattern in filter_patterns)}")
-
+        log_filter_result = True
         if len(filter_patterns) > 1:
             print("executed")
             log_filters = set(log_filters) - set(filter_patterns)
@@ -149,7 +149,7 @@ class LogFilter:
             print("Result {}".format(log_filter_result))
             return log_filter_result
 
-        return not all(log_filter(severity, str(content)) for log_filter in log_filters)
+        return not (all(log_filter(severity, str(content)) for log_filter in log_filters) and log_filter_result)
 
     def _get_filters(self, resource_id, resource_type):
         filters = self.filters_dict.get(resource_id, [])
