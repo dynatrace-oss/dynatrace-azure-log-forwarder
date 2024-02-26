@@ -147,7 +147,7 @@ class LogFilter:
             log_filters = set(log_filters) - set(filter_patterns)
             log_filter_result = any(log_filter(severity, str(content)) for log_filter in filter_patterns)
             print("Result {}".format(log_filter_result))
-            return log_filter_result
+            # return log_filter_result
         first_part = not all(log_filter(severity, str(content)) for log_filter in log_filters)
         second_part = not log_filter_result
         final_result = first_part and second_part
