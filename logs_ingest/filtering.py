@@ -148,8 +148,13 @@ class LogFilter:
             log_filter_result = any(log_filter(severity, str(content)) for log_filter in filter_patterns)
             print("Result {}".format(log_filter_result))
             return log_filter_result
+        first_part = not all(log_filter(severity, str(content)) for log_filter in log_filters)
+        second_part = not log_filter_result
+        final_result = first_part and second_part
 
-        return not all(log_filter(severity, str(content)) for log_filter in log_filters) and not log_filter_result
+        print(f"First part: {first_part}, Second part: {second_part}, Final part: {final_result}")
+
+        return final_result
 
     def _get_filters(self, resource_id, resource_type):
         filters = self.filters_dict.get(resource_id, [])
