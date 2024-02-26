@@ -150,7 +150,7 @@ class LogFilter:
             # return log_filter_result
         first_part = not all(log_filter(severity, str(content)) for log_filter in log_filters)
         second_part = not log_filter_result
-        final_result = first_part and second_part
+        final_result = first_part or second_part
 
         print(f"First part: {first_part}, Second part: {second_part}, Final part: {final_result}")
 
