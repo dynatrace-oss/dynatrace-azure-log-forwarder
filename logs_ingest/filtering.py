@@ -136,6 +136,8 @@ class LogFilter:
         log_filters = self._get_filters(resource_id, resource_type)
 
         filter_patterns = []
+        print(f"Log filters: {str(log_filters)}")
+        
         for log_filter in log_filters:
             if 'contains_pattern' in str(log_filter):
                 filter_patterns.append(log_filter)
