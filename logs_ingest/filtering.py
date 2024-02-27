@@ -118,7 +118,7 @@ class LogFilter:
 
     @staticmethod
     def _create_log_level_filter(log_levels: Set):
-        return lambda severity, record: severity in log_levels
+        return lambda severity, record: print(f"Record: {record}, \n severity: {severity}") or severity in log_levels
 
     @staticmethod
     def _create_contains_pattern_filter(pattern: str):
