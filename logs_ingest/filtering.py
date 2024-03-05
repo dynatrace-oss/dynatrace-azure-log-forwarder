@@ -118,11 +118,11 @@ class LogFilter:
 
     @staticmethod
     def _create_log_level_filter(log_levels: Set):
-        return lambda severity, record: print(f"Record: {record}, \n severity: {severity}") or severity in log_levels
+        return lambda severity, record: severity in log_levels
 
     @staticmethod
     def _create_contains_pattern_filter(pattern: str):
-        return lambda severity, record: print(f"Record: {record}, \n Pattern: {pattern}") or  fnmatch.fnmatch(record, pattern)
+        return lambda severity, record: fnmatch.fnmatch(record, pattern)
 
     def should_filter_out_record(self, parsed_record: Dict) -> bool:
         if not self.filters_dict:
@@ -132,31 +132,21 @@ class LogFilter:
         resource_id = parsed_record.get(RESOURCE_ID_ATTRIBUTE, "").casefold()
         resource_type = parsed_record.get(RESOURCE_TYPE_ATTRIBUTE, "").casefold()
         content = parsed_record.get("content", "")
-        # print(f"Parsed_record: {parsed_record}")
         log_filters = self._get_filters(resource_id, resource_type)
 
         filter_patterns = []
-        print(f"Log filters: {str(log_filters)}")
         
         for log_filter in log_filters:
             if 'contains_pattern' in str(log_filter):
                 filter_patterns.append(log_filter)
-
-        # print(f"filter_patterns after contains check: {', '.join(str(filter_pattern) for filter_pattern in filter_patterns)}")
-        log_filter_result = True
+                
+        pipe_seperated_filters_result = True
+        
         if len(filter_patterns) > 1:
-            print("executed")
             log_filters = set(log_filters) - set(filter_patterns)
-            log_filter_result = any(log_filter(severity, str(content)) for log_filter in filter_patterns)
-            print("Result {}".format(log_filter_result))
-            # return log_filter_result
-        first_part = not all(log_filter(severity, str(content)) for log_filter in log_filters)
-        second_part = not log_filter_result
-        final_result = first_part or second_part
+            pipe_seperated_filters_result = any(log_filter(severity, str(content)) for log_filter in filter_patterns)
 
-        print(f"First part: {first_part}, Second part: {second_part}, Final part: {final_result}")
-
-        return final_result
+        return not all(log_filter(severity, str(content)) for log_filter in log_filters) or not pipe_seperated_filters_result
 
     def _get_filters(self, resource_id, resource_type):
         filters = self.filters_dict.get(resource_id, [])
