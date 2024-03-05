@@ -148,7 +148,6 @@ def deserialize_properties(record: Dict):
 
 
 def parse_record(record: Dict, self_monitoring: SelfMonitoring):
-    # print(f"Actual record: {record}")
     parsed_record = {
         "cloud.provider": "Azure"
     }
@@ -175,7 +174,6 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     content = parsed_record.get("content", None)
     if log_filter.should_filter_out_record(parsed_record):
         return None
-    # print(f"After applied: {content}")
     if content:
         if not isinstance(content, str):
             parsed_record["content"] = json.dumps(parsed_record["content"])
@@ -184,7 +182,6 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
             trimmed_len = content_length_limit - len(DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED)
             parsed_record["content"] = parsed_record["content"][
                                        :trimmed_len] + DYNATRACE_LOG_INGEST_CONTENT_MARK_TRIMMED
-    # print(f"Last version of parsed_record: {parsed_record["content"]}")
     return parsed_record
 
 
