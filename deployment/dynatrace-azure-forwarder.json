@@ -30,6 +30,7 @@
         },
         "eventHubConnectionString": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Event hub connection string"
             }
@@ -74,6 +75,27 @@
             "type": "string",
             "metadata": {
                 "description": "Filter config"
+            }
+        },
+        "eventhubConnectionClientId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "MI user id"
+            }
+        },
+        "eventhubConnectionCredentials": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Managed Identity"
+            }
+        },
+        "eventhubConnectionFullyQualifiedNamespace": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Eventhub's host name"
             }
         }
     },
@@ -428,6 +450,18 @@
                         {
                             "name": "FILTER_CONFIG",
                             "value": "[parameters('filterConfig')]"
+                        },
+                        {
+                            "name": "EVENTHUB_CONNECTION_STRING__clientId",
+                            "value": "[parameters('eventhubConnectionClientId')]"
+                        },
+                        {
+                            "name": "EVENTHUB_CONNECTION_STRING__credential",
+                            "value": "[parameters('eventhubConnectionCredentials')]"
+                        },
+                        {
+                            "name": "EVENTHUB_CONNECTION_STRING__fullyQualifiedNamespace",
+                            "value": "[parameters('eventhubConnectionFullyQualifiedNamespace')]"
                         }
                     ]
 
@@ -482,7 +516,7 @@
                         "alwaysOn": true,
                         "managedPipelineMode": "Integrated",
                         "swiftSupported": true,
-                        "linuxFxVersion": "Python|3.8"
+                        "linuxFxVersion": "Python|3.9"
                     }
                 },
                 {

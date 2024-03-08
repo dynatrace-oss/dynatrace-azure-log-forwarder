@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 from json import JSONDecodeError
 from typing import List, Dict, Optional
 import re
+import asyncio
 
 import azure.functions as func
 from dateutil import parser
@@ -64,7 +65,7 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
 
         if logs_to_be_sent_to_dt:
-            send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring)
+            asyncio.run(send_logs(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], logs_to_be_sent_to_dt, self_monitoring))
     except Exception as e:
         logging.exception("Failed to process logs", "log-processing-exception")
         raise e
@@ -89,22 +90,23 @@ def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
 
         event_body = event.get_body().decode('utf-8')
         event_json = parse_to_json(event_body)
-        records = event_json.get("records", [])
-        for record in records:
-            try:
-                extracted_record = extract_dt_record(record, self_monitoring)
-                if extracted_record:
-                    logs_to_be_sent_to_dt.append(extracted_record)
-            except JSONDecodeError as json_e:
-                self_monitoring.parsing_errors += 1
-                logging.exception(
-                    f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
-                    "log-record-parsing-jsondecode-exception")
-            except Exception as e:
-                self_monitoring.parsing_errors += 1
-                logging.exception(
-                    f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
-                    "log-record-parsing-exception")
+        if event_json:
+            records = event_json.get("records", [])
+            for record in records:
+                try:
+                    extracted_record = extract_dt_record(record, self_monitoring)
+                    if extracted_record:
+                        logs_to_be_sent_to_dt.append(extracted_record)
+                except JSONDecodeError as json_e:
+                    self_monitoring.parsing_errors += 1
+                    logging.exception(
+                        f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
+                        "log-record-parsing-jsondecode-exception")
+                except Exception as e:
+                    self_monitoring.parsing_errors += 1
+                    logging.exception(
+                        f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
+                        "log-record-parsing-exception")
     return logs_to_be_sent_to_dt
 
 
@@ -191,7 +193,19 @@ def parse_to_json(text):
     try:
         event_json = json.loads(text)
     except Exception:
-        event_json = json.loads(text.replace("\'", "\""))
+        try:
+            event_json = json.loads(text.replace("\n", ""), strict=False)
+        except Exception:
+            try:
+                event_json = json.loads(text.replace("\'", "\""))
+            except Exception:
+                try:
+                    event_json = json.loads(text.replace('\\\'', '').replace("\'", "\""), strict=False)
+                except Exception:
+                    logging.exception(
+                        f"Failed to decode JSON for the event (base64 applied for safety!): {util_misc.to_base64_text(str(text))}.",
+                        "log-record-parsing-jsondecode-exception")
+                    return None
     return event_json
 
 
