@@ -25,7 +25,7 @@ import azure.functions as func
 from dateutil import parser
 
 from . import logging
-from .dynatrace_client import send_logs
+from .dynatrace_client import send_logs, get_entity_id_by_name
 from .filtering import LogFilter
 from .mapping import extract_resource_id_attributes, extract_severity, azure_properties_names
 from .metadata_engine import MetadataEngine
@@ -157,8 +157,17 @@ def parse_record(record: Dict, self_monitoring: SelfMonitoring):
     if "resourceId" in record:
         extract_resource_id_attributes(parsed_record, record["resourceId"])
 
+    if "metricName" in record:
+        parsed_record['isMetric'] = "True"
+    
     if log_filter.should_filter_out_record(parsed_record):
         return None
+
+    source_entity = asyncio.run(get_entity_id_by_name(os.environ[DYNATRACE_URL], os.environ[DYNATRACE_ACCESS_KEY], parsed_record["azure.resource.name"]))
+    if source_entity is not None:
+        parsed_record['dynatrace_source_entity'] = source_entity
+    else: 
+        logging.warning(f"No dynatrace_source_entity found for " + parsed_record["azure.resource.name"], "source_entity_found-level-warning" )
 
     metadata_engine.apply(record, parsed_record)
     convert_date_format(parsed_record)
