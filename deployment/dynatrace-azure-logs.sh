@@ -25,6 +25,7 @@ readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 readonly REQUIRE_VALID_CERTIFICATE_DEFAULT=true
 
+
 print_help()
 {
    printf "
@@ -278,6 +279,12 @@ while (( "$#" )); do
                 shift; shift
             ;;
 
+            "--log-max-length")
+                ensure_param_value_given $1 $2
+                DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH=$2
+                shift; shift
+            ;;
+
             *)
             echo "Unknown param $1"
             print_help
@@ -370,6 +377,16 @@ if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   if [ -z "$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE" ]; then echo "No --eventhub-connection-fully-qualified-namespace"; exit 1; fi
 fi
 
+if [ -z "$DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH" ]; then
+    DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH=8192
+else
+    if ! [[ "$DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH" =~ ^[0-9]+$ && \
+        "$DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH" -ge 0 && \
+        "$DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH" -le 64000 ]]; then
+         echo "Invalid value detected. Default value (8192) set for DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH"
+    fi
+fi
+
 print_all_parameters
 
 TARGET_URL=$(echo "$TARGET_URL" | sed 's:/*$::')
@@ -414,7 +431,8 @@ if [ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
   resourceTags="${LOG_FORWARDER_TAGS}" \
   eventhubConnectionClientId="${EVENT_HUB_CONNECTION_CLIENT_ID}" \
   eventhubConnectionCredentials="${EVENT_HUB_CONNECTION_CREDENTIALS}" \
-  eventhubConnectionFullyQualifiedNamespace="${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"
+  eventhubConnectionFullyQualifiedNamespace="${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"\
+  maxLogContextLength="${DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH}"
 else
   az deployment group create \
   --resource-group ${RESOURCE_GROUP} \
@@ -429,7 +447,8 @@ else
   deployActiveGateContainer="${DEPLOY_ACTIVEGATE}" \
   targetPaasToken="${TARGET_PAAS_TOKEN}" \
   filterConfig="${FILTER_CONFIG}" \
-  resourceTags="${LOG_FORWARDER_TAGS}"
+  resourceTags="${LOG_FORWARDER_TAGS}"\
+  maxLogContextLength="${DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH}"
 fi
 
 if [[ $? != 0 ]]; then

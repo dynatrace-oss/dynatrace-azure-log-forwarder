@@ -10,4 +10,4 @@ def to_base64_text(text: str) -> str:
 
 def get_int_environment_value(key: str, default_value: int) -> int:
     environment_value = os.environ.get(key, None)
-    return int(environment_value) if environment_value and environment_value.isdigit() else default_value
+    return int(environment_value) if environment_value and environment_value.isdigit() and int(environment_value) > 0  else default_value

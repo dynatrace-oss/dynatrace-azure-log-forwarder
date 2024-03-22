@@ -462,6 +462,10 @@
                         {
                             "name": "EVENTHUB_CONNECTION_STRING__fullyQualifiedNamespace",
                             "value": "[parameters('eventhubConnectionFullyQualifiedNamespace')]"
+                        },
+                        {
+                            "name": "DYNATRACE_LOG_INGEST_CONTENT_MAX_LENGTH",
+                            "value": "[parameters('maxLogContextLength')]"
                         }
                     ]
 
