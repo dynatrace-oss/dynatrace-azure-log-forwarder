@@ -97,6 +97,13 @@
             "metadata": {
                 "description": "Eventhub's host name"
             }
+        },
+        "maxLogContextLength": {
+            "type": "string",
+            "defaultValue": "8192",
+            "metadata": {
+                "description": "Max length of Content of single log line."
+            }
         }
     },
     "variables": {
