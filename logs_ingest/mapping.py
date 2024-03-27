@@ -18,7 +18,7 @@ from typing import Dict
 
 from . import logging
 
-DEFAULT_SEVERITY_INFO = "INFO"
+DEFAULT_SEVERITY_INFO = "Info"
 
 RESOURCE_ID_ATTRIBUTE = "azure.resource.id"
 SUBSCRIPTION_ATTRIBUTE = "azure.subscription"
@@ -30,7 +30,8 @@ log_level_to_severity_dict = {
     1: 'Critical',
     2: 'Error',
     3: 'Warning',
-    4: 'Informational'
+    4: 'Informational',
+    5: 'Info'
 }
 
 severity_to_log_level_dict = {v: k for k, v in log_level_to_severity_dict.items()}

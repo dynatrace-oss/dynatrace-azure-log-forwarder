@@ -116,6 +116,7 @@ class LogFilter:
                              if log_level_digit <= min_log_level}
         else:
             min_log_level = min_log_level.capitalize()
+            min_log_level = "Info" if min_log_level == "Default" else min_log_level
             min_log_level_digit = severity_to_log_level_dict.get(min_log_level, None)
             if min_log_level_digit:
                 log_level_set = {severity for log_level_digit, severity in log_level_to_severity_dict.items()
