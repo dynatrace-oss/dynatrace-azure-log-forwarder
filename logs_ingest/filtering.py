@@ -65,9 +65,19 @@ class LogFilter:
                         filters_to_apply.append(log_level_filter)
                         parsed_filters_to_log.append(filter_name)
                 if "contains_pattern" in filter_name:
-                    contains_pattern_filter = self._create_contains_pattern_filter(filter_value)
-                    filters_to_apply.append(contains_pattern_filter)
-                    parsed_filters_to_log.append(filter_name)
+                    if isinstance(filter_value, list):
+                        for filter_pattern in filter_value:
+                            contains_pattern_filter = (
+                                self._create_contains_pattern_filter(filter_pattern)
+                            )
+                            filters_to_apply.append(contains_pattern_filter)
+                            parsed_filters_to_log.append(filter_name)
+                    if not isinstance(filter_value, list):
+                        contains_pattern_filter = self._create_contains_pattern_filter(
+                            filter_value
+                        )
+                        filters_to_apply.append(contains_pattern_filter)
+                        parsed_filters_to_log.append(filter_name)
             if filters_to_apply:
                 filters_to_apply_dict[k] = filters_to_apply
         logging.info(f"Successfully parsed filters: {parsed_filters_to_log}")
@@ -76,7 +86,21 @@ class LogFilter:
     def _group_filters(self) -> Dict:
         filters_dict = {}
         for key, filter_name_value in self._filters_tuples:
-            filters_dict.setdefault(key, {}).update({filter_name_value[0]: filter_name_value[1]})
+            if "|" in filter_name_value[1]:
+                filter_patterns = filter_name_value[1].split("|")
+                if filter_patterns:
+                    filter_patterns = [
+                        f"{pattern.strip()}" for pattern in filter_patterns
+                    ]
+                    filters_dict.setdefault(key, {}).update(
+                        {filter_name_value[0]: filter_patterns}
+                    )
+                    continue
+
+            filters_dict.setdefault(key, {}).update(
+                {filter_name_value[0]: filter_name_value[1]}
+            )
+
         return filters_dict
 
     @staticmethod
@@ -97,7 +121,23 @@ class LogFilter:
         content = parsed_record.get("content", "")
 
         log_filters = self._get_filters(resource_id, resource_type)
-        return not all(log_filter(severity, content) for log_filter in log_filters)
+
+        filter_patterns = []
+
+        for log_filter in log_filters:
+            if 'contains_pattern' in str(log_filter):
+                filter_patterns.append(log_filter)
+
+        pipe_separated_filters_result = True
+
+        if len(filter_patterns) > 1:
+            log_filters = set(log_filters) - set(filter_patterns)
+            pipe_separated_filters_result = any(log_filter(severity, str(content)) for log_filter in filter_patterns)
+
+        return (not all(log_filter(severity, str(content)) for log_filter in log_filters)
+                or not pipe_separated_filters_result)
+
+
 
     def _get_filters(self, resource_id, resource_type):
         filters = self.filters_dict.get(resource_id, [])
