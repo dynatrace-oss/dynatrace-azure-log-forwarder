@@ -18,7 +18,7 @@ from typing import Dict
 
 from . import logging
 
-DEFAULT_SEVERITY_INFO = "INFO"
+DEFAULT_SEVERITY_INFO = "Informational"
 
 RESOURCE_ID_ATTRIBUTE = "azure.resource.id"
 SUBSCRIPTION_ATTRIBUTE = "azure.subscription"

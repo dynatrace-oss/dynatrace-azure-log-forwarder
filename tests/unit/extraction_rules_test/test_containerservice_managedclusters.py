@@ -49,7 +49,7 @@ kube_audit_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "DEMO-AKS",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-895AED2A0D6C6D33',
     'dt.source_entity': 'CUSTOM_DEVICE-895AED2A0D6C6D33',
-    'severity': 'INFO'
+    'severity': 'Informational'
 }
 
 kube_controller_manager_record = {
@@ -84,7 +84,7 @@ kube_controller_manager_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "DEMO-AKS",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-895AED2A0D6C6D33',
     'dt.source_entity': 'CUSTOM_DEVICE-895AED2A0D6C6D33',
-    'severity': 'INFO'
+    'severity': 'Informational'
 }
 
 
