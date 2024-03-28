@@ -173,3 +173,21 @@ def test_all_filters_filter_out():
     os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=2;FILTER.GLOBAL.CONTAINS_PATTERN=*pattern*;FILTER.RESOURCE_TYPE.MIN_LOG_LEVEL.MICROSOFT.WEB/SITES=3;FILTER.RESOURCE_TYPE.CONTAINS_PATTERN.MICROSOFT.WEB/SITES=*pattern*;FILTER.RESOURCE_ID.MIN_LOG_LEVEL./SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION=Informational;FILTER.RESOURCE_ID.CONTAINS_PATTERN./SUBSCRIPTIONS/69B51384-146C-4685-9DAB-5AE01877D7B8/RESOURCEGROUPS/LOGS-INGEST-FUNCTION/PROVIDERS/MICROSOFT.WEB/SITES/INGEST-LOGS-FUNCTION=pattern"
     log_filter = LogFilter()
     assert log_filter.should_filter_out_record(parsed_record)
+
+
+def test_filter_global_with_bad_or_condition():
+    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.MIN_LOG_LEVEL=3;FILTER.GLOBAL.CONTAINS_PATTERN=Executed* | *Functions* | *not_fitting*"
+    log_filter = LogFilter()
+    assert log_filter.should_filter_out_record(parsed_record)
+
+
+def test_filter_global_with_good_or_conditions():
+    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.CONTAINS_PATTERN=*logs_ingest* | *Succeeded*"
+    log_filter = LogFilter()
+    assert not log_filter.should_filter_out_record(parsed_record)
+
+
+def test_filter_global_with_only_bad_conditions():
+    os.environ["FILTER_CONFIG"] = "FILTER.GLOBAL.CONTAINS_PATTERN=*bad* | *not_fitting_anything*"
+    log_filter = LogFilter()
+    assert log_filter.should_filter_out_record(parsed_record)
