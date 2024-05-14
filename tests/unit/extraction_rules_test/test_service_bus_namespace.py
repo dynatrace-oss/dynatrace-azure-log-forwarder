@@ -42,7 +42,7 @@ expected_output = {
     RESOURCE_TYPE_ATTRIBUTE: "MICROSOFT.SERVICEBUS/NAMESPACES",
     RESOURCE_NAME_ATTRIBUTE: "SHOEBOXEHNS-CY4001",
     'dt.source_entity': 'AZURE_SERVICE_BUS_NAMESPACE-00EC820FA9912085',
-    'severity': 'INFO'
+    'severity': 'Informational'
 }
 
 

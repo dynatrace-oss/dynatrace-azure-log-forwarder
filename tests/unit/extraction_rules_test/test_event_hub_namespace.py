@@ -46,7 +46,7 @@ expected_output = {
     RESOURCE_TYPE_ATTRIBUTE: "MICROSOFT.EVENTHUB/NAMESPACES",
     RESOURCE_NAME_ATTRIBUTE: "AZURELABS",
     'dt.source_entity': 'AZURE_EVENT_HUB_NAMESPACE-273DE9D5A87802ED',
-    'severity': 'INFO'
+    'severity': 'Informational'
 }
 
 
