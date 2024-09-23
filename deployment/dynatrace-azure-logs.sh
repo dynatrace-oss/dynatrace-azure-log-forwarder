@@ -28,7 +28,7 @@ readonly REQUIRE_VALID_CERTIFICATE_DEFAULT=true
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-user-assigned-managed-identity ENABLE_USER_ASSIGNED_MANAGED_IDENTITY]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-user-assigned-managed-identity ENABLE_USER_ASSIGNED_MANAGED_IDENTITY] [--custom-consumer-group CONSUMER_GROUP]
 
 arguments:
     -h, --help              Show this help message and exit
@@ -72,6 +72,8 @@ arguments:
                             Name of the Managed Identity resource
     --eventhub-connection-fully-qualified-namespace EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE
                             Event Hubs namespace's host name
+    --custom-consumer-group CONSUMER_GROUP
+                            Optional, custom consumer group for Event Hub.
     "
 }
 
@@ -278,6 +280,12 @@ while (( "$#" )); do
                 shift; shift
             ;;
 
+            "--custom-consumer-group")
+                ensure_param_value_given $1 $2
+                CONSUMER_GROUP=$2
+                shift; shift
+            ;;
+
             *)
             echo "Unknown param $1"
             print_help
@@ -368,6 +376,7 @@ if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   if [ -z "$EVENT_HUB_CONNECTION_CLIENT_ID" ]; then echo "No --eventhub-connection-client-id"; exit 1; fi
   if [ -z "$MANAGED_IDENTITY_RESOURCE_NAME" ]; then echo "No --managed-identity-resource-name"; exit 1; fi
   if [ -z "$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE" ]; then echo "No --eventhub-connection-fully-qualified-namespace"; exit 1; fi
+  if [ -z "$CONSUMER_GROUP" ]; then CONSUMER_GROUP=${"\$Default"}; exit 1; fi
 fi
 
 print_all_parameters
@@ -414,7 +423,8 @@ if [ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
   resourceTags="${LOG_FORWARDER_TAGS}" \
   eventhubConnectionClientId="${EVENT_HUB_CONNECTION_CLIENT_ID}" \
   eventhubConnectionCredentials="${EVENT_HUB_CONNECTION_CREDENTIALS}" \
-  eventhubConnectionFullyQualifiedNamespace="${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}"
+  eventhubConnectionFullyQualifiedNamespace="${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}" \
+  customConsumerGroup="${CONSUMER_GROUP}"
 else
   az deployment group create \
   --resource-group ${RESOURCE_GROUP} \
@@ -429,7 +439,8 @@ else
   deployActiveGateContainer="${DEPLOY_ACTIVEGATE}" \
   targetPaasToken="${TARGET_PAAS_TOKEN}" \
   filterConfig="${FILTER_CONFIG}" \
-  resourceTags="${LOG_FORWARDER_TAGS}"
+  resourceTags="${LOG_FORWARDER_TAGS}" \
+  customConsumerGroup="${CONSUMER_GROUP}"
 fi
 
 if [[ $? != 0 ]]; then
