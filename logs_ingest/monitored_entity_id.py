@@ -32,7 +32,11 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
     if not resource_id or not resource_type:
         return
 
+    print("map", dt_me_type_mapper)
+    print("resource id", resource_id)
+    print("resource type", resource_type)
     resource_type_with_category = ",".join([resource_type, category.casefold()])
+    print("resource type with category", resource_type_with_category)
     # Function App and Web app have the same resource type - AZURE_FUNCTION_APP meType can be difine only by resource type and log category combination
     dt_me_type = dt_me_type_mapper.get(resource_type_with_category, dt_me_type_mapper.get(resource_type, None))
     print("dt_me_type", dt_me_type)
