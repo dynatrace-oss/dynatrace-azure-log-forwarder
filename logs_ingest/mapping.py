@@ -16,7 +16,7 @@ import json
 import os
 from typing import Dict
 
-from . import logging
+import logging
 
 DEFAULT_SEVERITY_INFO = "Informational"
 
@@ -53,6 +53,9 @@ try:
 except Exception:
     logging.exception(f"Failed to load file with meType mapping: '{me_type_mapper_file_path}'",
                       "meType-mapping-file-loading-exception")
+    
+for ele in dt_me_type_mapper:
+    print(ele, dt_me_type_mapper[ele])
 
 
 def extract_resource_id_attributes(parsed_record: Dict, resource_id: str):

@@ -21,6 +21,7 @@ from logs_ingest.mapping import dt_me_type_mapper, RESOURCE_TYPE_ATTRIBUTE, RESO
 
 int64 = ctypes.c_int64 # pylint: disable=C0103
 
+
 CUSTOM_DEVICE_ENTITY_TYPE = "CUSTOM_DEVICE"
 MIN_RESOURCE_TYPE_LENGTH = 2
 
@@ -35,6 +36,7 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
     resource_type_with_category = ",".join([resource_type, category.casefold()])
     # Function App and Web app have the same resource type - AZURE_FUNCTION_APP meType can be difine only by resource type and log category combination
     dt_me_type = dt_me_type_mapper.get(resource_type_with_category, dt_me_type_mapper.get(resource_type, None))
+    print("heelo www")
 
     resource_type_elements = resource_type.split("/")
     if not dt_me_type and len(resource_type_elements) > MIN_RESOURCE_TYPE_LENGTH:
