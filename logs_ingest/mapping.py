@@ -16,7 +16,7 @@ import json
 import os
 from typing import Dict
 
-from . import logging
+import logging
 
 DEFAULT_SEVERITY_INFO = "Informational"
 
@@ -49,10 +49,18 @@ try:
             resource_type = resource_type_to_me_type["resourceType"].lower()
             category = resource_type_to_me_type.get("category", "").lower()
             key = ",".join(filter(None, [resource_type, category]))
-            dt_me_type_mapper.update({key: resource_type_to_me_type["meType"]})
+            me_type = resource_type_to_me_type["meType"]
+            if "meSecondType" in resource_type_to_me_type:
+                me_second_type = resource_type_to_me_type["meSecondType"]
+                dt_me_type_mapper.update({key: [me_type, me_second_type]})
+            else:
+                dt_me_type_mapper.update({key: [me_type]})
 except Exception:
     logging.exception(f"Failed to load file with meType mapping: '{me_type_mapper_file_path}'",
                       "meType-mapping-file-loading-exception")
+    
+for element in dt_me_type_mapper:
+    print(element, dt_me_type_mapper[element])
 
 
 def extract_resource_id_attributes(parsed_record: Dict, resource_id: str):
