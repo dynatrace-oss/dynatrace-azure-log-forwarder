@@ -43,6 +43,7 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
 
     resource_type_elements = resource_type.split("/")
     if not dt_me_type and len(resource_type_elements) > MIN_RESOURCE_TYPE_LENGTH:
+        print("asdasd")
         # If we get resourceType for subresource we will cut additional segments out to find Dynatrace MeType within supported resourceTypes.
         # If we don't find it, we won't calculate identifier and send it to Dynatrace.
         # e.g.
@@ -59,9 +60,12 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
 
     if dt_me_type and resource_id:
         identifier = create_monitored_entity_id(dt_me_type, resource_id)
+        print("identifier", identifier)
         parsed_record["dt.source_entity"] = identifier
         if dt_me_type.casefold() == CUSTOM_DEVICE_ENTITY_TYPE.casefold():
             parsed_record["dt.entity.custom_device"] = identifier
+
+    print("parsed_record", parsed_record)
 
 
 def create_monitored_entity_id(entity_type: str, resource_id: str) -> str:
