@@ -37,9 +37,7 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
     print("resource type with category", resource_type_with_category)
     # Function App and Web app have the same resource type - AZURE_FUNCTION_APP meType can be difine only by resource type and log category combination
     dt_me_type = dt_me_type_mapper.get(resource_type_with_category, dt_me_type_mapper.get(resource_type, None))
-    print("dt_me_type1", dt_me_type)
-    dt_me_type = dt_me_type[0]
-    print("dt_me_type2", dt_me_type)
+    print("dt_me_type", dt_me_type)
 
     resource_type_elements = resource_type.split("/")
     if not dt_me_type and len(resource_type_elements) > MIN_RESOURCE_TYPE_LENGTH:
@@ -59,11 +57,15 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
             resource_id = resource_id_pattern.match(resource_id).group(0) if resource_id_pattern.match(resource_id) else None
 
     if dt_me_type and resource_id:
-        identifier = create_monitored_entity_id(dt_me_type, resource_id)
+        identifier = [create_monitored_entity_id(dt_me_type_element, resource_id) for dt_me_type_element in dt_me_type]
         print("identifier", identifier)
         parsed_record["dt.source_entity"] = identifier
-        if dt_me_type.casefold() == CUSTOM_DEVICE_ENTITY_TYPE.casefold():
-            parsed_record["dt.entity.custom_device"] = identifier
+        dt_me_type_casefold = [element.casefold() for element in dt_me_type]
+        if CUSTOM_DEVICE_ENTITY_TYPE.casefold() in dt_me_type_casefold:
+            index = dt_me_type_casefold.index(CUSTOM_DEVICE_ENTITY_TYPE.casefold())
+            parsed_record["dt.entity.custom_device"] = identifier[index]
+        # if dt_me_type.casefold() == CUSTOM_DEVICE_ENTITY_TYPE.casefold():
+        #     parsed_record["dt.entity.custom_device"] = identifier
 
     print("parsed_record", parsed_record)
 

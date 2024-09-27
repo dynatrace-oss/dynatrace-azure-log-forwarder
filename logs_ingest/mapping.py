@@ -62,7 +62,6 @@ except Exception:
 for element in dt_me_type_mapper:
     print(element, dt_me_type_mapper[element])
 
-
 def extract_resource_id_attributes(parsed_record: Dict, resource_id: str):
     """
     based on https://github.com/Azure/azure-libraries-for-net/blob/Fluent-v1.37.0/src/ResourceManagement/ResourceManager/Core/ResourceId.cs#L29
