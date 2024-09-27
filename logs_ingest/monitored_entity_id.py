@@ -35,7 +35,7 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
     resource_type_with_category = ",".join([resource_type, category.casefold()])
     # Function App and Web app have the same resource type - AZURE_FUNCTION_APP meType can be difine only by resource type and log category combination
     dt_me_type = dt_me_type_mapper.get(resource_type_with_category, dt_me_type_mapper.get(resource_type, None))
-    print("testtest")
+    print("dt_me_type")
     resource_type_elements = resource_type.split("/")
     if not dt_me_type and len(resource_type_elements) > MIN_RESOURCE_TYPE_LENGTH:
         # If we get resourceType for subresource we will cut additional segments out to find Dynatrace MeType within supported resourceTypes.
