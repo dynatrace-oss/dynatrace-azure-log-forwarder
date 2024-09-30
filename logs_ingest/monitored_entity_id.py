@@ -41,6 +41,7 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
 
     resource_type_elements = resource_type.split("/")
     if not dt_me_type and len(resource_type_elements) > MIN_RESOURCE_TYPE_LENGTH:
+        print("asdasd")
         # If we get resourceType for subresource we will cut additional segments out to find Dynatrace MeType within supported resourceTypes.
         # If we don't find it, we won't calculate identifier and send it to Dynatrace.
         # e.g.
@@ -58,12 +59,11 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
     if dt_me_type and resource_id:
         identifier = [create_monitored_entity_id(dt_me_type_element, resource_id) for dt_me_type_element in dt_me_type]
         print("identifier", identifier)
-        parsed_record["dt.entity.czure_function_app"] = identifier[0]
-        parsed_record["dt.entity.bzure_function_app2"] = identifier[-1]
-        # dt_me_type_casefold = [element.casefold() for element in dt_me_type]
-        # if CUSTOM_DEVICE_ENTITY_TYPE.casefold() in dt_me_type_casefold:
-        #     index = dt_me_type_casefold.index(CUSTOM_DEVICE_ENTITY_TYPE.casefold())
-        #     parsed_record["dt.entity.custom_device"] = identifier[index]
+        parsed_record["dt.source_entity"] = identifier
+        dt_me_type_casefold = [element.casefold() for element in dt_me_type]
+        if CUSTOM_DEVICE_ENTITY_TYPE.casefold() in dt_me_type_casefold:
+            index = dt_me_type_casefold.index(CUSTOM_DEVICE_ENTITY_TYPE.casefold())
+            parsed_record["dt.entity.custom_device"] = identifier[index]
         # if dt_me_type.casefold() == CUSTOM_DEVICE_ENTITY_TYPE.casefold():
         #     parsed_record["dt.entity.custom_device"] = identifier
 
