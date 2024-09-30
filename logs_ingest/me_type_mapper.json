@@ -1,21 +1,39 @@
 [
   {
     "resourceType": "Microsoft.Compute/virtualMachineScaleSets",
-    "meType": "AZURE_VM_SCALE_SET",
-    "meSecondType": "CUSTOM_DEVICE"
+    "meType": "AZURE_VM_SCALE_SET"
   },
   {
-    "resourceType": "Microsoft.Compute/virtualMachines",
-    "meType": "AZURE_VM",
-    "meSecondType": "CUSTOM_DEVICE"
+    "resourceType": "Microsoft.Compute/virtualMachines", 
+    "meType": "AZURE_VM"
   },
   {
-    "resourceType": "Microsoft.Storage/storageAccounts",
+    "resourceType": "Microsoft.ServiceBus/namespaces",
+    "meType": "AZURE_SERVICE_BUS_NAMESPACE"
+  },
+  {
+    "resourceType": "Microsoft.ServiceBus/namespaces/topics",
+    "meType": "AZURE_SERVICE_BUS_TOPIC"
+  },
+  {
+    "resourceType": "Microsoft.ServiceBus/namespaces/queues",
+    "meType": "AZURE_SERVICE_BUS_QUEUE"
+  },
+  {
+    "resourceType": "Microsoft.EventHub/namespaces", 
+    "meType": "AZURE_EVENT_HUB_NAMESPACE"
+  },
+  {
+    "resourceType": "Microsoft.EventHub/namespaces/eventhubs",
+    "meType": "AZURE_EVENT_HUB"
+  },
+  {
+    "resourceType": "Microsoft.Storage/storageAccounts", 
     "meType": "AZURE_STORAGE_ACCOUNT",
     "meSecondType": "CUSTOM_DEVICE"
   },
   {
-    "resourceType": "Microsoft.Sql/servers",
+    "resourceType": "Microsoft.Sql/servers", 
     "meType": "AZURE_SQL_SERVER",
     "meSecondType": "CUSTOM_DEVICE"
   },
@@ -30,67 +48,42 @@
     "meSecondType": "CUSTOM_DEVICE"
   },
   {
-    "resourceType": "Microsoft.DocumentDb/databaseAccounts",
+    "resourceType": "Microsoft.DocumentDb/databaseAccounts", 
     "meType": "AZURE_COSMOS_DB",
     "meSecondType": "CUSTOM_DEVICE"
   },
   {
-    "resourceType": "Microsoft.Network/applicationGateways",
+    "resourceType": "Microsoft.Network/applicationGateways", 
     "meType": "AZURE_APPLICATION_GATEWAY",
     "meSecondType": "CUSTOM_DEVICE"
   },
   {
-    "resourceType": "Microsoft.Network/LoadBalancers",
+    "resourceType": "Microsoft.Network/LoadBalancers", 
     "meType": "AZURE_LOAD_BALANCER",
     "meSecondType": "CUSTOM_DEVICE"
   },
   {
-    "resourceType": "Microsoft.ApiManagement/service",
+    "resourceType": "Microsoft.ApiManagement/service", 
     "meType": "AZURE_API_MANAGEMENT_SERVICE",
     "meSecondType": "CUSTOM_DEVICE"
   },
   {
-    "resourceType": "Microsoft.Cache/Redis",
+    "resourceType": "Microsoft.Cache/Redis", 
     "meType": "AZURE_REDIS_CACHE",
     "meSecondType": "CUSTOM_DEVICE"
   },
   {
-    "resourceType": "Microsoft.ServiceBus/namespaces",
-    "meType": "AZURE_SERVICE_BUS_NAMESPACE",
-    "meSecondType": "CUSTOM_DEVICE"
-  },
-  {
-    "resourceType": "Microsoft.ServiceBus/namespaces/topics",
-    "meType": "AZURE_SERVICE_BUS_TOPIC",
-    "meSecondType": "CUSTOM_DEVICE"
-  },
-  {
-    "resourceType": "Microsoft.ServiceBus/namespaces/queues",
-    "meType": "AZURE_SERVICE_BUS_QUEUE",
-    "meSecondType": "CUSTOM_DEVICE"
-  },
-  {
-    "resourceType": "Microsoft.EventHub/namespaces",
-    "meType": "AZURE_EVENT_HUB_NAMESPACE",
-    "meSecondType": "CUSTOM_DEVICE"
-  },
-  {
-    "resourceType": "Microsoft.EventHub/namespaces/eventhubs",
-    "meType": "AZURE_EVENT_HUB",
-    "meSecondType": "CUSTOM_DEVICE"
-  },
-  {
-    "resourceType": "Microsoft.Devices/IotHubs",
+    "resourceType": "Microsoft.Devices/IotHubs", 
     "meType": "AZURE_IOT_HUB",
     "meSecondType": "CUSTOM_DEVICE"
   },
   {
-    "resourceType": "Microsoft.Web/sites",
+    "resourceType": "Microsoft.Web/sites", 
     "meType": "AZURE_WEB_APP",
     "meSecondType": "CUSTOM_DEVICE"
   },
   {
-    "resourceType": "Microsoft.Web/sites",
+    "resourceType": "Microsoft.Web/sites", 
     "category": "FunctionAppLogs",
     "meType": "AZURE_FUNCTION_APP",
     "meSecondType": "CUSTOM_DEVICE"
