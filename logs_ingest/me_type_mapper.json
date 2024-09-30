@@ -86,7 +86,7 @@
     "resourceType": "Microsoft.Web/sites", 
     "category": "FunctionAppLogs",
     "meType": "AZURE_FUNCTION_APP",
-    "meSecondType": "CUSTOM_DEVICE_PATRYK"
+    "meSecondType": "CUSTOM_DEVICE"
   },
   {
     "resourceType": "Microsoft.AppConfiguration/configurationStores",
