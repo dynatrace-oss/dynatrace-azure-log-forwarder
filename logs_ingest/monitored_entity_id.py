@@ -58,7 +58,7 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
     if dt_me_type and resource_id:
         identifier = [create_monitored_entity_id(dt_me_type_element, resource_id) for dt_me_type_element in dt_me_type]
         print("identifier", identifier)
-        parsed_record["dt.source_entity"] = identifier[0]
+        parsed_record["dt.source_entity"] = identifier[1]
         # parsed_record["dt.source_entity"] = identifier[1]
 
         dt_me_type_casefold = [element.casefold() for element in dt_me_type]
