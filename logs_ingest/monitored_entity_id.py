@@ -130,5 +130,4 @@ def _encode_me_identifier(type_name: str, identifier: int) -> str:
         string_id += HEX_DIGITS[hex_digit_index]
         i -= 4
 
-    string_id = "{0}".format(string_id)
     return string_id
