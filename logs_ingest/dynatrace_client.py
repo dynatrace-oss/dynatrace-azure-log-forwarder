@@ -150,6 +150,7 @@ def prepare_serialized_batches(logs: List[Dict]) -> List[LogBatch]:
         new_batch_len = logs_for_next_batch_total_len + 2 + len(logs_for_next_batch) - 1  # add bracket length (2) and commas for each entry but last one.
 
         next_entry_serialized = json.dumps(log_entry)
+        print("next_entry_serialized", next_entry_serialized)
 
         next_entry_size = len(next_entry_serialized.encode("UTF-8"))
         if next_entry_size > log_entry_max_size:
