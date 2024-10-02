@@ -178,4 +178,6 @@ def prepare_serialized_batches(logs: List[Dict]) -> List[LogBatch]:
         batch = LogBatch("[" + ",".join(logs_for_next_batch) + "]", log_entries)
         batches.append(batch)
 
+    
+    print("batches", batches)
     return batches
