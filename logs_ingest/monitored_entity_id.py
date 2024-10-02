@@ -61,10 +61,10 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
         parsed_record["dt.source_entity"] = identifier
         # parsed_record["dt.source_entity"] = identifier[1]
 
-        # dt_me_type_casefold = [element.casefold() for element in dt_me_type]
-        # if CUSTOM_DEVICE_ENTITY_TYPE.casefold() in dt_me_type_casefold:
-        #     index = dt_me_type_casefold.index(CUSTOM_DEVICE_ENTITY_TYPE.casefold())
-        #     parsed_record["dt.entity.custom_device"] = identifier[index]
+        dt_me_type_casefold = [element.casefold() for element in dt_me_type]
+        if CUSTOM_DEVICE_ENTITY_TYPE.casefold() in dt_me_type_casefold:
+            index = dt_me_type_casefold.index(CUSTOM_DEVICE_ENTITY_TYPE.casefold())
+            parsed_record["dt.entity.custom_device"] = identifier[index]
         # if dt_me_type.casefold() == CUSTOM_DEVICE_ENTITY_TYPE.casefold():
         #     parsed_record["dt.entity.custom_device"] = identifier
 
@@ -129,4 +129,6 @@ def _encode_me_identifier(type_name: str, identifier: int) -> str:
         hex_digit_index = _zfrs(identifier, i) & 0xF
         string_id += HEX_DIGITS[hex_digit_index]
         i -= 4
+
+    string_id = "{0}".format(string_id)
     return string_id
