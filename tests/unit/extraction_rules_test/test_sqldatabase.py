@@ -55,7 +55,8 @@ automatic_tuning_log_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "MSSQL-LOG-TEST",
     "db.system": "mssql",
     "db.name": "mssql-log-test",
-    'dt.source_entity': 'AZURE_SQL_DATABASE-AE715D5D0538D957',
+    'dt.source_entity': "['AZURE_SQL_DATABASE-AE715D5D0538D957', 'CUSTOM_DEVICE-AE715D5D0538D957']",
+    'dt.entity.custom_device': 'CUSTOM_DEVICE-AE715D5D0538D957'
 }
 
 
@@ -115,7 +116,8 @@ query_store_runtime_statistics_log_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "MSSQL-LOG-TEST",
     "db.system": "mssql",
     "db.name": "mssql-log-test",
-    'dt.source_entity': 'AZURE_SQL_DATABASE-AE715D5D0538D957',
+    'dt.source_entity': "['AZURE_SQL_DATABASE-AE715D5D0538D957', 'CUSTOM_DEVICE-AE715D5D0538D957']",
+    'dt.entity.custom_device': 'CUSTOM_DEVICE-AE715D5D0538D957'
 }
 
 
@@ -153,7 +155,8 @@ errors_log_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "MSSQL-LOG-TEST",
     "db.system": "mssql",
     "db.name": "mssql-log-test",
-    'dt.source_entity': 'AZURE_SQL_DATABASE-AE715D5D0538D957',
+    'dt.source_entity': "['AZURE_SQL_DATABASE-AE715D5D0538D957', 'CUSTOM_DEVICE-AE715D5D0538D957']",
+    'dt.entity.custom_device': 'CUSTOM_DEVICE-AE715D5D0538D957'
 }
 
 
@@ -200,7 +203,8 @@ database_wait_statistics_log_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "MSSQL-LOG-TEST",
     "db.system": "mssql",
     "db.name": "mssql-log-test",
-    'dt.source_entity': 'AZURE_SQL_DATABASE-AE715D5D0538D957',
+    'dt.source_entity': "['AZURE_SQL_DATABASE-AE715D5D0538D957', 'CUSTOM_DEVICE-AE715D5D0538D957']",
+    'dt.entity.custom_device': 'CUSTOM_DEVICE-AE715D5D0538D957'
 }
 
 
@@ -234,7 +238,8 @@ timeouts_log_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "MSSQL-LOG-TEST",
     "db.system": "mssql",
     "db.name": "mssql-log-test",
-    'dt.source_entity': 'AZURE_SQL_DATABASE-AE715D5D0538D957',
+    'dt.source_entity': "['AZURE_SQL_DATABASE-AE715D5D0538D957', 'CUSTOM_DEVICE-AE715D5D0538D957']",
+    'dt.entity.custom_device': 'CUSTOM_DEVICE-AE715D5D0538D957'
 }
 
 
@@ -269,7 +274,8 @@ blocks_log_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "MSSQL-LOG-TEST",
     "db.system": "mssql",
     "db.name": "mssql-log-test",
-    'dt.source_entity': 'AZURE_SQL_DATABASE-AE715D5D0538D957',
+    'dt.source_entity': "['AZURE_SQL_DATABASE-AE715D5D0538D957', 'CUSTOM_DEVICE-AE715D5D0538D957']",
+    'dt.entity.custom_device': 'CUSTOM_DEVICE-AE715D5D0538D957'
 }
 
 
@@ -301,7 +307,8 @@ deadlocks_log_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "MSSQL-LOG-TEST",
     "db.system": "mssql",
     "db.name": "mssql-log-test",
-    'dt.source_entity': 'AZURE_SQL_DATABASE-AE715D5D0538D957',
+    'dt.source_entity': "['AZURE_SQL_DATABASE-AE715D5D0538D957', 'CUSTOM_DEVICE-AE715D5D0538D957']",
+    'dt.entity.custom_device': 'CUSTOM_DEVICE-AE715D5D0538D957'
 }
 
 

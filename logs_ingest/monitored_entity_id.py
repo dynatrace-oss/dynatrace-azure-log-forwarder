@@ -52,9 +52,9 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
             resource_id = resource_id_pattern.match(resource_id).group(0) if resource_id_pattern.match(resource_id) else None
 
     if dt_me_type and resource_id:
-        identifier = [create_monitored_entity_id(dt_me_type_element, resource_id) for dt_me_type_element in dt_me_type]
-        parsed_record["dt.source_entity"] = identifier
-        custom_device = next((s for s in identifier if CUSTOM_DEVICE_ENTITY_TYPE.casefold() in s.casefold()), None)
+        identifiers = [create_monitored_entity_id(dt_me_type_element, resource_id) for dt_me_type_element in dt_me_type]
+        parsed_record["dt.source_entity"] = identifiers
+        custom_device = next((identifier for identifier in identifiers if CUSTOM_DEVICE_ENTITY_TYPE.casefold() in identifier.casefold()), None)
         if custom_device is not None:
             parsed_record["dt.entity.custom_device"] = custom_device
 

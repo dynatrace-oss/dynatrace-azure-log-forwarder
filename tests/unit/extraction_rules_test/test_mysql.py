@@ -63,7 +63,7 @@ slow_log_expected_output = {
     "db.user": "mysql",
     "db.system": "mysql",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-E17B017C6CFB4EF9',
-    'dt.source_entity': 'CUSTOM_DEVICE-E17B017C6CFB4EF9',
+    'dt.source_entity': "['CUSTOM_DEVICE-E17B017C6CFB4EF9']",
 }
 
 general_log = {
@@ -102,7 +102,7 @@ general_log_expected_output = {
     "db.user": "mysql",
     "db.system": "mysql",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-E17B017C6CFB4EF9',
-    'dt.source_entity': 'CUSTOM_DEVICE-E17B017C6CFB4EF9'
+    'dt.source_entity': "['CUSTOM_DEVICE-E17B017C6CFB4EF9']"
 }
 
 table_access_log = {
@@ -139,7 +139,7 @@ table_access_log_expected_output = {
     "db.operation": "READ",
     "db.system": "mysql",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-E17B017C6CFB4EF9',
-    'dt.source_entity': 'CUSTOM_DEVICE-E17B017C6CFB4EF9'
+    'dt.source_entity': "['CUSTOM_DEVICE-E17B017C6CFB4EF9']"
 }
 
 connection_log_record = {
