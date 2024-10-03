@@ -59,8 +59,6 @@ except Exception:
     logging.exception(f"Failed to load file with meType mapping: '{me_type_mapper_file_path}'",
                       "meType-mapping-file-loading-exception")
     
-for element in dt_me_type_mapper:
-    print(element, dt_me_type_mapper[element])
 
 def extract_resource_id_attributes(parsed_record: Dict, resource_id: str):
     """
