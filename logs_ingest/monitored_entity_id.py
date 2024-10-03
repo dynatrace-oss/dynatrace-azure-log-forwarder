@@ -56,7 +56,6 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
         parsed_record["dt.source_entity"] = identifier
         custom_device = next((s for s in identifier if CUSTOM_DEVICE_ENTITY_TYPE.casefold() in s.casefold()), None)
         if custom_device is not None:
-            print(custom_device)
             parsed_record["dt.entity.custom_device"] = custom_device
 
 def create_monitored_entity_id(entity_type: str, resource_id: str) -> str:

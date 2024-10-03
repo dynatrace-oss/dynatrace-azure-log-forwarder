@@ -16,7 +16,7 @@ import json
 import os
 from typing import Dict
 
-import logging
+from . import logging
 
 DEFAULT_SEVERITY_INFO = "Informational"
 
