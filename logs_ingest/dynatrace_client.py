@@ -19,6 +19,7 @@ import ssl
 import time
 import aiohttp
 import asyncio
+import ast
 
 from typing import List, Dict, Tuple, NamedTuple
 from urllib.error import HTTPError
@@ -148,7 +149,7 @@ def prepare_serialized_batches(logs: List[Dict]) -> List[LogBatch]:
     log_entries = 0
     for log_entry in logs:
         new_batch_len = logs_for_next_batch_total_len + 2 + len(logs_for_next_batch) - 1  # add bracket length (2) and commas for each entry but last one.
-
+        log_entry["dt.source_entity"] = ast.literal_eval(log_entry["dt.source_entity"])
         next_entry_serialized = json.dumps(log_entry)
 
         next_entry_size = len(next_entry_serialized.encode("UTF-8"))

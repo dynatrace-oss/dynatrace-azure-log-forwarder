@@ -35,7 +35,6 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
     resource_type_with_category = ",".join([resource_type, category.casefold()])
     # Function App and Web app have the same resource type - AZURE_FUNCTION_APP meType can be difine only by resource type and log category combination
     dt_me_type = dt_me_type_mapper.get(resource_type_with_category, dt_me_type_mapper.get(resource_type, None))
-
     resource_type_elements = resource_type.split("/")
     if not dt_me_type and len(resource_type_elements) > MIN_RESOURCE_TYPE_LENGTH:
         # If we get resourceType for subresource we will cut additional segments out to find Dynatrace MeType within supported resourceTypes.
@@ -53,11 +52,11 @@ def infer_monitored_entity_id(category: str, parsed_record: Dict):
             resource_id = resource_id_pattern.match(resource_id).group(0) if resource_id_pattern.match(resource_id) else None
 
     if dt_me_type and resource_id:
-        identifier = create_monitored_entity_id(dt_me_type, resource_id)
+        identifier = [create_monitored_entity_id(dt_me_type_element, resource_id) for dt_me_type_element in dt_me_type]
         parsed_record["dt.source_entity"] = identifier
-        if dt_me_type.casefold() == CUSTOM_DEVICE_ENTITY_TYPE.casefold():
-            parsed_record["dt.entity.custom_device"] = identifier
-
+        custom_device = next((s for s in identifier if CUSTOM_DEVICE_ENTITY_TYPE.casefold() in s.casefold()), None)
+        if custom_device is not None:
+            parsed_record["dt.entity.custom_device"] = custom_device
 
 def create_monitored_entity_id(entity_type: str, resource_id: str) -> str:
     long_id = _murmurhash2_64A(resource_id.lower().encode("UTF-8"))
@@ -117,4 +116,5 @@ def _encode_me_identifier(type_name: str, identifier: int) -> str:
         hex_digit_index = _zfrs(identifier, i) & 0xF
         string_id += HEX_DIGITS[hex_digit_index]
         i -= 4
+
     return string_id
