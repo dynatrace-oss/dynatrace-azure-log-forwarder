@@ -29,7 +29,7 @@ def test_logs_on_dynatrace():
     time.sleep(3*60)
     end_time = round(time.time() * 1000)
     print(f"Try to receive logs from Dynatrace in 5 min (timeframe: start time={start_time}, end time={end_time})")
-    time.sleep(7*60)
+    time.sleep(5*60)
 
     url = f"{os.environ['TARGET_URL']}/api/v2/logs/search"
     params = {
