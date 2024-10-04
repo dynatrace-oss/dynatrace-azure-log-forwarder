@@ -74,7 +74,6 @@ def test_prepare_serialized_batches_split_by_events_limit(monkeypatch: MonkeyPat
     logs = [create_log_entry_with_random_len_msg() for x in range(how_many_logs)]
 
     batches = dynatrace_client.prepare_serialized_batches(logs)
-    print(batches)
 
     assert len(batches) == expected_batches
 
