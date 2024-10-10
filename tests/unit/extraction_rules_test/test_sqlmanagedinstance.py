@@ -81,7 +81,7 @@ query_store_runtime_statistics_log_expected_output = {
     "db.system": "mssql",
     "db.name": "mssql-database",
     "dt.entity.custom_device": "CUSTOM_DEVICE-0F706DFF6F100685",
-    "dt.source_entity": "CUSTOM_DEVICE-0F706DFF6F100685"
+    "dt.source_entity": "['CUSTOM_DEVICE-0F706DFF6F100685']"
 }
 
 
@@ -120,7 +120,7 @@ errors_log_expected_output = {
     "db.system": "mssql",
     "db.name": "mssql-database",
     "dt.entity.custom_device": "CUSTOM_DEVICE-0F706DFF6F100685",
-    "dt.source_entity": "CUSTOM_DEVICE-0F706DFF6F100685"
+    "dt.source_entity": "['CUSTOM_DEVICE-0F706DFF6F100685']"
 }
 
 
@@ -168,7 +168,7 @@ database_wait_statistics_log_expected_output = {
     "db.system": "mssql",
     "db.name": "mssql-database",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-0F706DFF6F100685',
-    'dt.source_entity': 'CUSTOM_DEVICE-0F706DFF6F100685',
+    'dt.source_entity': "['CUSTOM_DEVICE-0F706DFF6F100685']",
 }
 
 
@@ -205,7 +205,7 @@ resource_usage_stats_log_expected_output = {
     RESOURCE_NAME_ATTRIBUTE: "MSSQL-MANAGED-LOGS-TEST",
     "db.system": "mssql",
     "dt.entity.custom_device": "CUSTOM_DEVICE-0F706DFF6F100685",
-    "dt.source_entity": "CUSTOM_DEVICE-0F706DFF6F100685"
+    "dt.source_entity": "['CUSTOM_DEVICE-0F706DFF6F100685']"
 }
 
 

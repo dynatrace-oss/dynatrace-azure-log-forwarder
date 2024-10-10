@@ -48,7 +48,7 @@ kube_audit_expected_output = {
     RESOURCE_TYPE_ATTRIBUTE: "MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS",
     RESOURCE_NAME_ATTRIBUTE: "DEMO-AKS",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-895AED2A0D6C6D33',
-    'dt.source_entity': 'CUSTOM_DEVICE-895AED2A0D6C6D33',
+    'dt.source_entity': "['CUSTOM_DEVICE-895AED2A0D6C6D33']",
     'severity': 'Informational'
 }
 
@@ -83,7 +83,7 @@ kube_controller_manager_expected_output = {
     RESOURCE_TYPE_ATTRIBUTE: "MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS",
     RESOURCE_NAME_ATTRIBUTE: "DEMO-AKS",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-895AED2A0D6C6D33',
-    'dt.source_entity': 'CUSTOM_DEVICE-895AED2A0D6C6D33',
+    'dt.source_entity': "['CUSTOM_DEVICE-895AED2A0D6C6D33']",
     'severity': 'Informational'
 }
 

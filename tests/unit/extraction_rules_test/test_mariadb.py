@@ -63,7 +63,7 @@ slow_log_expected_output = {
     "db.user": "mariadb",
     "db.system": "mariadb",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-723DA98B69CB9DA2',
-    'dt.source_entity': 'CUSTOM_DEVICE-723DA98B69CB9DA2',
+    'dt.source_entity': "['CUSTOM_DEVICE-723DA98B69CB9DA2']",
 }
 
 general_log = {
@@ -102,7 +102,7 @@ general_log_expected_output = {
     "db.user": "mariadb",
     "db.system": "mariadb",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-723DA98B69CB9DA2',
-    'dt.source_entity': 'CUSTOM_DEVICE-723DA98B69CB9DA2'
+    'dt.source_entity': "['CUSTOM_DEVICE-723DA98B69CB9DA2']"
 }
 
 connection_log_record = {
@@ -139,7 +139,7 @@ connection_log_expected_output = {
     "db.user": "mariadb",
     "db.system": "mariadb",
     'dt.entity.custom_device': 'CUSTOM_DEVICE-723DA98B69CB9DA2',
-    'dt.source_entity': 'CUSTOM_DEVICE-723DA98B69CB9DA2'
+    'dt.source_entity': "['CUSTOM_DEVICE-723DA98B69CB9DA2']"
 }
 
 

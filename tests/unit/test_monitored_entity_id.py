@@ -99,9 +99,9 @@ def test_create_monitored_entity_id_for_non_custom_device():
         RESOURCE_TYPE_ATTRIBUTE: "Microsoft.Sql/servers"
     }
     infer_monitored_entity_id("", record)
-    assert "dt.entity.custom_device" not in record
+    assert record["dt.entity.custom_device"] == 'CUSTOM_DEVICE-431EDFA4E63CF989'
     assert "dt.source_entity" in record
-    assert record["dt.source_entity"] == "AZURE_SQL_SERVER-431EDFA4E63CF989"
+    assert record["dt.source_entity"] == ['AZURE_SQL_SERVER-431EDFA4E63CF989', 'CUSTOM_DEVICE-431EDFA4E63CF989']
 
 
 def test_create_monitored_entity_id_for_activity_log():
@@ -112,7 +112,7 @@ def test_create_monitored_entity_id_for_activity_log():
     infer_monitored_entity_id("", record)
     assert "dt.entity.custom_device" not in record
     assert "dt.source_entity" in record
-    assert record["dt.source_entity"] == "AZURE_EVENT_HUB_NAMESPACE-F97E6E78493D118C"
+    assert record["dt.source_entity"] == ["AZURE_EVENT_HUB_NAMESPACE-F97E6E78493D118C"]
 
 
 def test_not_create_monitored_entity_id():
