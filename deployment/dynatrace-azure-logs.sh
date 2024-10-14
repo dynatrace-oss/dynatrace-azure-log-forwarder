@@ -447,7 +447,7 @@ echo "- deploying function zip code into ${FUNCTIONAPP_NAME}..."
 
 sleep 60 # wait some time to allow functionapp to warmup
 
-az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src ${FUNCTION_ZIP_PACKAGE}
+az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE}
 
 if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   MANAGED_IDENTITY_RESOURCE_ID=$(az identity show --name ${MANAGED_IDENTITY_RESOURCE_NAME} -g ${RESOURCE_GROUP} --query id --output tsv)
