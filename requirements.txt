@@ -2,7 +2,7 @@
 # The Python Worker is managed by Azure Functions platform
 # Manually managing azure-functions-worker may cause unexpected issues
 azure-functions
-cryptography~=42.0.0
+cryptography~=43.0.1
 azure-identity
 jmespath~=0.10.0
 python-dateutil~=2.8.1
