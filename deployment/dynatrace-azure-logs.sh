@@ -445,7 +445,7 @@ FUNCTIONAPP_NAME="${DEPLOYMENT_NAME}-function"
 echo
 echo "- deploying function zip code into ${FUNCTIONAPP_NAME}..."
 
-sleep 60 # wait some time to allow functionapp to warmup
+sleep 180 # wait some time to allow functionapp to warmup
 
 az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE} --type zip --async true
 
