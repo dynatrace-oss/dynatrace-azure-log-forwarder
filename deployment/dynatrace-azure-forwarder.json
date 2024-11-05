@@ -472,10 +472,12 @@
                         {
                             "name": "CONSUMER_GROUP",
                             "value": "[parameters('customConsumerGroup')]"
+                        },
+                        {
+                            "name": "WEBSITE_ENABLE_SYNC_UPDATE_SITE",
+                                              "value": "false"	    
                         }
                     ]
-
-
                 },
                 "scmSiteAlsoStopped": false,
                 "clientAffinityEnabled": true,
