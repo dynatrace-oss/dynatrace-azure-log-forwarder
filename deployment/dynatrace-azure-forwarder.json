@@ -462,7 +462,11 @@
                         {
                             "name": "EVENTHUB_CONNECTION_STRING__fullyQualifiedNamespace",
                             "value": "[parameters('eventhubConnectionFullyQualifiedNamespace')]"
-                        }
+                        },
+			{
+			    "name": "WEBSITE_ENABLE_SYNC_UPDATE_SITE",
+                            "value": "false"	    
+			}
                     ]
 
 
