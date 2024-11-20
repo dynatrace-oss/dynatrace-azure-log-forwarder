@@ -370,7 +370,7 @@ if [ -z "$TARGET_API_TOKEN" ]; then echo "No --target-api-token"; exit 1; fi
 if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then echo "No --target-paas-token"; exit 1; fi
 if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
 if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}; fi
-if [ -z "$CONSUMER_GROUP" ]; then CONSUMER_GROUP=${"\$Default"}; fi
+if [ -z "$CONSUMER_GROUP" ]; then CONSUMER_GROUP="\$Default"; fi
 if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   EVENT_HUB_CONNECTION_CREDENTIALS="managedidentity";
   if [ -z "$EVENT_HUB_NAME" ]; then echo "No --event-hub-name"; exit 1; fi
