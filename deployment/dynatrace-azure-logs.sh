@@ -376,7 +376,7 @@ if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   if [ -z "$EVENT_HUB_CONNECTION_CLIENT_ID" ]; then echo "No --eventhub-connection-client-id"; exit 1; fi
   if [ -z "$MANAGED_IDENTITY_RESOURCE_NAME" ]; then echo "No --managed-identity-resource-name"; exit 1; fi
   if [ -z "$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE" ]; then echo "No --eventhub-connection-fully-qualified-namespace"; exit 1; fi
-  if [ -z "$CONSUMER_GROUP" ]; then CONSUMER_GROUP=${"\$Default"}; exit 1; fi
+  if [ -z "$CONSUMER_GROUP" ]; then CONSUMER_GROUP=${"\$Default"}; fi
 fi
 
 print_all_parameters
