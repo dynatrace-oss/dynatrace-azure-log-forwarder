@@ -97,6 +97,12 @@
             "metadata": {
                 "description": "Eventhub's host name"
             }
+        },
+        "customConsumerGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Custom Consumer group name"
+            }
         }
     },
     "variables": {
@@ -463,13 +469,15 @@
                             "name": "EVENTHUB_CONNECTION_STRING__fullyQualifiedNamespace",
                             "value": "[parameters('eventhubConnectionFullyQualifiedNamespace')]"
                         },
-			{
-			    "name": "WEBSITE_ENABLE_SYNC_UPDATE_SITE",
+                        {
+                            "name": "CONSUMER_GROUP",
+                            "value": "[parameters('customConsumerGroup')]"
+                        },
+                        {
+                            "name": "WEBSITE_ENABLE_SYNC_UPDATE_SITE",
                             "value": "false"	    
-			}
+                        }
                     ]
-
-
                 },
                 "scmSiteAlsoStopped": false,
                 "clientAffinityEnabled": true,
