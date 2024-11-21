@@ -475,7 +475,7 @@
                         },
                         {
                             "name": "WEBSITE_ENABLE_SYNC_UPDATE_SITE",
-                                              "value": "false"	    
+                            "value": "false"	    
                         }
                     ]
                 },
