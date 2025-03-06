@@ -458,7 +458,26 @@ echo "- deploying function zip code into ${FUNCTIONAPP_NAME}..."
 
 sleep 180 # wait some time to allow functionapp to warmup
 
-az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE} --type zip --async true
+MAX_RETRIES=3
+ATTEMPT=1
+
+while [ $ATTEMPT -le $MAX_RETRIES ]; do
+    echo "Start of deployment. Attempt ${ATTEMPT}"
+    DEPLOYMENT_OUTPUT=$(az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE} --type zip --async true 2>&1)
+
+    if [[ $? -eq 0 ]]; then
+      break
+    else
+      if echo "$DEPLOYMENT_OUTPUT" | grep -q "Status Code: 504"; then
+        echo "\e[91mTimeout error detected. Retrying in 10 seconds..."
+        sleep 10
+      else
+        echo -e "\e[91mFunction code deployment failed"
+        exit 3
+      fi
+    fi
+    ((ATTEMPT++))
+done
 
 if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   MANAGED_IDENTITY_RESOURCE_ID=$(az identity show --name ${MANAGED_IDENTITY_RESOURCE_NAME} -g ${RESOURCE_GROUP} --query id --output tsv)
