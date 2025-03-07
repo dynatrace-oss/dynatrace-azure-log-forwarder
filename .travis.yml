@@ -93,12 +93,12 @@ jobs:
         - sed -i -e "s@$RELEASE_REPO_TO_FIND@$RELEASE_REPO_TO_REPLACE@g" ./deployment/dynatrace-azure-logs.sh
       deploy:
         provider: releases
+        edge: true
         api_key: $GITHUB_RELEASE_API_KEY
         file:
           - ./dynatrace-azure-log-forwarder.zip
           - ./deployment/dynatrace-azure-forwarder.json
           - ./deployment/dynatrace-azure-logs.sh
-        skip_cleanup: true
         on:
           tags: true
       after_deploy:
