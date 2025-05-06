@@ -25,6 +25,40 @@ readonly FILTER_CONFIG_REGEX="([^;\s].+?)=([^;]*)"
 readonly TAGS_REGEX="^([^<>,%&\?\/]+?:[^,]+,?)+$"
 readonly REQUIRE_VALID_CERTIFICATE_DEFAULT=true
 
+info() {
+  MESSAGE=$1
+  CURRENT_TIME=$(date +%T)
+  echo "${CURRENT_TIME} ${MESSAGE}"
+}
+
+log_step() {
+  MESSAGE=$1
+  CURRENT_TIME=$(date +%T)
+  echo
+  echo "${CURRENT_TIME} - ${MESSAGE}"
+}
+
+success() {
+  MESSAGE=$1
+  CURRENT_TIME=$(date +%T)
+  echo
+  echo -e "${CURRENT_TIME} \e[92m${MESSAGE}"
+}
+
+warn() {
+  MESSAGE=$1
+  CURRENT_TIME=$(date +%T)
+  echo
+  echo -e "${CURRENT_TIME} \e[93mWARNING: \e[37m${MESSAGE}"
+}
+
+err() {
+  MESSAGE=$1
+  CURRENT_TIME=$(date +%T)
+  echo
+  echo -e "${CURRENT_TIME} \e[91mERROR: \e[37m${MESSAGE}"
+}
+
 print_help()
 {
    printf "
@@ -82,7 +116,7 @@ ensure_param_value_given() {
   # 1. The parameter is the last one and has no value
   # 2. The parameter is between other parameters and (as it has no value) the name of the next parameter is taken as its value
   if [ -z $2 ] || [[ $2 == "--"* ]]; then
-    echo "Missing value for parameter $1";
+    err "Missing value for parameter $1";
     print_help;
     exit 1;
   fi
@@ -95,8 +129,8 @@ print_all_parameters() {
   if [ -n "$TAGS" ]; then PARAMETERS+=", TAGS=$TAGS"; fi
   if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then PARAMETERS+="EVENT_HUB_NAME=$EVENT_HUB_NAME, EVENT_HUB_CONNECTION_CLIENT_ID=$EVENT_HUB_CONNECTION_CLIENT_ID, MANAGED_IDENTITY_RESOURCE_NAME=$MANAGED_IDENTITY_RESOURCE_NAME, EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE=$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE"; fi
   echo
-  echo "Deployment script will use following parameters:"
-  echo $PARAMETERS
+  info "Deployment script will use following parameters:"
+  info "$PARAMETERS"
 }
 
 check_arg() {
@@ -104,11 +138,11 @@ check_arg() {
   ARGUMENT=$2
   REGEX=$3
   if [ -z "$ARGUMENT" ]; then
-    echo "No $CLI_ARGUMENT_NAME"
+    err "No $CLI_ARGUMENT_NAME"
     exit 1
   else
     if ! [[ "$ARGUMENT" =~ $REGEX ]]; then
-      echo "Not correct $CLI_ARGUMENT_NAME, pattern is: $REGEX"
+      err "Not correct $CLI_ARGUMENT_NAME, pattern is: $REGEX"
       exit 1
     fi
   fi
@@ -119,12 +153,11 @@ check_activegate_state() {
   RUNNING_RESPONSE_ON_DOK_CLUSTERS="\"RUNNING\"" #APM-379036 different responses returned - to be fixed in bug APM-380143
   if ACTIVE_GATE_STATE=$(curl -ksS "${TARGET_URL}/rest/health" --connect-timeout 20); then
     if [[ "$ACTIVE_GATE_STATE" != "$RUNNING_RESPONSE_ON_NORMAL_CLUSTERS" ]] && [[ "$ACTIVE_GATE_STATE" != "$RUNNING_RESPONSE_ON_DOK_CLUSTERS"  ]]; then
-      echo -e ""
-      echo -e "\e[91mERROR: \e[37mActiveGate endpoint is not reporting RUNNING state. Please verify provided values for parameters: --target-url (${TARGET_URL})."
+      err "ActiveGate endpoint is not reporting RUNNING state. Please verify provided values for parameters: --target-url (${TARGET_URL})."
       exit 1
     fi
   else
-      echo -e "\e[93mWARNING: \e[37mFailed to connect with provided ActiveGate url ($TARGET_URL) to check state. It can be ignored if ActiveGate does not allow public access."
+      warn "Failed to connect with provided ActiveGate url ($TARGET_URL) to check state. It can be ignored if ActiveGate does not allow public access."
   fi
 }
 
@@ -133,15 +166,15 @@ check_api_token() {
     CODE=$(sed -rn 's/.*<<HTTP_CODE>>(.*)$/\1/p' <<<"$RESPONSE")
     RESPONSE=$(sed -r 's/(.*)<<HTTP_CODE>>.*$/\1/' <<<"$RESPONSE")
     if [ "$CODE" -ge 300 ]; then
-      echo -e "\e[91mERROR: \e[37mFailed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL}) and --target-api-token. $RESPONSE"
+      err "Failed to check Dynatrace API token permissions - please verify provided values for parameters: --target-url (${TARGET_URL}) and --target-api-token. $RESPONSE"
       exit 1
     fi
     if ! grep -q '"logs.ingest"' <<<"$RESPONSE"; then
-      echo -e "\e[91mERROR: \e[37mMissing Ingest logs permission (v2) for the API token"
+      err "Missing Ingest logs permission (v2) for the API token"
       exit 1
     fi
   else
-      echo -e "\e[93mWARNING: \e[37mFailed to connect to endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
+      warn "Failed to connect to endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
   fi
 }
 
@@ -163,11 +196,11 @@ check_dynatrace_log_ingest_url() {
     CODE=$(sed -rn 's/.*<<HTTP_CODE>>(.*)$/\1/p' <<<"$RESPONSE")
     RESPONSE=$(sed -r 's/(.*)<<HTTP_CODE>>.*$/\1/' <<<"$RESPONSE")
     if [ "$CODE" -ge 300 ]; then
-      echo -e "\e[91mERROR: \e[37mFailed to send a test log to Dynatrace - please verify provided log ingest url ($TARGET_URL) and API token. $RESPONSE"
+      err "Failed to send a test log to Dynatrace - please verify provided log ingest url ($TARGET_URL) and API token. $RESPONSE"
       exit 1
     fi
   else
-    echo -e "\e[93mWARNING: \e[37mFailed to connect to endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
+    warn "Failed to connect to endpoint $TARGET_URL to check API token permissions. It can be ignored if Dynatrace/ActiveGate does not allow public access."
   fi
 }
 
@@ -287,7 +320,7 @@ while (( "$#" )); do
             ;;
 
             *)
-            echo "Unknown param $1"
+            err "Unknown param $1"
             print_help
             exit 1
     esac
@@ -295,26 +328,24 @@ done
 
 if ! command -v az &> /dev/null; then
 
-    echo -e "\e[91mERROR: \e[37mAzure CLI is required to install Dynatrace function. It should be already installed in Cloud Shell."
-    echo -e "If you are running this script from other hosts go to following link in your browser and install latest version of Azure CLI:"
-    echo -e
-    echo -e "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
-    echo -e
+    err "Azure CLI is required to install Dynatrace function. It should be already installed in Cloud Shell."
+    echo "If you are running this script from other hosts go to following link in your browser and install latest version of Azure CLI:"
+    echo
+    echo "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
     echo
     exit
 fi
 
 if [ $(az version -o table |awk 'NR >= 3 {print $1}') == "2.29.0" ] &> /dev/null; then
 
-    echo -e "\e[91mERROR: \e[37mVersion 2.29.0 of Azure CLI is subject to a bug which prevents Azure Log Forwarder setup from working properly."
-    echo -e "You can find the bug description under the link bellow:"
-    echo -e
-    echo -e "https://github.com/Azure/azure-cli/issues/20131"
-    echo -e
-    echo -e "If you are running this script from other hosts go to following link in your browser and upgrade to a more recent version of Azure CLI:"
-    echo -e
-    echo -e "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
-    echo -e
+    err "Version 2.29.0 of Azure CLI is subject to a bug which prevents Azure Log Forwarder setup from working properly."
+    echo "You can find the bug description under the link bellow:"
+    echo
+    echo "https://github.com/Azure/azure-cli/issues/20131"
+    echo
+    echo "If you are running this script from other hosts go to following link in your browser and upgrade to a more recent version of Azure CLI:"
+    echo
+    echo "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
     echo
     exit
 fi
@@ -328,23 +359,23 @@ if [ -z "$REQUIRE_VALID_CERTIFICATE" ]; then REQUIRE_VALID_CERTIFICATE=$REQUIRE_
 if [ -z "$SFM_ENABLED" ]; then SFM_ENABLED=false; fi
 
 if [[ "$REQUIRE_VALID_CERTIFICATE" != "true" ]] && [[ "$REQUIRE_VALID_CERTIFICATE" != "false" ]]; then
-  echo "Not correct --require-valid-certificate. Provide 'true' or 'false'";
+  err "Not correct --require-valid-certificate. Provide 'true' or 'false'";
   exit 1;
 fi
 if [[ "$SFM_ENABLED" != "true" ]] && [[ "$SFM_ENABLED" != "false" ]]; then
-  echo "Not correct --enable-self-monitoring. Provide 'true' or 'false'";
+  err "Not correct --enable-self-monitoring. Provide 'true' or 'false'";
   exit 1;
 fi
 if [[ -z "$USE_EXISTING_ACTIVE_GATE" ]]; then
   USE_EXISTING_ACTIVE_GATE="true"
 elif [[ "$USE_EXISTING_ACTIVE_GATE" != "true" ]] && [[ "$USE_EXISTING_ACTIVE_GATE" != "false" ]]; then
-  echo "Not correct --use-existing-active-gate. Provide 'true' or 'false'";
+  err "Not correct --use-existing-active-gate. Provide 'true' or 'false'";
   exit 1;
 fi
 if [[ -z "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" ]]; then
   ENABLE_USER_ASSIGNED_MANAGED_IDENTITY="false"
 elif [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" != "true" ]] && [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" != "false" ]]; then
-  echo "Not correct --enable-user-assigned-managed-identity. Provide 'true' or 'false'";
+  err "Not correct --enable-user-assigned-managed-identity. Provide 'true' or 'false'";
   exit 1;
 fi
 
@@ -352,31 +383,31 @@ if [ -n "$FILTER_CONFIG" ]; then check_arg --filter-config "$FILTER_CONFIG" "$FI
 if [ -n "$TAGS" ]; then check_arg --tags "$TAGS" "$TAGS_REGEX"; fi
 
 if [ -z "$TARGET_URL" ]; then
-  echo "No --target-url"
+  err "No --target-url"
   exit 1
 else
   if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && ! [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]; then
-    echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with new ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
+    err "Not correct --target-url. Example of proper url for deployment with new ActiveGate: https://<your_environment_ID>.live.dynatrace.com"
     exit 1
   elif [[ "$USE_EXISTING_ACTIVE_GATE" == "true" ]] && ! ([[ "${TARGET_URL}" =~ $ACTIVE_GATE_TARGET_URL_REGEX ]] || [[ "${TARGET_URL}" =~ $DYNATRACE_TARGET_URL_REGEX ]]); then
-    echo -e "\e[91mERROR: \e[37mNot correct --target-url. Example of proper url for deployment with existing ActiveGate:"
-    echo -e "  - for direct ingest through the Cluster API: https://<your_environment_ID>.live.dynatrace.com"
-    echo -e "  - for Environment ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
+    err "Not correct --target-url. Example of proper url for deployment with existing ActiveGate:"
+    echo "  - for direct ingest through the Cluster API: https://<your_environment_ID>.live.dynatrace.com"
+    echo "  - for Environment ActiveGate: https://<your_activegate_IP_or_hostname>:9999/e/<your_environment_ID>"
     exit 1
   fi
 fi
 
-if [ -z "$TARGET_API_TOKEN" ]; then echo "No --target-api-token"; exit 1; fi
-if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then echo "No --target-paas-token"; exit 1; fi
+if [ -z "$TARGET_API_TOKEN" ]; then err "No --target-api-token"; exit 1; fi
+if [[ "$USE_EXISTING_ACTIVE_GATE" == "false" ]] && [ -z "$TARGET_PAAS_TOKEN" ]; then err "No --target-paas-token"; exit 1; fi
 if [[ "$USE_EXISTING_ACTIVE_GATE" == true ]]; then DEPLOY_ACTIVEGATE=false;else DEPLOY_ACTIVEGATE=true;fi
 if [ -z "$REPOSITORY_RELEASE_URL" ]; then REPOSITORY_RELEASE_URL=${FUNCTION_REPOSITORY_RELEASE_URL}; fi
 if [ -z "$CONSUMER_GROUP" ]; then CONSUMER_GROUP="\$Default"; fi
 if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
   EVENT_HUB_CONNECTION_CREDENTIALS="managedidentity";
-  if [ -z "$EVENT_HUB_NAME" ]; then echo "No --event-hub-name"; exit 1; fi
-  if [ -z "$EVENT_HUB_CONNECTION_CLIENT_ID" ]; then echo "No --eventhub-connection-client-id"; exit 1; fi
-  if [ -z "$MANAGED_IDENTITY_RESOURCE_NAME" ]; then echo "No --managed-identity-resource-name"; exit 1; fi
-  if [ -z "$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE" ]; then echo "No --eventhub-connection-fully-qualified-namespace"; exit 1; fi
+  if [ -z "$EVENT_HUB_NAME" ]; then err "No --event-hub-name"; exit 1; fi
+  if [ -z "$EVENT_HUB_CONNECTION_CLIENT_ID" ]; then err "No --eventhub-connection-client-id"; exit 1; fi
+  if [ -z "$MANAGED_IDENTITY_RESOURCE_NAME" ]; then err "No --managed-identity-resource-name"; exit 1; fi
+  if [ -z "$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE" ]; then err "No --eventhub-connection-fully-qualified-namespace"; exit 1; fi
 fi
 
 print_all_parameters
@@ -397,7 +428,7 @@ if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "false" ]]; then
   EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
 fi
 
-echo "- deploying function infrastructure into Azure..."
+log_step "deploying function infrastructure into Azure..."
 
 IFS=',' read -r -a TAG_PAIRS <<< "$TAGS"
 LOG_FORWARDER_TAGS="\"LogsForwarderDeployment\":\"${DEPLOYMENT_NAME}\""
@@ -444,25 +475,25 @@ else
 fi
 
 if [[ $? != 0 ]]; then
-    echo -e "\e[91mFunction deployment failed"
+    err "Function deployment failed"
     exit 2
 fi
 
-echo
-echo "- downloading function code zip [${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE}]"
+log_step "downloading function code zip [${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE}]"
 wget -q ${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE} -O ${FUNCTION_ZIP_PACKAGE}
 
 FUNCTIONAPP_NAME="${DEPLOYMENT_NAME}-function"
-echo
-echo "- deploying function zip code into ${FUNCTIONAPP_NAME}..."
 
+log_step "deploying function zip code into ${FUNCTIONAPP_NAME}"
+info "waiting (3min) to allow functionapp to warmup"
 sleep 180 # wait some time to allow functionapp to warmup
 
 MAX_RETRIES=3
 ATTEMPT=1
 
 while [ $ATTEMPT -le $MAX_RETRIES ]; do
-    echo "Start of deployment. Attempt ${ATTEMPT}"
+    info "Start of deployment. Attempt ${ATTEMPT}"
+
     exec 3>&1  # Open fd 3 for real time console log
     DEPLOYMENT_OUTPUT=$(az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE} --type zip --async true --verbose 2>&1 3>&- | tee /dev/fd/3)
     exec 3>&-  # Close fd 3
@@ -471,10 +502,10 @@ while [ $ATTEMPT -le $MAX_RETRIES ]; do
       break
     else
       if echo "$DEPLOYMENT_OUTPUT" | grep -q "Status Code: 504"; then
-        echo "\e[91mTimeout error detected. Retrying in 10 seconds..."
+        warn "Timeout error detected. Retrying in 10 seconds..."
         sleep 10
       else
-        echo -e "\e[91mFunction code deployment failed"
+        err "Function code deployment failed"
         exit 3
       fi
     fi
@@ -487,13 +518,13 @@ if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then
 fi
 
 if [[ $? != 0 ]]; then
-    echo -e "\e[91mFunction code deployment failed"
+    err "Function code deployment failed"
     exit 3
 fi
 
-echo "- cleaning up"
+log_step "cleaning up"
 
-echo "- removing function package [$FUNCTION_ZIP_PACKAGE]"
+log_step "removing function package [$FUNCTION_ZIP_PACKAGE]"
 rm $FUNCTION_ZIP_PACKAGE
 
 if [[ "${DEPLOY_ACTIVEGATE}" == "true" ]]; then
@@ -502,7 +533,6 @@ if [[ "${DEPLOY_ACTIVEGATE}" == "true" ]]; then
   LOG_VIEWER="Log Viewer: ${TARGET_URL}/ui/log-monitoring?query=cloud.provider%3D%22azure%22"
 fi
 
-echo
-echo -e "\e[92m- Deployment complete. Check logs in Dynatrace in 10 min. ${LOG_VIEWER}\e[37m"
-echo "If you won't see any Azure logs after that time make sure you configured all prerequisites: https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#anchor_prereq"
-echo "Additionally you can enable self-monitoring for diagnostic purpose: https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#self-monitoring-optional"
+success -e "Deployment complete. Check logs in Dynatrace in 10 min. ${LOG_VIEWER}"
+info "If you won't see any Azure logs after that time make sure you configured all prerequisites: https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#anchor_prereq"
+info "Additionally you can enable self-monitoring for diagnostic purpose: https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#self-monitoring-optional"
