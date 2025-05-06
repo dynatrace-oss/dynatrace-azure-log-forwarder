@@ -463,7 +463,9 @@ ATTEMPT=1
 
 while [ $ATTEMPT -le $MAX_RETRIES ]; do
     echo "Start of deployment. Attempt ${ATTEMPT}"
-    DEPLOYMENT_OUTPUT=$(az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE} --type zip --async true 2>&1)
+    exec 3>&1  # Open fd 3 for real time console log
+    DEPLOYMENT_OUTPUT=$(az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE} --type zip --async true --verbose 2>&1 3>&- | tee /dev/fd/3)
+    exec 3>&-  # Close fd 3
 
     if [[ $? -eq 0 ]]; then
       break
