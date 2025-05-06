@@ -428,7 +428,7 @@ if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "false" ]]; then
   EVENT_HUB_NAME=$(echo "$EVENT_HUB_CONNECTION_STRING" | awk -F ';EntityPath=' '{print $2}')
 fi
 
-log_step "deploying function infrastructure into Azure..."
+log_step "Deploying function infrastructure into Azure..."
 
 IFS=',' read -r -a TAG_PAIRS <<< "$TAGS"
 LOG_FORWARDER_TAGS="\"LogsForwarderDeployment\":\"${DEPLOYMENT_NAME}\""
@@ -479,13 +479,13 @@ if [[ $? != 0 ]]; then
     exit 2
 fi
 
-log_step "downloading function code zip [${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE}]"
+log_step "Downloading function code zip [${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE}]"
 wget -q ${REPOSITORY_RELEASE_URL}${FUNCTION_ZIP_PACKAGE} -O ${FUNCTION_ZIP_PACKAGE}
 
 FUNCTIONAPP_NAME="${DEPLOYMENT_NAME}-function"
 
-log_step "deploying function zip code into ${FUNCTIONAPP_NAME}"
-info "waiting (3min) to allow functionapp to warmup"
+log_step "Deploying function zip code into ${FUNCTIONAPP_NAME}"
+info "Waiting (3min) to allow functionapp to warmup..."
 sleep 180 # wait some time to allow functionapp to warmup
 
 MAX_RETRIES=3
@@ -533,6 +533,6 @@ if [[ "${DEPLOY_ACTIVEGATE}" == "true" ]]; then
   LOG_VIEWER="Log Viewer: ${TARGET_URL}/ui/log-monitoring?query=cloud.provider%3D%22azure%22"
 fi
 
-success -e "Deployment complete. Check logs in Dynatrace in 10 min. ${LOG_VIEWER}"
+success "Deployment complete. Check logs in Dynatrace in 10 min. ${LOG_VIEWER}"
 info "If you won't see any Azure logs after that time make sure you configured all prerequisites: https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#anchor_prereq"
 info "Additionally you can enable self-monitoring for diagnostic purpose: https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#self-monitoring-optional"
