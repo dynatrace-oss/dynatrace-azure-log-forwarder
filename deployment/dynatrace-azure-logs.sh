@@ -495,10 +495,13 @@ while [ $ATTEMPT -le $MAX_RETRIES ]; do
     info "Start of deployment. Attempt ${ATTEMPT}"
 
     exec 3>&1  # Open fd 3 for real time console log
+    set -o pipefail
     DEPLOYMENT_OUTPUT=$(az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE} --type zip --async true --verbose 2>&1 3>&- | tee /dev/fd/3)
+    DEPLOYMENT_STATUS=$?
+    set +o pipefail
     exec 3>&-  # Close fd 3
 
-    if [[ $? -eq 0 ]]; then
+    if [[ DEPLOYMENT_STATUS -eq 0 ]]; then
       break
     else
       if echo "$DEPLOYMENT_OUTPUT" | grep -q "Status Code: 504"; then
