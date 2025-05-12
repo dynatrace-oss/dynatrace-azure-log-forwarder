@@ -501,7 +501,7 @@ while [ $ATTEMPT -le $MAX_RETRIES ]; do
     set +o pipefail
     exec 3>&-  # Close fd 3
 
-    if [[ DEPLOYMENT_STATUS -eq 0 ]]; then
+    if [[ $DEPLOYMENT_STATUS -eq 0 ]]; then
       break
     else
       if echo "$DEPLOYMENT_OUTPUT" | grep -q "Status Code: 504"; then
