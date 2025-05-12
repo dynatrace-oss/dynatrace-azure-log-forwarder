@@ -70,9 +70,13 @@ def init_events():
         records = json.load(file)
         current_datetime = datetime.utcnow()
         old_datetime = datetime.fromtimestamp(1615806000) #15.03.2021 11:00
-        timestamp = current_datetime.replace(microsecond=0).isoformat() + "Z"
-        for record in records[2:]:
-            record["time"] = timestamp
+        # Two records with old timestamp,
+        # one with timestamp without timezone,
+        # rest with current timestamps UTC
+        timestamp = current_datetime.replace(microsecond=0).isoformat()
+        records[2]["time"] = timestamp
+        for record in records[3:]:
+            record["time"] = timestamp + "Z"
         events = [EventHubEvent(body=json.dumps({"records": records}).encode('utf-8'), enqueued_time=old_datetime)]
         for _ in range(1, EVENTS_NUMBER):
             events.append(EventHubEvent(body=json.dumps({"records": records}).encode('utf-8'), enqueued_time=current_datetime))
