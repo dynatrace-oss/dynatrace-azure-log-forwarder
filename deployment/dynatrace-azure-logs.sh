@@ -503,7 +503,7 @@ while [ $ATTEMPT -le $MAX_RETRIES ]; do
     if [[ $DEPLOYMENT_STATUS -eq 0 ]]; then
       break
     else
-      if grep "Status Code: 504" $WEBAPP_DEPLOYMENT_LOG; then
+      if grep "Status Code: 504" $WEBAPP_DEPLOYMENT_LOG && [ $ATTEMPT -lt $MAX_RETRIES ]; then
         warn "Timeout error detected. Retrying in 10 seconds..."
         sleep 10
       else
