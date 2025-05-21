@@ -490,21 +490,20 @@ sleep 180 # wait some time to allow functionapp to warmup
 
 MAX_RETRIES=3
 ATTEMPT=1
-
+WEBAPP_DEPLOYMENT_LOG=azurewebapp-deployment.log
 while [ $ATTEMPT -le $MAX_RETRIES ]; do
     info "Start of deployment. Attempt ${ATTEMPT}"
 
-    exec 3>&1  # Open fd 3 for real time console log
+    rm $WEBAPP_DEPLOYMENT_LOG >/dev/null 2>&1
     set -o pipefail
-    DEPLOYMENT_OUTPUT=$(az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE} --type zip --async true --verbose 2>&1 3>&- | tee /dev/fd/3)
+    az webapp deploy -n ${FUNCTIONAPP_NAME} -g ${RESOURCE_GROUP} --src-path ${FUNCTION_ZIP_PACKAGE} --type zip --async true --verbose 2>&1 | tee $WEBAPP_DEPLOYMENT_LOG
     DEPLOYMENT_STATUS=$?
     set +o pipefail
-    exec 3>&-  # Close fd 3
 
     if [[ $DEPLOYMENT_STATUS -eq 0 ]]; then
       break
     else
-      if echo "$DEPLOYMENT_OUTPUT" | grep -q "Status Code: 504"; then
+      if grep "Status Code: 504" $WEBAPP_DEPLOYMENT_LOG && [ $ATTEMPT -lt $MAX_RETRIES ]; then
         warn "Timeout error detected. Retrying in 10 seconds..."
         sleep 10
       else
@@ -525,9 +524,10 @@ if [[ $? != 0 ]]; then
     exit 3
 fi
 
-log_step "cleaning up"
+log_step "Cleaning up"
+rm $WEBAPP_DEPLOYMENT_LOG
 
-log_step "removing function package [$FUNCTION_ZIP_PACKAGE]"
+log_step "Removing function package [$FUNCTION_ZIP_PACKAGE]"
 rm $FUNCTION_ZIP_PACKAGE
 
 if [[ "${DEPLOY_ACTIVEGATE}" == "true" ]]; then
