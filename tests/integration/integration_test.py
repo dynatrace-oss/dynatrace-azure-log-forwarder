@@ -98,7 +98,7 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
     response(200, "Success")
 
     # given
-    for variable_name, variable_value in system_variables:
+    for variable_name, variable_value in system_variables.items():
         monkeypatch.setenv(variable_name, variable_value)
     monkeypatch.setattr(main, 'content_length_limit', 1000)
 
@@ -127,7 +127,7 @@ def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_m
     response(401, "Expired token")
 
     # given
-    for variable_name, variable_value in system_variables:
+    for variable_name, variable_value in system_variables.items():
         monkeypatch.setenv(variable_name, variable_value)
     monkeypatch.setattr(main, 'content_length_limit', 1000)
 
@@ -156,7 +156,7 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
     response(500, "Server error")
 
     # given
-    for variable_name, variable_value in system_variables:
+    for variable_name, variable_value in system_variables.items():
         monkeypatch.setenv(variable_name, variable_value)
     monkeypatch.setattr(main, 'content_length_limit', 1000)
 

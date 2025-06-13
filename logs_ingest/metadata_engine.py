@@ -57,7 +57,7 @@ class SourceMatcher:
     def __init__(self, source: str, condition: str):
         self.source = source
         self.condition = condition
-        for key, condition_comparator in _CONDITION_COMPARATOR_MAP:
+        for key, condition_comparator in _CONDITION_COMPARATOR_MAP.items():
             if condition.startswith(key):
                 self._evaluator = condition_comparator
                 break
