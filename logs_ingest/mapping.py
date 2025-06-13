@@ -43,7 +43,7 @@ working_directory = os.path.dirname(os.path.realpath(__file__))
 me_type_mapper_file_path = os.path.join(working_directory, "me_type_mapper.json")
 dt_me_type_mapper = {}
 try:
-    with open(me_type_mapper_file_path) as me_type_mapper_file:
+    with open(me_type_mapper_file_path, encoding="utf-8") as me_type_mapper_file:
         me_type_mapper_json = json.load(me_type_mapper_file)
         for resource_type_to_me_type in me_type_mapper_json:
             resource_type = resource_type_to_me_type["resourceType"].lower()
