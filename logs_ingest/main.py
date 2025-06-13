@@ -77,8 +77,8 @@ def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitori
 
 
 def verify_dt_access_params_provided():
-    if DYNATRACE_URL not in os.environ.keys() or DYNATRACE_ACCESS_KEY not in os.environ.keys():
-        raise Exception(f"Please set {DYNATRACE_URL} and {DYNATRACE_ACCESS_KEY} in application settings")
+    if DYNATRACE_URL not in os.environ or DYNATRACE_ACCESS_KEY not in os.environ:
+        raise KeyError(f"Please set {DYNATRACE_URL} and {DYNATRACE_ACCESS_KEY} in application settings")
 
 
 def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):

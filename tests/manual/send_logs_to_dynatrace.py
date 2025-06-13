@@ -24,7 +24,7 @@ from logs_ingest.self_monitoring import SelfMonitoring
 
 source_directory = os.path.dirname(os.path.realpath(__file__))
 local_settings_json_path = os.path.join(source_directory, "../../local.settings.json")
-with open(local_settings_json_path) as local_settings_json_file:
+with open(local_settings_json_path, encoding="utf-8") as local_settings_json_file:
     local_settings_json = json.load(local_settings_json_file)
 
 logs = [

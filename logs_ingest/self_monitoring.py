@@ -182,6 +182,7 @@ class SelfMonitoring:
         }
 
 
+# pylint: disable=C0103
 class DynatraceConnectivity(enum.Enum):
     Ok = 0
     ExpiredToken = 1

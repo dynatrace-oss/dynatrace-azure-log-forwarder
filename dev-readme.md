@@ -5,7 +5,7 @@ Prerequisites:
 * Visual Studio Code
 * Azure Functions extension for VS Code
 * [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) - version 2.x or later
-* Python 3.9
+* Python 3.12
 * Python extension for VS Code
 
 Open dynatrace-azure-logs-ingest folder in VS Code. You will be prompted to initialize it for use with VS Code. This will create several files in the ".vscode" folder at the root of your project. 

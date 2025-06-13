@@ -55,7 +55,7 @@ def setup_wiremock():
     # setup WireMock server
     wiremock = WireMockServer(port=MOCKED_API_PORT)
     wiremock.start()
-    Config.base_url = 'http://localhost:{}/__admin'.format(MOCKED_API_PORT)
+    Config.base_url = f'http://localhost:{MOCKED_API_PORT}/__admin'
 
     # run test
     yield
@@ -66,7 +66,7 @@ def setup_wiremock():
 
 @pytest.fixture(scope="module")
 def init_events():
-    with open(EVENTS_PATH) as file:
+    with open(EVENTS_PATH, encoding="utf-8") as file:
         records = json.load(file)
         current_datetime = datetime.utcnow()
         old_datetime = datetime.fromtimestamp(1615806000) #15.03.2021 11:00
@@ -98,8 +98,8 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
     response(200, "Success")
 
     # given
-    for variable_name in system_variables:
-        monkeypatch.setenv(variable_name, system_variables[variable_name])
+    for variable_name, variable_value in system_variables.items():
+        monkeypatch.setenv(variable_name, variable_value)
     monkeypatch.setattr(main, 'content_length_limit', 1000)
 
     # when
@@ -107,7 +107,7 @@ def test_main_success(monkeypatch: MonkeyPatchFixture, init_events, self_monitor
 
     # then
     sent_requests = Requests.get_all_received_requests().get_json_data()
-    print("Sent requests: {}".format(json.dumps(sent_requests)))
+    print(f"Sent requests: {json.dumps(sent_requests)}")
 
     assert int(sent_requests.get('meta').get('total')) == EVENTS_NUMBER - 2 # rejected 8 too old logs (4 records = 1 event)
     for request in sent_requests.get('requests'):
@@ -127,8 +127,8 @@ def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_m
     response(401, "Expired token")
 
     # given
-    for variable_name in system_variables:
-        monkeypatch.setenv(variable_name, system_variables[variable_name])
+    for variable_name, variable_value in system_variables.items():
+        monkeypatch.setenv(variable_name, variable_value)
     monkeypatch.setattr(main, 'content_length_limit', 1000)
 
     # when
@@ -136,7 +136,7 @@ def test_main_expired_token(monkeypatch: MonkeyPatchFixture, init_events, self_m
 
     # then
     sent_requests = Requests.get_all_received_requests().get_json_data()
-    print("Sent requests: {}".format(json.dumps(sent_requests)))
+    print(f"Sent requests: {json.dumps(sent_requests)}")
 
     assert int(sent_requests.get('meta').get('total')) == EVENTS_NUMBER - 2
     for request in sent_requests.get('requests'):
@@ -156,8 +156,8 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
     response(500, "Server error")
 
     # given
-    for variable_name in system_variables:
-        monkeypatch.setenv(variable_name, system_variables[variable_name])
+    for variable_name, variable_value in system_variables.items():
+        monkeypatch.setenv(variable_name, variable_value)
     monkeypatch.setattr(main, 'content_length_limit', 1000)
 
     # when
@@ -166,7 +166,7 @@ def test_main_server_error(monkeypatch: MonkeyPatchFixture, init_events, self_mo
 
     # then
     sent_requests = Requests.get_all_received_requests().get_json_data()
-    print("Sent requests: {}".format(json.dumps(sent_requests)))
+    print(f"Sent requests: {json.dumps(sent_requests)}")
 
     assert int(sent_requests.get('meta').get('total')) == 3
     for request in sent_requests.get('requests'):
@@ -188,7 +188,7 @@ def response(status: int, status_message: str):
         request=MappingRequest(
             method=HttpMethods.POST,
             url='/api/v2/logs/ingest',
-            headers={'Authorization': {'equalTo': "Api-Token {}".format(ACCESS_KEY)}},
+            headers={'Authorization': {'equalTo': f"Api-Token {ACCESS_KEY}"}},
         ),
         response=MappingResponse(
             status=status,

@@ -19,18 +19,18 @@ LOG_THROTTLING_LIMIT_PER_CALLER = 10
 
 script_directory = os.path.dirname(os.path.realpath(__file__))
 version_file_path = os.path.join(script_directory, "version.txt")
-with open(version_file_path) as version_file:
+with open(version_file_path, encoding="utf-8") as version_file:
     _version = version_file.readline()
     _version_tag = f"[{_version}] "
 
 
 class ThrottlingCounter:
-    counter = dict()
+    counter = {}
 
     def reset_throttling_counter(self):
         # the state has to be cleared for each function execution because consecutive calls might share same
         # execution environment (in such case static variables are not being initialized again!)
-        self.counter = dict()
+        self.counter = {}
 
     def check_if_caller_exceeded_limit(self, caller) -> bool:
         log_calls_performed = self.counter.get(caller, 0)
@@ -38,8 +38,9 @@ class ThrottlingCounter:
 
         if log_calls_left == 0:
             self.counter[caller] = log_calls_performed + 1
-            logging.warning(_version_tag + f"Logging calls from caller '{caller}' exceeded the throttling limit of"
-                                           f" {LOG_THROTTLING_LIMIT_PER_CALLER}. Further logs from this caller will be discarded")
+            logging.warning("%sLogging calls from caller '%s' exceeded the throttling limit of %s. "
+                            "Further logs from this caller will be discarded",
+                            _version_tag, caller, LOG_THROTTLING_LIMIT_PER_CALLER)
 
         caller_exceeded_limit = log_calls_left <= 0
         if not caller_exceeded_limit:

@@ -40,7 +40,7 @@ def test_logs_on_dynatrace():
     headers = {
         'Authorization': f"Api-Token {os.environ['TARGET_API_TOKEN']}"
     }
-    resp = requests.get(url, params=params, headers=headers)
+    resp = requests.get(url, params=params, headers=headers, timeout=60)
 
     assert resp.status_code == 200
     # We should receive 3 Logic App logs from Dynatrace with status 'Running' in 3 min time span (Logic App is triggered once per min)
