@@ -57,9 +57,9 @@ class SourceMatcher:
     def __init__(self, source: str, condition: str):
         self.source = source
         self.condition = condition
-        for key in _CONDITION_COMPARATOR_MAP:
+        for key, condition_comparator in _CONDITION_COMPARATOR_MAP.items():
             if condition.startswith(key):
-                self._evaluator = _CONDITION_COMPARATOR_MAP[key]
+                self._evaluator = condition_comparator
                 break
         operands = re.findall(r"'(.*?)'", condition, re.DOTALL)
         self._operand = ','.join(operands) if operands else None
@@ -108,7 +108,7 @@ class MetadataEngine:
         for file in config_files:
             config_file_path = os.path.join(config_directory, file)
             try:
-                with open(config_file_path) as config_file:
+                with open(config_file_path, encoding="utf-8") as config_file:
                     config_json = json.load(config_file)
                     if config_json.get("name", "") == "default":
                         self.default_rule = _create_config_rules(config_json)[0]

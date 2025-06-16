@@ -19,7 +19,6 @@ from jmespath import functions
 
 
 class MappingCustomFunctions(functions.Functions):
-    # pylint: disable=R0201
 
     @functions.signature({'types': ['string']},
                          {'types': ['string']},

@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/azure-functions/python:4-python3.9
+FROM mcr.microsoft.com/azure-functions/python:4-python3.12
 
 ARG pypi_org_cache_repo=https://artifactory.lab.dynatrace.org/artifactory/api/pypi/pypi-org/simple
 
