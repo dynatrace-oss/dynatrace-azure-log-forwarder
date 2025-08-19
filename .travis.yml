@@ -1,5 +1,5 @@
 os: linux
-dist: focal
+dist: noble
 language: shell
 if: fork = false
 notifications:
