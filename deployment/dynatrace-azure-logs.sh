@@ -62,7 +62,7 @@ err() {
 print_help()
 {
    printf "
-usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-user-assigned-managed-identity ENABLE_USER_ASSIGNED_MANAGED_IDENTITY] [--custom-consumer-group CONSUMER_GROUP]
+usage: dynatrace-azure-logs.sh --deployment-name DEPLOYMENT_NAME --target-url TARGET_URL --target-api-token TARGET_API_TOKEN --resource-group RESOURCE_GROUP --event-hub-connection-string EVENT_HUB_CONNECTION_STRING [--use-existing-active-gate USE_EXISTING_ACTIVE_GATE] [--target-paas-token TARGET_PAAS_TOKEN] [--filter-config FILTER_CONFIG] [--require-valid-certificate REQUIRE_VALID_CERTIFICATE] [--enable-self-monitoring SFM_ENABLED] [--repository-release-url REPOSITORY_RELEASE_URL] [--enable-user-assigned-managed-identity ENABLE_USER_ASSIGNED_MANAGED_IDENTITY] [--custom-consumer-group CONSUMER_GROUP] [--app-service-plan-sku-name SKU_NAME] [--app-service-plan-sku-tier SKU_TIER] [--app-service-plan-sku-size SKU_SIZE] [--app-service-plan-sku-family SKU_FAMILY] [--app-service-plan-sku-capacity SKU_CAPACITY]
 
 arguments:
     -h, --help              Show this help message and exit
@@ -108,6 +108,16 @@ arguments:
                             Event Hubs namespace's host name
     --custom-consumer-group CONSUMER_GROUP
                             Optional, custom consumer group for Event Hub.
+    --app-service-plan-sku-name SKU_NAME
+                            Optional, App Service Plan SKU name (e.g., S1, S2, S3, P1v2, P2v2, P3v2). Default: S1
+    --app-service-plan-sku-tier SKU_TIER
+                            Optional, App Service Plan SKU tier (e.g., Standard, Premium, PremiumV2). Default: Standard
+    --app-service-plan-sku-size SKU_SIZE
+                            Optional, App Service Plan SKU size (e.g., S1, S2, S3, P1v2, P2v2, P3v2). Default: S1
+    --app-service-plan-sku-family SKU_FAMILY
+                            Optional, App Service Plan SKU family (e.g., S, P, Pv2). Default: S
+    --app-service-plan-sku-capacity SKU_CAPACITY
+                            Optional, App Service Plan instance count. Default: 1
     "
 }
 
@@ -128,6 +138,11 @@ print_all_parameters() {
   if [ -n "$FILTER_CONFIG" ]; then PARAMETERS+=", FILTER_CONFIG=$FILTER_CONFIG"; fi
   if [ -n "$TAGS" ]; then PARAMETERS+=", TAGS=$TAGS"; fi
   if [[ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" == "true" ]]; then PARAMETERS+="EVENT_HUB_NAME=$EVENT_HUB_NAME, EVENT_HUB_CONNECTION_CLIENT_ID=$EVENT_HUB_CONNECTION_CLIENT_ID, MANAGED_IDENTITY_RESOURCE_NAME=$MANAGED_IDENTITY_RESOURCE_NAME, EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE=$EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE"; fi
+  if [ -n "$APP_SERVICE_PLAN_SKU_NAME" ]; then PARAMETERS+=", APP_SERVICE_PLAN_SKU_NAME=$APP_SERVICE_PLAN_SKU_NAME"; fi
+  if [ -n "$APP_SERVICE_PLAN_SKU_TIER" ]; then PARAMETERS+=", APP_SERVICE_PLAN_SKU_TIER=$APP_SERVICE_PLAN_SKU_TIER"; fi
+  if [ -n "$APP_SERVICE_PLAN_SKU_SIZE" ]; then PARAMETERS+=", APP_SERVICE_PLAN_SKU_SIZE=$APP_SERVICE_PLAN_SKU_SIZE"; fi
+  if [ -n "$APP_SERVICE_PLAN_SKU_FAMILY" ]; then PARAMETERS+=", APP_SERVICE_PLAN_SKU_FAMILY=$APP_SERVICE_PLAN_SKU_FAMILY"; fi
+  if [ -n "$APP_SERVICE_PLAN_SKU_CAPACITY" ]; then PARAMETERS+=", APP_SERVICE_PLAN_SKU_CAPACITY=$APP_SERVICE_PLAN_SKU_CAPACITY"; fi
   echo
   info "Deployment script will use following parameters:"
   info "$PARAMETERS"
@@ -319,6 +334,36 @@ while (( "$#" )); do
                 shift; shift
             ;;
 
+            "--app-service-plan-sku-name")
+                ensure_param_value_given $1 $2
+                APP_SERVICE_PLAN_SKU_NAME=$2
+                shift; shift
+            ;;
+
+            "--app-service-plan-sku-tier")
+                ensure_param_value_given $1 $2
+                APP_SERVICE_PLAN_SKU_TIER=$2
+                shift; shift
+            ;;
+
+            "--app-service-plan-sku-size")
+                ensure_param_value_given $1 $2
+                APP_SERVICE_PLAN_SKU_SIZE=$2
+                shift; shift
+            ;;
+
+            "--app-service-plan-sku-family")
+                ensure_param_value_given $1 $2
+                APP_SERVICE_PLAN_SKU_FAMILY=$2
+                shift; shift
+            ;;
+
+            "--app-service-plan-sku-capacity")
+                ensure_param_value_given $1 $2
+                APP_SERVICE_PLAN_SKU_CAPACITY=$2
+                shift; shift
+            ;;
+
             *)
             err "Unknown param $1"
             print_help
@@ -438,6 +483,13 @@ for TAG_PAIR in "${TAG_PAIRS[@]}"; do
 done
 LOG_FORWARDER_TAGS="{${LOG_FORWARDER_TAGS}}"
 
+SKU_PARAMS=""
+if [ -n "$APP_SERVICE_PLAN_SKU_NAME" ]; then SKU_PARAMS+="appServicePlanSkuName=${APP_SERVICE_PLAN_SKU_NAME} "; fi
+if [ -n "$APP_SERVICE_PLAN_SKU_TIER" ]; then SKU_PARAMS+="appServicePlanSkuTier=${APP_SERVICE_PLAN_SKU_TIER} "; fi
+if [ -n "$APP_SERVICE_PLAN_SKU_SIZE" ]; then SKU_PARAMS+="appServicePlanSkuSize=${APP_SERVICE_PLAN_SKU_SIZE} "; fi
+if [ -n "$APP_SERVICE_PLAN_SKU_FAMILY" ]; then SKU_PARAMS+="appServicePlanSkuFamily=${APP_SERVICE_PLAN_SKU_FAMILY} "; fi
+if [ -n "$APP_SERVICE_PLAN_SKU_CAPACITY" ]; then SKU_PARAMS+="appServicePlanSkuCapacity=${APP_SERVICE_PLAN_SKU_CAPACITY} "; fi
+
 if [ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
   az deployment group create \
   --resource-group ${RESOURCE_GROUP} \
@@ -455,7 +507,8 @@ if [ "$ENABLE_USER_ASSIGNED_MANAGED_IDENTITY" = "true" ]; then
   eventhubConnectionClientId="${EVENT_HUB_CONNECTION_CLIENT_ID}" \
   eventhubConnectionCredentials="${EVENT_HUB_CONNECTION_CREDENTIALS}" \
   eventhubConnectionFullyQualifiedNamespace="${EVENT_HUB_CONNECTION_FULLY_QUALIFIED_NAMESPACE}" \
-  customConsumerGroup="${CONSUMER_GROUP}"
+  customConsumerGroup="${CONSUMER_GROUP}" \
+  ${SKU_PARAMS}
 else
   az deployment group create \
   --resource-group ${RESOURCE_GROUP} \
@@ -471,7 +524,8 @@ else
   targetPaasToken="${TARGET_PAAS_TOKEN}" \
   filterConfig="${FILTER_CONFIG}" \
   resourceTags="${LOG_FORWARDER_TAGS}" \
-  customConsumerGroup="${CONSUMER_GROUP}"
+  customConsumerGroup="${CONSUMER_GROUP}" \
+  ${SKU_PARAMS}
 fi
 
 if [[ $? != 0 ]]; then
