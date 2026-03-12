@@ -103,6 +103,41 @@
             "metadata": {
                 "description": "Custom Consumer group name"
             }
+        },
+        "appServicePlanSkuName": {
+            "type": "string",
+            "defaultValue": "S1",
+            "metadata": {
+                "description": "App Service Plan SKU name (e.g., S1, S2, S3, P1v2, P2v2, P3v2)"
+            }
+        },
+        "appServicePlanSkuTier": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "metadata": {
+                "description": "App Service Plan SKU tier (e.g., Standard, Premium, PremiumV2)"
+            }
+        },
+        "appServicePlanSkuSize": {
+            "type": "string",
+            "defaultValue": "S1",
+            "metadata": {
+                "description": "App Service Plan SKU size (e.g., S1, S2, S3, P1v2, P2v2, P3v2)"
+            }
+        },
+        "appServicePlanSkuFamily": {
+            "type": "string",
+            "defaultValue": "S",
+            "metadata": {
+                "description": "App Service Plan SKU family (e.g., S, P, Pv2)"
+            }
+        },
+        "appServicePlanSkuCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "App Service Plan instance count"
+            }
         }
     },
     "variables": {
@@ -356,11 +391,11 @@
             "location": "[resourceGroup().location]",
             "tags": "[parameters('resourceTags')]",
             "sku": {
-                "name": "S1",
-                "tier": "Standard",
-                "size": "S1",
-                "family": "S",
-                "capacity": 1
+                "name": "[parameters('appServicePlanSkuName')]",
+                "tier": "[parameters('appServicePlanSkuTier')]",
+                "size": "[parameters('appServicePlanSkuSize')]",
+                "family": "[parameters('appServicePlanSkuFamily')]",
+                "capacity": "[parameters('appServicePlanSkuCapacity')]"
             },
             "kind": "Linux",
             "properties": {
