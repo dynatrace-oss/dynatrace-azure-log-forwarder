@@ -3,7 +3,7 @@ import os
 
 
 def to_base64_text(text: str) -> str:
-    encoded_bytes = base64.b64encode(text.encode('ascii'))
+    encoded_bytes = base64.b64encode(text.encode('utf-8'))
     encoded_text = encoded_bytes.decode('ascii')
     return encoded_text
 
