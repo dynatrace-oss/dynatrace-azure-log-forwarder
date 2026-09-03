@@ -48,3 +48,45 @@ def test_to_base64_text_multibyte_chars():
     result = to_base64_text(text)
     decoded = base64.b64decode(result).decode('utf-8')
     assert decoded == text
+
+
+def test_to_base64_text_truncates_long_input():
+    # given - input exceeding the default 256-byte limit
+    text = "a" * 300
+
+    # when
+    result = to_base64_text(text)
+
+    # then - result must end with the truncation marker
+    assert result.endswith("...[truncated]")
+    # and the base64 part decodes to exactly 256 bytes
+    base64_part = result.replace("...[truncated]", "")
+    decoded = base64.b64decode(base64_part)
+    assert len(decoded) == 256
+
+
+def test_to_base64_text_no_truncation_at_limit():
+    # given - input exactly at the limit (should not be truncated)
+    text = "a" * 256
+
+    # when
+    result = to_base64_text(text)
+
+    # then
+    assert not result.endswith("...[truncated]")
+    decoded = base64.b64decode(result).decode('utf-8')
+    assert decoded == text
+
+
+def test_to_base64_text_custom_max_bytes():
+    # given
+    text = "hello world"  # 11 bytes
+
+    # when - limit set below the input length
+    result = to_base64_text(text, max_bytes=5)
+
+    # then
+    assert result.endswith("...[truncated]")
+    base64_part = result.replace("...[truncated]", "")
+    decoded = base64.b64decode(base64_part)
+    assert decoded == b"hello"
