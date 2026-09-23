@@ -338,7 +338,7 @@
                 "name": "Standard_LRS",
                 "tier": "Standard"
             },
-            "kind": "Storage",
+            "kind": "StorageV2",
             "properties": {
                 "minimumTlsVersion": "TLS1_2",
                 "networkAcls": {
