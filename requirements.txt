@@ -7,4 +7,4 @@ azure-identity~=1.23.0
 certifi~=2026.10.19
 jmespath~=1.0.1
 python-dateutil~=2.9.0.post0
-aiohttp==3.14.3
+aiohttp==3.14.4
